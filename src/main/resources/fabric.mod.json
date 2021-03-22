@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "kzeaddon_fabric",
+  "version": "${version}",
+  "name": "KZEAddon Fabric",
+  "description": "KaedeZombieEscapeをプレイする際の支援Modです",
+  "authors": [
+    "_xTHEBOSSx_",
+    "GriseCalvados",
+    "traight195",
+    "coachang",
+    "Nero_chama"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/kzeaddon_fabric/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.theboss.kzeaddonfabric.KZEAddonFabric"
+    ]
+  },
+  "mixins": [
+    "KZEAddon-Fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "1.16.4"
+  }
+}
