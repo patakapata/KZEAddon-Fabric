@@ -4,8 +4,13 @@
   "package": "com.theboss.kzeaddonfabric.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "WorldMixin"
   ],
   "client": [
+    "ClientWorldMixin",
+    "InGameHudMixin",
+    "MinecraftClientMixin",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
