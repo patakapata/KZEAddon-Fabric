@@ -10,13 +10,14 @@ import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class Widget {
-    private Supplier<Text> supplier;
+    private final Supplier<Text> supplier;
+    private final Supplier<Integer> color;
+
     private Anchor widgetAnchor;
     private Anchor windowAnchor;
     private int offsetX;
     private int offsetY;
     private float scaleFactor;
-    private Supplier<Integer> color;
 
     public Widget(Supplier<Text> supplier, Anchor widgetAnchor, Anchor windowAnchor, float scaleFactor, Supplier<Integer> color, int offsetX, int offsetY) {
         this.supplier = supplier;
@@ -83,10 +84,6 @@ public class Widget {
 
     public Supplier<Text> getSupplier() {
         return this.supplier;
-    }
-
-    public void setSupplier(Supplier<Text> supplier) {
-        this.supplier = supplier;
     }
 
     public Anchor getWidgetAnchor() {

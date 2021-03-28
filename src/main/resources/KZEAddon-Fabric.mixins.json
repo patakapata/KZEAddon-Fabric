@@ -8,6 +8,7 @@
   ],
   "client": [
     "client.ClientWorldMixin",
+    "client.GameRendererMixin",
     "client.InGameHudMixin",
     "client.MinecraftClientMixin",
     "client.TitleScreenMixin",

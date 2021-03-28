@@ -1,6 +1,5 @@
 package com.theboss.kzeaddonfabric.mixin.client;
 
-import com.theboss.kzeaddonfabric.KZEAddonFabric;
 import com.theboss.kzeaddonfabric.screen.ColorSelectScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
@@ -21,6 +20,6 @@ public abstract class TitleScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("RETURN"))
     private void onInit(CallbackInfo ci) {
-        this.addButton(new ButtonWidget(10, 10, 20, 20, new LiteralText("@"), widget -> MinecraftClient.getInstance().openScreen(new ColorSelectScreen(KZEAddonFabric.color, color -> KZEAddonFabric.color = color))));
+        this.addButton(new ButtonWidget(10, 10, 20, 20, new LiteralText("@"), widget -> MinecraftClient.getInstance().openScreen(new ColorSelectScreen(16777215, unused -> {}))));
     }
 }
