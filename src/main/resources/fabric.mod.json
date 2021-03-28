@@ -13,7 +13,7 @@
   ],
   "contact": {},
   "license": "MIT",
-  "icon": "assets/kzeaddon_fabric/icon.png",
+  "icon": "assets/kzeaddon-fabric/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [

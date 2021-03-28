@@ -1,0 +1,5 @@
+{
+  "com/theboss/kzeaddonfabric/mixin/client/MinecraftClientMixin": {
+    "stop": "Lnet/minecraft/class_310;method_1490()V"
+  }
+}

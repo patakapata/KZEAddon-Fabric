@@ -1,6 +1,7 @@
-package com.theboss.kzeaddonfabric.mixin;
+package com.theboss.kzeaddonfabric.mixin.client;
 
 import com.theboss.kzeaddonfabric.KZEAddonFabric;
+import com.theboss.kzeaddonfabric.mixin.WorldMixin;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.world.ClientWorld;

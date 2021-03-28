@@ -7,12 +7,14 @@
     "WorldMixin"
   ],
   "client": [
-    "ClientWorldMixin",
-    "InGameHudMixin",
-    "MinecraftClientMixin",
-    "WorldRendererMixin"
+    "client.ClientWorldMixin",
+    "client.InGameHudMixin",
+    "client.MinecraftClientMixin",
+    "client.TitleScreenMixin",
+    "client.WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "refmap": "KZEAddon-Fabric-refmap.json"
 }
