@@ -1,5 +1,44 @@
 {
-  "com/theboss/kzeaddonfabric/mixin/client/MinecraftClientMixin": {
-    "stop": "Lnet/minecraft/class_310;method_1490()V"
+  "mappings": {
+    "com/theboss/kzeaddonfabric/mixin/client/MinecraftClientMixin": {
+      "stop": "Lnet/minecraft/class_310;method_1490()V"
+    },
+    "com/theboss/kzeaddonfabric/mixin/client/TitleScreenMixin": {
+      "init": "Lnet/minecraft/class_442;method_25426()V"
+    },
+    "com/theboss/kzeaddonfabric/mixin/client/GameRendererMixin": {
+      "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V": "Lnet/minecraft/class_3695;method_15405(Ljava/lang/String;)V",
+      "renderWorld": "Lnet/minecraft/class_757;method_3188(FJLnet/minecraft/class_4587;)V"
+    },
+    "com/theboss/kzeaddonfabric/mixin/client/InGameHudMixin": {
+      "Lcom/mojang/blaze3d/systems/RenderSystem;color4f(FFFF)V": "Lcom/mojang/blaze3d/systems/RenderSystem;color4f(FFFF)V",
+      "Lnet/minecraft/client/gui/hud/PlayerListHud;render(Lnet/minecraft/client/util/math/MatrixStack;ILnet/minecraft/scoreboard/Scoreboard;Lnet/minecraft/scoreboard/ScoreboardObjective;)V": "Lnet/minecraft/class_355;method_1919(Lnet/minecraft/class_4587;ILnet/minecraft/class_269;Lnet/minecraft/class_266;)V",
+      "render": "Lnet/minecraft/class_329;method_1753(Lnet/minecraft/class_4587;F)V"
+    },
+    "com/theboss/kzeaddonfabric/mixin/WorldMixin": {
+      "tickBlockEntities": "Lnet/minecraft/class_1937;method_18471()V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "com/theboss/kzeaddonfabric/mixin/client/MinecraftClientMixin": {
+        "stop": "Lnet/minecraft/class_310;method_1490()V"
+      },
+      "com/theboss/kzeaddonfabric/mixin/client/TitleScreenMixin": {
+        "init": "Lnet/minecraft/class_442;method_25426()V"
+      },
+      "com/theboss/kzeaddonfabric/mixin/client/GameRendererMixin": {
+        "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V": "Lnet/minecraft/class_3695;method_15405(Ljava/lang/String;)V",
+        "renderWorld": "Lnet/minecraft/class_757;method_3188(FJLnet/minecraft/class_4587;)V"
+      },
+      "com/theboss/kzeaddonfabric/mixin/client/InGameHudMixin": {
+        "Lcom/mojang/blaze3d/systems/RenderSystem;color4f(FFFF)V": "Lcom/mojang/blaze3d/systems/RenderSystem;color4f(FFFF)V",
+        "Lnet/minecraft/client/gui/hud/PlayerListHud;render(Lnet/minecraft/client/util/math/MatrixStack;ILnet/minecraft/scoreboard/Scoreboard;Lnet/minecraft/scoreboard/ScoreboardObjective;)V": "Lnet/minecraft/class_355;method_1919(Lnet/minecraft/class_4587;ILnet/minecraft/class_269;Lnet/minecraft/class_266;)V",
+        "render": "Lnet/minecraft/class_329;method_1753(Lnet/minecraft/class_4587;F)V"
+      },
+      "com/theboss/kzeaddonfabric/mixin/WorldMixin": {
+        "tickBlockEntities": "Lnet/minecraft/class_1937;method_18471()V"
+      }
+    }
   }
 }
