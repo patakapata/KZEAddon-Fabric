@@ -1,4 +1,4 @@
-package com.theboss.kzeaddonfabric.render;
+package com.theboss.kzeaddonfabric.enums;
 
 public enum Anchor {
     LEFT_UP(0, 0.0F, 0.0F), MIDDLE_UP(1, 0.5F, 0.0F), RIGHT_UP(2, 1.0F, 0.0F),

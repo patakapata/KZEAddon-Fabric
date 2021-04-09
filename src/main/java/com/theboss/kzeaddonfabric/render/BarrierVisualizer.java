@@ -1,10 +1,16 @@
 package com.theboss.kzeaddonfabric.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.theboss.kzeaddonfabric.KZEAddonFabric;
+import com.theboss.kzeaddonfabric.enums.BarrierVisualizeOrigin;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.GlAllocationUtils;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -33,21 +39,34 @@ public class BarrierVisualizer {
 
     public void tick() {
         if (MinecraftClient.getInstance().player == null) return;
-        this.controller.tick(MinecraftClient.getInstance().player.getBlockPos());
+        BlockPos center = null;
+        if (KZEAddonFabric.OPTIONS.getBarrierVisualizeOrigin() == BarrierVisualizeOrigin.MYSELF) {
+            center = MinecraftClient.getInstance().player.getBlockPos();
+        } else {
+            HitResult result = MinecraftClient.getInstance().player.raycast(50.0, MinecraftClient.getInstance().getTickDelta(), false);
+            if (result.getType() == HitResult.Type.BLOCK) {
+                center = ((BlockHitResult) result).getBlockPos();
+            }
+        }
+        if (center != null)
+            this.controller.tick(center);
     }
 
-    public void draw(MatrixStack matrices, float delta) {
-
+    public void draw(float delta) {
         MinecraftClient client = MinecraftClient.getInstance();
         Vec3d pos = client.gameRenderer.getCamera().getPos();
+        Camera camera = client.gameRenderer.getCamera();
 
+        MatrixStack matrices = new MatrixStack();
         matrices.push();
+        matrices.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(camera.getPitch()));
+        matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180.0F));
         matrices.translate(-pos.x, -pos.y, -pos.z);
         Matrix4f matrix = matrices.peek().getModel();
-        matrix.writeToBuffer(MATRIX_BUFFER);
+        matrix.writeToBuffer(this.MATRIX_BUFFER);
         matrices.pop();
 
-        GL11.glMultMatrixf(MATRIX_BUFFER);
+        GL11.glMultMatrixf(this.MATRIX_BUFFER);
         this.controller.draw();
         GL11.glLoadIdentity();
     }
@@ -81,7 +100,7 @@ public class BarrierVisualizer {
             this.isFirst = false;
             this.renderDistance = renderDistance;
             this.diameter = this.renderDistance * 2 + 1;
-            this.chunks = new Chunk[diameter][diameter][diameter];
+            this.chunks = new Chunk[this.diameter][this.diameter][this.diameter];
             int id = 0;
             for (int x = 0; x < this.diameter; x++) {
                 for (int y = 0; y < this.diameter; y++) {
@@ -181,7 +200,7 @@ public class BarrierVisualizer {
         public void tick(BlockPos center) {
             this.updateRegion(center.getX() / 16, center.getY() / 16, center.getZ() / 16);
             // this.run(chunk -> CompletableFuture.runAsync(() -> chunk.update(world, this.shouldRebuild)));
-            this.run(UPDATER);
+            this.run(this.UPDATER);
             this.shouldRebuild = false;
         }
 
@@ -238,7 +257,7 @@ public class BarrierVisualizer {
         }
 
         public void init(int initialCapacity, BlockPos origin) {
-            vbo.init(initialCapacity);
+            this.vbo.init(initialCapacity);
             this.origin = origin;
             this.flags = new boolean[16][16][16];
             this.resetFlags();

@@ -15,6 +15,6 @@ public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
 
     @Override
     public void onClose() {
-        this.client.openScreen(parent);
+        this.client.openScreen(this.parent);
     }
 }

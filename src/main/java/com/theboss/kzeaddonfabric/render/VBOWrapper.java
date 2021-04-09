@@ -23,17 +23,17 @@ public class VBOWrapper {
     private boolean sizeChanged;
 
     public void init(int initialCapacity) {
-        buffer = GlAllocationUtils.allocateByteBuffer(initialCapacity);
-        vboId = glGenBuffers();
+        this.buffer = GlAllocationUtils.allocateByteBuffer(initialCapacity);
+        this.vboId = glGenBuffers();
 
         bind();
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, this.buffer, GL_DYNAMIC_DRAW);
         unbind();
     }
 
     public void destroy() {
-        if (glIsBuffer(vboId))
-            glDeleteBuffers(vboId);
+        if (glIsBuffer(this.vboId))
+            glDeleteBuffers(this.vboId);
     }
 
     ByteBuffer getBuffer() {
@@ -41,7 +41,7 @@ public class VBOWrapper {
     }
 
     public void bind() {
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+        glBindBuffer(GL_ARRAY_BUFFER, this.vboId);
     }
 
     public void unbind() {
@@ -49,14 +49,14 @@ public class VBOWrapper {
     }
 
     public void grow(int count) {
-        int remaining = buffer.remaining();
+        int remaining = this.buffer.remaining();
         if (count > remaining) {
-            int cap = buffer.capacity();
+            int cap = this.buffer.capacity();
             int newSize = cap + roundBufferSize(count);
             ByteBuffer byteBuff = GlAllocationUtils.allocateByteBuffer(newSize);
-            buffer.flip();
-            byteBuff.put(buffer);
-            buffer = byteBuff;
+            this.buffer.flip();
+            byteBuff.put(this.buffer);
+            this.buffer = byteBuff;
             this.sizeChanged = true;
         }
 
@@ -77,9 +77,9 @@ public class VBOWrapper {
     }
 
     public void begin(int mode, VertexFormats.VertexFormat format) {
-        if (isBuilding)
+        if (this.isBuilding)
             throw new IllegalStateException("Already building!");
-        buffer.clear();
+        this.buffer.clear();
         this.isBuilding = true;
         this.mode = mode;
         this.format = format;
@@ -87,9 +87,9 @@ public class VBOWrapper {
     }
 
     public void end() {
-        if (!isBuilding)
+        if (!this.isBuilding)
             throw new IllegalStateException("Not started building!");
-        buffer.flip();
+        this.buffer.flip();
         this.isBuilding = false;
     }
 
@@ -97,10 +97,10 @@ public class VBOWrapper {
         bind();
 
         if (this.sizeChanged) {
-            glBufferData(GL_ARRAY_BUFFER, buffer.capacity(), GL_DYNAMIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, this.buffer.capacity(), GL_DYNAMIC_DRAW);
             this.sizeChanged = false;
         }
-        glBufferSubData(GL_ARRAY_BUFFER, 0, buffer);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, this.buffer);
 
         unbind();
     }
@@ -141,7 +141,7 @@ public class VBOWrapper {
     public void draw() {
         bind();
         this.prepare();
-        glDrawArrays(this.mode, 0, buffer.limit() / STRIDE);
+        glDrawArrays(this.mode, 0, this.buffer.limit() / this.STRIDE);
         this.circumstance();
         unbind();
     }
@@ -151,17 +151,17 @@ public class VBOWrapper {
         Vector4f vec = new Vector4f(x, y, z, 1F);
         vec.transform(matrix);
 
-        buffer.putFloat(vec.getX());
-        buffer.putFloat(vec.getY());
-        buffer.putFloat(vec.getZ());
+        this.buffer.putFloat(vec.getX());
+        this.buffer.putFloat(vec.getY());
+        this.buffer.putFloat(vec.getZ());
     }
 
     public void vertex(float x, float y, float z) {
         grow(12);
 
-        buffer.putFloat(x);
-        buffer.putFloat(y);
-        buffer.putFloat(z);
+        this.buffer.putFloat(x);
+        this.buffer.putFloat(y);
+        this.buffer.putFloat(z);
     }
 
     public void vertex(double x, double y, double z) {
@@ -175,10 +175,10 @@ public class VBOWrapper {
     public void color(int red, int green, int blue, int alpha) {
         grow(4);
 
-        buffer.put((byte) red);
-        buffer.put((byte) green);
-        buffer.put((byte) blue);
-        buffer.put((byte) alpha);
+        this.buffer.put((byte) red);
+        this.buffer.put((byte) green);
+        this.buffer.put((byte) blue);
+        this.buffer.put((byte) alpha);
     }
 
     public void color(float red, float green, float blue, float alpha) {
@@ -188,27 +188,27 @@ public class VBOWrapper {
     public void uv(int u, int v) {
         grow(8);
 
-        buffer.putInt(u);
-        buffer.putInt(v);
+        this.buffer.putInt(u);
+        this.buffer.putInt(v);
     }
 
     public void put(byte b) {
         grow(1);
 
-        buffer.put(b);
+        this.buffer.put(b);
     }
 
     public void put(float f) {
         grow(4);
 
-        buffer.putFloat(4);
+        this.buffer.putFloat(4);
     }
 
     public void put(int i, byte b) {
-        buffer.put(i, b);
+        this.buffer.put(i, b);
     }
 
     public void put(int i, float f) {
-        buffer.putFloat(i, f);
+        this.buffer.putFloat(i, f);
     }
 }

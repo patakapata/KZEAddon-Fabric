@@ -7,10 +7,12 @@
     "WorldMixin"
   ],
   "client": [
+    "client.AbstractSoundInstanceMixin",
     "client.ClientWorldMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
     "client.MinecraftClientMixin",
+    "client.ResourcePackStatusC2SPacketMixin",
     "client.TitleScreenMixin",
     "client.WorldRendererMixin"
   ],

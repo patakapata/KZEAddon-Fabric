@@ -1,47 +1,57 @@
-package com.theboss.kzeaddonfabric.render;
+package com.theboss.kzeaddonfabric.render.widgets;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.google.gson.annotations.Expose;
+import com.theboss.kzeaddonfabric.enums.Anchor;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
-import java.util.function.Supplier;
-
 @SuppressWarnings("unused")
-public class Widget {
-    private final Supplier<Text> supplier;
-    private final Supplier<Integer> color;
-
+public abstract class Widget {
+    @Expose
     private Anchor widgetAnchor;
+    @Expose
     private Anchor windowAnchor;
+    @Expose
     private int offsetX;
+    @Expose
     private int offsetY;
+    @Expose
     private float scaleFactor;
+    @Expose
+    private boolean visibility;
+    @Expose
+    private short opacity;
 
-    public Widget(Supplier<Text> supplier, Anchor widgetAnchor, Anchor windowAnchor, float scaleFactor, Supplier<Integer> color, int offsetX, int offsetY) {
-        this.supplier = supplier;
+    public Widget(Anchor widgetAnchor, Anchor windowAnchor, float scaleFactor, int offsetX, int offsetY, int opacity) {
         this.widgetAnchor = widgetAnchor;
         this.windowAnchor = windowAnchor;
         this.scaleFactor = scaleFactor;
-        this.color = color;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
+        this.visibility = true;
+        this.opacity = (short) opacity;
     }
 
     public Widget(Widget source) {
-        this(source.supplier, source.widgetAnchor, source.windowAnchor, source.scaleFactor, source.color, source.offsetX, source.offsetY);
+        this(source.widgetAnchor, source.windowAnchor, source.scaleFactor, source.offsetX, source.offsetY, source.opacity);
+        this.visibility = source.visibility;
     }
 
-    public Text getMessage() {
-        return this.supplier.get();
+    public short getOpacity() {
+        return this.opacity;
     }
 
-    public float getWidth(Text message, TextRenderer textRenderer) {
+    public void setOpacity(short opacity) {
+        this.opacity = opacity;
+    }
+
+    private float getWidth(Text message, TextRenderer textRenderer) {
         return textRenderer.getWidth(message.asString()) * this.scaleFactor;
     }
 
-    public float getHeight(TextRenderer textRenderer) {
+    private float getHeight(TextRenderer textRenderer) {
         return textRenderer.fontHeight * this.scaleFactor;
     }
 
@@ -51,7 +61,15 @@ public class Widget {
         float windowX = scaledWidth * this.windowAnchor.getXFactor();
         float widgetX = windowX - (msgWidth * this.widgetAnchor.getXFactor());
 
-        return widgetX + this.offsetX;
+        return (widgetX + this.offsetX) / this.scaleFactor;
+    }
+
+    public boolean isVisible() {
+        return this.visibility;
+    }
+
+    public void setVisibility(boolean visibility) {
+        this.visibility = visibility;
     }
 
     public float getAbsoluteY(Text message, Window window, TextRenderer textRenderer) {
@@ -60,34 +78,39 @@ public class Widget {
         float windowY = scaledHeight * this.windowAnchor.getYFactor();
         float widgetY = windowY - (msgHeight * this.widgetAnchor.getYFactor());
 
-        return widgetY + this.offsetY;
+        return (widgetY + this.offsetY) / this.scaleFactor;
     }
 
     public void render(MatrixStack matrices, Window window, TextRenderer textRenderer) {
-        Text message = this.getMessage();
+        if (!this.visibility) return;
+
+        Text message = this.getText();
 
         float x = this.getAbsoluteX(message, window, textRenderer);
         float y = this.getAbsoluteY(message, window, textRenderer);
 
-        RenderSystem.scalef(this.scaleFactor, this.scaleFactor, this.scaleFactor);
-        textRenderer.drawWithShadow(matrices, message, x, y, this.color.get());
-        RenderSystem.scalef(1F, 1F, 1F);
+        matrices.push();
+        matrices.scale(this.scaleFactor, this.scaleFactor, this.scaleFactor);
+        textRenderer.drawWithShadow(matrices, message, x, y, this.getColor());
+        matrices.pop();
     }
 
-    public double getScaleFactor() {
-        return scaleFactor;
+    public int getColor() {
+        return 0xFFFFFF;
+    }
+
+    public abstract Text getText();
+
+    public float getScaleFactor() {
+        return this.scaleFactor;
     }
 
     public void setScaleFactor(float scaleFactor) {
         this.scaleFactor = scaleFactor;
     }
 
-    public Supplier<Text> getSupplier() {
-        return this.supplier;
-    }
-
     public Anchor getWidgetAnchor() {
-        return widgetAnchor;
+        return this.widgetAnchor;
     }
 
     public void setWidgetAnchor(Anchor widgetAnchor) {
@@ -95,7 +118,7 @@ public class Widget {
     }
 
     public Anchor getWindowAnchor() {
-        return windowAnchor;
+        return this.windowAnchor;
     }
 
     public void setWindowAnchor(Anchor windowAnchor) {
@@ -103,7 +126,7 @@ public class Widget {
     }
 
     public int getOffsetX() {
-        return offsetX;
+        return this.offsetX;
     }
 
     public void setOffsetX(int offsetX) {
@@ -111,7 +134,7 @@ public class Widget {
     }
 
     public int getOffsetY() {
-        return offsetY;
+        return this.offsetY;
     }
 
     public void setOffsetY(int offsetY) {

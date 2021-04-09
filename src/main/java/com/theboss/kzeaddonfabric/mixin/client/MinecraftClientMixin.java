@@ -13,7 +13,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MinecraftClient.class)
 public abstract class MinecraftClientMixin {
     @Inject(at = @At(value = "INVOKE", target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;)V", shift = At.Shift.AFTER), method = "stop")
-    private void onClientStop(CallbackInfo ci) {
-        KZEAddonFabric.onClientStop();
-    }
+    private void onClientStop(CallbackInfo ci) { KZEAddonFabric.onClientStop(); }
 }

@@ -1,6 +1,7 @@
 package com.theboss.kzeaddonfabric.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.theboss.kzeaddonfabric.Color;
 import com.theboss.kzeaddonfabric.screen.button.SliderWidget;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
 
 public class ColorSelectScreen extends Screen {
     public static final Identifier PREVIEW_FRAME = new Identifier("kzeaddon-fabric", "textures/gui/misc/colorselector_frame.png");
-    private final Consumer<Integer> saveConsumer;
+    private final Consumer<Color> saveConsumer;
     private int centerX;
     private int centerY;
 
@@ -24,7 +25,7 @@ public class ColorSelectScreen extends Screen {
     private SliderWidget green;
     private SliderWidget blue;
 
-    public ColorSelectScreen(int color, Consumer<Integer> saveConsumer) {
+    public ColorSelectScreen(int color, Consumer<Color> saveConsumer) {
         super(new LiteralText("ColorSelectScreen"));
         this.color = color;
         this.saveConsumer = saveConsumer;
@@ -44,9 +45,9 @@ public class ColorSelectScreen extends Screen {
         this.centerX = this.width / 2;
         this.centerY = this.height / 2;
 
-        this.red = new SliderWidget(centerX - 49, centerY - 35, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
-        this.green = new SliderWidget(centerX - 49, centerY - 10, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
-        this.blue = new SliderWidget(centerX - 49, centerY + 15, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
+        this.red = new SliderWidget(this.centerX - 49, this.centerY - 35, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
+        this.green = new SliderWidget(this.centerX - 49, this.centerY - 10, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
+        this.blue = new SliderWidget(this.centerX - 49, this.centerY + 15, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
 
         this.red.setColorSupplier((aDouble, aBoolean) -> {
             if (aBoolean) { return this.red.getAmount() << 16; } else { return 10526880; }
@@ -80,9 +81,9 @@ public class ColorSelectScreen extends Screen {
     }
 
     public boolean isMouseOverPreview(int mouseX, int mouseY) {
-        int up = centerY - 35;
+        int up = this.centerY - 35;
         int down = up + 70;
-        int left = centerX + 54;
+        int left = this.centerX + 54;
         int right = left + 20;
 
         return ((mouseX >= left && mouseX <= right) && (mouseY >= up && mouseY <= down));
@@ -93,9 +94,9 @@ public class ColorSelectScreen extends Screen {
         this.renderBackground(matrices);
         super.render(matrices, mouseX, mouseY, delta);
 
-        int up = centerY - 35;
+        int up = this.centerY - 35;
         int down = up + 70;
-        int left = centerX + 54;
+        int left = this.centerX + 54;
         int right = left + 20;
         boolean isMouseOverPreview = this.isMouseOverPreview(mouseX, mouseY);
 
@@ -122,7 +123,7 @@ public class ColorSelectScreen extends Screen {
 
     @Override
     public void onClose() {
-        this.saveConsumer.accept(this.getColor());
+        this.saveConsumer.accept(new Color(this.getColor()));
         super.onClose();
     }
 }
