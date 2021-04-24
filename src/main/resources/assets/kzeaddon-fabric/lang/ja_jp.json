@@ -1,0 +1,29 @@
+{
+  "kzeaddon.widget.show": "表示",
+  "kzeaddon.widget.hide": "非表示",
+  
+  "kzeaddon.copied_to_clipboard": "クリップボードにコピーしました",
+  "kzeaddon.copy_failed": "コピーに失敗しました",
+  
+  "key.categories.kzeaddon.in_game": "KZEAddon - ゲーム内",
+  "key.categories.kzeaddon.wip": "KZEAddon - !開発中!",
+  
+  "key.kzeaddon.glow.priority.add": "優先発光対象に指定",
+  "key.kzeaddon.wip.copy_item_tag": "ホバー中のアイテムのNBTをコピー",
+  
+  "menu.kzeaddon.option.widget": "ウィジェット",
+  "menu.kzeaddon.option.glowColor": "発光色",
+  "menu.kzeaddon.option.pending": "! 保留 !",
+  "menu.kzeaddon.option.other": "その他",
+  "menu.kzeaddon.option.mainWeapon": "メイン武器",
+  "menu.kzeaddon.option.subWeapon": "サブ武器",
+  "menu.kzeaddon.option.meleeWeapon": "近接武器",
+  "menu.kzeaddon.option.totalAmmo": "総合弾薬",
+  "menu.kzeaddon.option.reloadTime": "リロード時間",
+  "menu.kzeaddon.option.close": "閉じる",
+  "menu.kzeaddon.option.priorityGlowColor": "優先 発光色",
+  "menu.kzeaddon.option.humanGlowColor": "人間 発光色",
+  "menu.kzeaddon.option.zombieGlowColor": "ゾンビ 発光色",
+  
+  "subtitles.kzeaddon.honk": "HONK"
+}

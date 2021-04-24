@@ -1,0 +1,8 @@
+{
+  "honk": {
+    "subtitle": "subtitles.kzeaddon.honk",
+    "sounds": [
+      "kzeaddon-fabric:honk"
+    ]
+  }
+}

@@ -33,6 +33,8 @@ public class Options {
     private BarrierVisualizeOrigin barrierVisualizeOrigin;
     @Expose
     private int barrierVisualizeRadius;
+    @Expose
+    private boolean isCompletelyInvisible;
 
     @Expose
     private GunAmmoWidget primaryAmmo;
@@ -57,12 +59,13 @@ public class Options {
         this.gunfireVolume = 1.0F;
         this.barrierVisualizeOrigin = BarrierVisualizeOrigin.MYSELF;
         this.barrierVisualizeRadius = 1;
+        this.isCompletelyInvisible = false;
 
-        this.primaryAmmo = new GunAmmoWidget(WeaponSlot.PRIMARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 0, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.secondaryAmmo = new GunAmmoWidget(WeaponSlot.SECONDARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 0, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.meleeAmmo = new GunAmmoWidget(WeaponSlot.MELEE, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 0, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.totalAmmo = new TotalAmmoWidget(Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 0, 255);
-        this.reloadIndicator = new ReloadIndicatorWidget(Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 0, 255);
+        this.primaryAmmo = new GunAmmoWidget(WeaponSlot.PRIMARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -80, -30, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
+        this.secondaryAmmo = new GunAmmoWidget(WeaponSlot.SECONDARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -60, -30, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
+        this.meleeAmmo = new GunAmmoWidget(WeaponSlot.MELEE, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -430, -30, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
+        this.totalAmmo = new TotalAmmoWidget(Anchor.RIGHT_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -95, -10, 255);
+        this.reloadIndicator = new ReloadIndicatorWidget(Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 10, 255);
     }
 
     public void initWidgets() {
@@ -185,6 +188,14 @@ public class Options {
 
     public void setGunfireVolume(float gunfireVolume) {
         this.gunfireVolume = gunfireVolume;
+    }
+
+    public boolean isCompletelyInvisible() {
+        return this.isCompletelyInvisible;
+    }
+
+    public void setCompletelyInvisible(boolean completelyInvisible) {
+        this.isCompletelyInvisible = completelyInvisible;
     }
 
     public BarrierVisualizeOrigin getBarrierVisualizeOrigin() {

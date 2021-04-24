@@ -10,12 +10,34 @@ public class Color {
     @Expose
     private int blue;
 
+
+    public static String toHexString(int color) {
+        return Color.toHexString(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF);
+    }
+
+    public static String toHexString(int red, int green, int blue) {
+        return fullString(red) + fullString(green) + fullString(blue);
+    }
+
+    protected static String fullString(int value) {
+        String str = Integer.toHexString(value);
+        return str.length() == 1 ? "0" + str : str;
+    }
+
     public static Color lerp(Color from, Color to, double progress) {
         int red = (int) ((to.red - from.red) * progress);
         int green = (int) ((to.green - from.green) * progress);
         int blue = (int) ((to.blue - from.blue) * progress);
 
         return new Color(from.red + red, from.green + green, from.blue + blue);
+    }
+
+    public static int parse(int red, int green, int blue) {
+        return red << 16 | green << 8 | blue;
+    }
+
+    public static int[] parse(int color) {
+        return new int[]{color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF};
     }
 
     public Color(int color) {
@@ -31,7 +53,7 @@ public class Color {
     }
 
     public String toHexString() {
-        return Integer.toHexString(this.get());
+        return this.fullString(this.red) + this.fullString(this.green) + this.fullString(this.blue);
     }
 
     public int get() {

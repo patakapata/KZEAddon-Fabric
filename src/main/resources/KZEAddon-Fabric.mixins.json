@@ -9,15 +9,17 @@
   "client": [
     "client.AbstractSoundInstanceMixin",
     "client.ClientWorldMixin",
+    "client.EntityMixin",
+    "client.GameMenuScreenMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
-    "client.MinecraftClientMixin",
+    "client.KeyBindingAccessor",
+    "client.PlayerEntityRendererMixin",
     "client.ResourcePackStatusC2SPacketMixin",
     "client.TitleScreenMixin",
     "client.WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "refmap": "KZEAddon-Fabric-refmap.json"
+  }
 }

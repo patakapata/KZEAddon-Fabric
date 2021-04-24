@@ -3,18 +3,20 @@ package com.theboss.kzeaddonfabric.screen;
 import net.minecraft.text.Text;
 
 public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
-    private Screen parent;
+    private final ParentWrapper parent;
 
     protected Screen(Text title) {
         super(title);
+
+        this.parent = new ParentWrapper(null);
     }
 
-    public void setParent(Screen screen) {
-        this.parent = screen;
+    public void setParent(Object screen) {
+        this.parent.setParent(screen);
     }
 
     @Override
     public void onClose() {
-        this.client.openScreen(this.parent);
+        this.parent.openParent(this.client);
     }
 }

@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.mixin.client;
 
-import com.theboss.kzeaddonfabric.KZEAddonFabric;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -16,6 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class WorldRendererMixin {
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onInit(MinecraftClient client, BufferBuilderStorage bufferBuilders, CallbackInfo ci) {
-        KZEAddonFabric.onRenderInit();
+        KZEAddon.onRenderInit();
     }
 }

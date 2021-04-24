@@ -83,12 +83,30 @@ public class KZEInformation {
         this.isHuman = (client.player.getScoreboardTeam() != null && client.player.getScoreboardTeam().getName().equals("e"));
         PlayerInventory inventory = player.inventory;
 
-        if (this.isReloading)
-            this.reloadTick();
-
         this.primary.parse(inventory.getStack(WeaponSlot.PRIMARY.getId()));
         this.secondary.parse(inventory.getStack(WeaponSlot.SECONDARY.getId()));
         this.melee.parse(inventory.getStack(WeaponSlot.MELEE.getId()));
+
+        Weapon handWeapon = this.getMainHandWeapon();
+        if (handWeapon == null) {
+            if (this.isReloading) this.cancelReload();
+        } else {
+            boolean isReloading = handWeapon.isReloading();
+            if (!this.isReloading) {
+                if (isReloading) this.beginReload(handWeapon);
+            } else {
+                if (!isReloading) this.cancelReload();
+                else this.reloadTick();
+            }
+        }
+    }
+
+    public void beginReload(Weapon weapon) {
+        this.isReloading = true;
+        this.reloadTimeTick = weapon.getReloadTime();
+        this.reloadProgressTick = 0;
+        this.reloadProgress = 0.0;
+        this.lastReloadProgress = 0.0;
     }
 
     public void cancelReload() {
@@ -103,13 +121,29 @@ public class KZEInformation {
     protected void setReloadFromMainhandWeapon() {
         WeaponSlot slot = WeaponSlot.valueOf(MinecraftClient.getInstance().player.inventory.selectedSlot);
         if (slot == null) {
-            KZEAddonFabric.addChatLog(Text.of("§c§lInvalid weapon or slot!§r"));
+            KZEAddon.addChatLog(Text.of("§c§lInvalid weapon or slot!§r"));
             return;
         }
 
         this.isReloading = true;
         this.reloadProgressTick = 0;
         this.reloadTimeTick = this.getWeapon(slot).getReloadTime();
+    }
+
+    public Weapon getMainHandWeapon() {
+        WeaponSlot slot = WeaponSlot.valueOf(MinecraftClient.getInstance().player.inventory.selectedSlot);
+        if (slot == null) return null;
+
+        switch (slot) {
+            case PRIMARY:
+                return this.primary;
+            case SECONDARY:
+                return this.secondary;
+            case MELEE:
+                return this.melee;
+            default:
+                return null;
+        }
     }
 
     public int getTotalAmmo() {

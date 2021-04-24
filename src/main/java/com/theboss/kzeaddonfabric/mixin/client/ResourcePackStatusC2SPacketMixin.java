@@ -1,5 +1,6 @@
 package com.theboss.kzeaddonfabric.mixin.client;
 
+import com.theboss.kzeaddonfabric.KZEAddon;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.listener.ServerPlayPacketListener;
@@ -16,9 +17,14 @@ public abstract class ResourcePackStatusC2SPacketMixin implements Packet<ServerP
 
     /**
      * @author theBooooSS
+     * @reason リソースパックを無視するため
      */
     @Overwrite
     public void write(PacketByteBuf buf) throws IOException {
-        buf.writeEnumConstant(this.status);
+        if (KZEAddon.OPTIONS.isIgnoreResourcePack()) {
+            buf.writeEnumConstant(ResourcePackStatusC2SPacket.Status.ACCEPTED);
+        } else {
+            buf.writeEnumConstant(this.status);
+        }
     }
 }

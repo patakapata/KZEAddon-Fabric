@@ -1,0 +1,29 @@
+{
+  "kzeaddon.widget.show": "Show",
+  "kzeaddon.widget.hide": "Hide",
+  
+  "kzeaddon.copied_to_clipboard": "Copied to clipboard",
+  "kzeaddon.copy_failed": "Copy failed",
+  
+  "key.categories.kzeaddon.in_game": "KZEAddon - In game",
+  "key.categories.kzeaddon.wip": "WorkInProgress",
+  
+  "key.kzeaddon.glow.priority.add": "Add priority glow target",
+  "key.kzeaddon.wip.copy_item_tag": "Copy Item Tag from hovering item",
+  
+  "menu.kzeaddon.option.widget": "Widget",
+  "menu.kzeaddon.option.glowColor": "Glow Color",
+  "menu.kzeaddon.option.pending": "! PENDING !",
+  "menu.kzeaddon.option.other": "Other",
+  "menu.kzeaddon.option.mainWeapon": "Main Weapon",
+  "menu.kzeaddon.option.subWeapon": "Sub Weapon",
+  "menu.kzeaddon.option.meleeWeapon": "Melee Weapon",
+  "menu.kzeaddon.option.totalAmmo": "Total Ammo",
+  "menu.kzeaddon.option.reloadTime": "Reload Time",
+  "menu.kzeaddon.option.close": "Close",
+  "menu.kzeaddon.option.priorityGlowColor": "Priority GlowColor",
+  "menu.kzeaddon.option.humanGlowColor": "Human GlowColor",
+  "menu.kzeaddon.option.zombieGlowColor": "Zombie GlowColor",
+  
+  "subtitles.kzeaddon.honk": "HONK"
+}

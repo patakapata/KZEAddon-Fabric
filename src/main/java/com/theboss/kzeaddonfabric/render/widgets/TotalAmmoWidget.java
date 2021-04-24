@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.render.widgets;
 
-import com.theboss.kzeaddonfabric.KZEAddonFabric;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
@@ -18,12 +18,12 @@ public class TotalAmmoWidget extends Widget {
 
     @Override
     public Text getText() {
-        return Text.of(Integer.toString(KZEAddonFabric.KZE_INFO.getTotalAmmo()));
+        return Text.of(Integer.toString(KZEAddon.KZE_INFO.getTotalAmmo()));
     }
 
     @Override
     public void render(MatrixStack matrices, Window window, TextRenderer textRenderer) {
-        if (KZEAddonFabric.KZE_INFO.getTotalAmmo() == -1) return;
+        if (KZEAddon.KZE_INFO.getTotalAmmo() == -1) return;
         super.render(matrices, window, textRenderer);
     }
 }

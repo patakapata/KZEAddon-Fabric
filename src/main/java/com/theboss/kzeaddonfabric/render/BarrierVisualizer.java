@@ -1,7 +1,7 @@
 package com.theboss.kzeaddonfabric.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.theboss.kzeaddonfabric.KZEAddonFabric;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.BarrierVisualizeOrigin;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -9,6 +9,7 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.GlAllocationUtils;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
@@ -40,7 +41,7 @@ public class BarrierVisualizer {
     public void tick() {
         if (MinecraftClient.getInstance().player == null) return;
         BlockPos center = null;
-        if (KZEAddonFabric.OPTIONS.getBarrierVisualizeOrigin() == BarrierVisualizeOrigin.MYSELF) {
+        if (KZEAddon.OPTIONS.getBarrierVisualizeOrigin() == BarrierVisualizeOrigin.MYSELF) {
             center = MinecraftClient.getInstance().player.getBlockPos();
         } else {
             HitResult result = MinecraftClient.getInstance().player.raycast(50.0, MinecraftClient.getInstance().getTickDelta(), false);
@@ -48,8 +49,9 @@ public class BarrierVisualizer {
                 center = ((BlockHitResult) result).getBlockPos();
             }
         }
-        if (center != null)
+        if (center != null) {
             this.controller.tick(center);
+        }
     }
 
     public void draw(float delta) {
@@ -197,8 +199,19 @@ public class BarrierVisualizer {
             this.chunks = holder;
         }
 
+        public int round(int value) {
+            boolean isNegative = value < 0;
+            if (isNegative) ++value;
+            int result = value / 16;
+            return isNegative ? result - 1 : result;
+        }
+
         public void tick(BlockPos center) {
-            this.updateRegion(center.getX() / 16, center.getY() / 16, center.getZ() / 16);
+            int x = this.round(center.getX());
+            int y = this.round(center.getY());
+            int z = this.round(center.getZ());
+            MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of(String.format("%d, %d, %d", x, y, z)), false);
+            this.updateRegion(x, y, z);
             // this.run(chunk -> CompletableFuture.runAsync(() -> chunk.update(world, this.shouldRebuild)));
             this.run(this.UPDATER);
             this.shouldRebuild = false;

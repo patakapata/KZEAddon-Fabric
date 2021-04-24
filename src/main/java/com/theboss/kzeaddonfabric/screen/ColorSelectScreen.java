@@ -15,7 +15,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.function.Consumer;
 
 public class ColorSelectScreen extends Screen {
-    public static final Identifier PREVIEW_FRAME = new Identifier("kzeaddon-fabric", "textures/gui/misc/colorselector_frame.png");
+    public static final Identifier PREVIEW_FRAME = new Identifier("kzeaddon-fabric", "textures/gui/option/colorselector_frame.png");
     private final Consumer<Color> saveConsumer;
     private int centerX;
     private int centerY;

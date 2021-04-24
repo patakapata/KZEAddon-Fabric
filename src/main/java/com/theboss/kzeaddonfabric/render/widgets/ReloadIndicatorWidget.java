@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.render.widgets;
 
-import com.theboss.kzeaddonfabric.KZEAddonFabric;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
@@ -17,8 +17,8 @@ public class ReloadIndicatorWidget extends Widget {
     }
 
     protected String getReloadProgress() {
-        double progress = 1 - KZEAddonFabric.KZE_INFO.getReloadProgress();
-        double seconds = KZEAddonFabric.KZE_INFO.getReloadTimeTick() / 20.0;
+        double progress = 1 - KZEAddon.KZE_INFO.getReloadProgress();
+        double seconds = KZEAddon.KZE_INFO.getReloadTimeTick() / 20.0;
         return String.format("%.2f", seconds * progress);
     }
 
@@ -29,7 +29,7 @@ public class ReloadIndicatorWidget extends Widget {
 
     @Override
     public void render(MatrixStack matrices, Window window, TextRenderer textRenderer) {
-        if (KZEAddonFabric.KZE_INFO.getReloadProgress() == 0.0) return;
+        if (KZEAddon.KZE_INFO.getReloadProgress() == 0.0) return;
         super.render(matrices, window, textRenderer);
     }
 }

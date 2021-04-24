@@ -2,7 +2,7 @@ package com.theboss.kzeaddonfabric.render.widgets;
 
 import com.google.gson.annotations.Expose;
 import com.theboss.kzeaddonfabric.Color;
-import com.theboss.kzeaddonfabric.KZEAddonFabric;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import com.theboss.kzeaddonfabric.enums.WeaponSlot;
 import com.theboss.kzeaddonfabric.ingame.Weapon;
@@ -34,7 +34,7 @@ public class GunAmmoWidget extends Widget {
     }
 
     protected Weapon getWeapon() {
-        return KZEAddonFabric.KZE_INFO.getWeapon(this.targetSlot);
+        return KZEAddon.KZE_INFO.getWeapon(this.targetSlot);
     }
 
     public WeaponSlot getTargetSlot() {

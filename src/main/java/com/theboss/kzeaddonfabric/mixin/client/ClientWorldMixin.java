@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.mixin.client;
 
-import com.theboss.kzeaddonfabric.KZEAddonFabric;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.mixin.WorldMixin;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -14,6 +14,6 @@ public abstract class ClientWorldMixin extends WorldMixin {
 
     @Override
     protected void tickWorldAfterBlockEntities(CallbackInfo ci) {
-        KZEAddonFabric.onTick();
+        KZEAddon.onTick();
     }
 }

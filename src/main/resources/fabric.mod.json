@@ -17,7 +17,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "com.theboss.kzeaddonfabric.KZEAddonFabric"
+      "com.theboss.kzeaddonfabric.KZEAddon"
     ]
   },
   "mixins": [
