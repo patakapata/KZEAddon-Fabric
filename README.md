@@ -2,7 +2,7 @@
 KaedeZombieEscapeのプレイを支援するModです
 
 Forge版はTedoさんが作ってます
-##TODO
+## TODO
 - アイテムからWeaponへの変換
 - 銃声音量設定
 - リソースパック無視
