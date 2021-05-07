@@ -1,6 +1,8 @@
-package com.theboss.kzeaddonfabric.screen;
+package com.theboss.kzeaddonfabric.screen.options;
 
 import com.theboss.kzeaddonfabric.CustomSounds;
+import com.theboss.kzeaddonfabric.screen.Screen;
+import com.theboss.kzeaddonfabric.screen.options.widgets.WidgetOptionScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -21,6 +23,8 @@ public class RootOptionScreen extends Screen {
     private AbstractButtonWidget other;
 
     private AbstractButtonWidget close;
+
+    private int honkTimer;
 
     public RootOptionScreen(Object parent) {
         this();
@@ -65,7 +69,7 @@ public class RootOptionScreen extends Screen {
     }
 
     protected void onPressWidget(ButtonWidget button) {
-        this.openScreen(new WidgetOptionScreen(this));
+        this.openScreen(new WidgetOptionSelectScreen(this));
     }
 
     protected void onPressGlowColor(ButtonWidget button) {
@@ -75,7 +79,20 @@ public class RootOptionScreen extends Screen {
     protected void onPressPending(ButtonWidget button) {
         MinecraftClient mc = MinecraftClient.getInstance();
         mc.getSoundManager().stopSounds(new Identifier("minecraft:ui.button.click"), SoundCategory.MASTER);
+        this.honkTimer = 20;
+        this._PENDING.setMessage(Text.of("This is honkable"));
         this.playHonk();
+        mc.openScreen(new WidgetOptionScreen(Text.of("TEMP")));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (this.honkTimer-- > 0) {
+            if (this.honkTimer == 0) {
+                this._PENDING.setMessage(new TranslatableText("menu.kzeaddon.option.pending"));
+            }
+        }
     }
 
     protected void onPressOther(ButtonWidget button) {}

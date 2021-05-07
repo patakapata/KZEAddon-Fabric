@@ -32,6 +32,18 @@ public class Color {
         return new Color(from.red + red, from.green + green, from.blue + blue);
     }
 
+    public static int parseWithAlpha(int alpha, int red, int green, int blue) {
+        return alpha << 24 | red << 16 | green << 8 | blue;
+    }
+
+    /**
+     * @param color 0xAARRGGBB
+     * @return { A, R, G, B }
+     */
+    public static int[] parseWithAlpha(int color) {
+        return new int[]{color >> 24 & 0xFF, color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF};
+    }
+
     public static int parse(int red, int green, int blue) {
         return red << 16 | green << 8 | blue;
     }

@@ -2,22 +2,34 @@ package com.theboss.kzeaddonfabric.screen.button;
 
 import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class EnumCycleButton<T extends Enum<?>> extends AbstractButtonWidget {
     private final T[] entries;
     private final Consumer<T> saver;
     private int selected;
+    private Function<T, Text> messageFunc;
 
     public EnumCycleButton(int x, int y, int width, int height, T[] entries, T selected, Consumer<T> saver) {
+        this(x, y, width, height, entries, selected, saver, value -> Text.of(value.toString()));
+    }
+
+    public EnumCycleButton(int x, int y, int width, int height, T[] entries, T selected, Consumer<T> saver, Function<T, Text> messageFunc) {
         super(x, y, width, height, new LiteralText(""));
 
         this.entries = entries;
         this.selected = this.indexOf(selected);
         this.saver = saver;
+        this.messageFunc = messageFunc;
 
         this.onChanged();
+    }
+
+    public void setMessageFunc(Function<T, Text> func) {
+        this.messageFunc = func;
     }
 
     public int indexOf(T t) {
@@ -55,7 +67,7 @@ public class EnumCycleButton<T extends Enum<?>> extends AbstractButtonWidget {
     public void onChanged() {
         T selected = this.getSelected();
 
-        this.setMessage(new LiteralText(selected.toString()));
+        this.setMessage(this.messageFunc.apply(selected));
         this.saver.accept(selected);
     }
 }

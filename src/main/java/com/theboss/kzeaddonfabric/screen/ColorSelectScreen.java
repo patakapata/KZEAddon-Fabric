@@ -4,11 +4,13 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.Color;
 import com.theboss.kzeaddonfabric.screen.button.SliderWidget;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL11;
 
@@ -17,8 +19,8 @@ import java.util.function.Consumer;
 public class ColorSelectScreen extends Screen {
     public static final Identifier PREVIEW_FRAME = new Identifier("kzeaddon-fabric", "textures/gui/option/colorselector_frame.png");
     private final Consumer<Color> saveConsumer;
-    private int centerX;
-    private int centerY;
+    private int cX;
+    private int cY;
 
     private int color;
     private SliderWidget red;
@@ -42,12 +44,12 @@ public class ColorSelectScreen extends Screen {
 
     @Override
     protected void init() {
-        this.centerX = this.width / 2;
-        this.centerY = this.height / 2;
+        this.cX = this.width / 2;
+        this.cY = this.height / 2;
 
-        this.red = new SliderWidget(this.centerX - 49, this.centerY - 35, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
-        this.green = new SliderWidget(this.centerX - 49, this.centerY - 10, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
-        this.blue = new SliderWidget(this.centerX - 49, this.centerY + 15, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
+        this.red = new SliderWidget(this.cX - 49, this.cY - 35, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
+        this.green = new SliderWidget(this.cX - 49, this.cY - 10, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
+        this.blue = new SliderWidget(this.cX - 49, this.cY + 15, 98, 20, new LiteralText(""), 0.0, 0, 255, this::onColorUpdate);
 
         this.red.setColorSupplier((aDouble, aBoolean) -> {
             if (aBoolean) { return this.red.getAmount() << 16; } else { return 10526880; }
@@ -64,6 +66,7 @@ public class ColorSelectScreen extends Screen {
         this.addButton(this.red);
         this.addButton(this.green);
         this.addButton(this.blue);
+        this.addButton(new ButtonWidget(this.cX - 49, this.height - 30, 98, 20, new TranslatableText("menu.kzeaddon.option.close"), btn -> this.onClose()));
     }
 
     public void setColor(int color) {
@@ -81,9 +84,9 @@ public class ColorSelectScreen extends Screen {
     }
 
     public boolean isMouseOverPreview(int mouseX, int mouseY) {
-        int up = this.centerY - 35;
+        int up = this.cY - 35;
         int down = up + 70;
-        int left = this.centerX + 54;
+        int left = this.cX + 54;
         int right = left + 20;
 
         return ((mouseX >= left && mouseX <= right) && (mouseY >= up && mouseY <= down));
@@ -94,9 +97,9 @@ public class ColorSelectScreen extends Screen {
         this.renderBackground(matrices);
         super.render(matrices, mouseX, mouseY, delta);
 
-        int up = this.centerY - 35;
+        int up = this.cY - 35;
         int down = up + 70;
-        int left = this.centerX + 54;
+        int left = this.cX + 54;
         int right = left + 20;
         boolean isMouseOverPreview = this.isMouseOverPreview(mouseX, mouseY);
 

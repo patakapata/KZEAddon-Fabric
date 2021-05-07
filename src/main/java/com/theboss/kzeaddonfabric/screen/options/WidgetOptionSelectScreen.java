@@ -1,5 +1,6 @@
-package com.theboss.kzeaddonfabric.screen;
+package com.theboss.kzeaddonfabric.screen.options;
 
+import com.theboss.kzeaddonfabric.screen.Screen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -13,7 +14,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.nio.FloatBuffer;
 
-public class WidgetOptionScreen extends Screen {
+public class WidgetOptionSelectScreen extends Screen {
     public static final Identifier WIDGETS = new Identifier("minecraft", "textures/gui/widgets.png");
     public static final Identifier MAIN_WEAPON_TOOLTIP = new Identifier("kzeaddon-fabric", "textures/gui/option/tooltip_test.png");
 
@@ -47,12 +48,12 @@ public class WidgetOptionScreen extends Screen {
         MinecraftClient.getInstance().getTextureManager().bindTexture(WIDGETS);
     }
 
-    public WidgetOptionScreen(Screen parent) {
+    public WidgetOptionSelectScreen(Screen parent) {
         this();
         this.setParent(parent);
     }
 
-    public WidgetOptionScreen() {
+    public WidgetOptionSelectScreen() {
         super(Text.of("Widget Option Screen"));
     }
 

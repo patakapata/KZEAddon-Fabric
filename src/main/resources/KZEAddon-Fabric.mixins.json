@@ -4,17 +4,16 @@
   "package": "com.theboss.kzeaddonfabric.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "PlayerEntityMixin",
     "WorldMixin"
   ],
   "client": [
     "client.AbstractSoundInstanceMixin",
     "client.ClientWorldMixin",
-    "client.EntityMixin",
     "client.GameMenuScreenMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
     "client.KeyBindingAccessor",
-    "client.PlayerEntityRendererMixin",
     "client.ResourcePackStatusC2SPacketMixin",
     "client.TitleScreenMixin",
     "client.WorldRendererMixin"

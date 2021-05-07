@@ -9,5 +9,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface KeyBindingAccessor {
 
     @Accessor("boundKey")
-    public InputUtil.Key getBoundKey();
+    InputUtil.Key getBoundKey();
 }

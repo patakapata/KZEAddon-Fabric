@@ -10,6 +10,7 @@
   
   "key.kzeaddon.glow.priority.add": "優先発光対象に指定",
   "key.kzeaddon.wip.copy_item_tag": "ホバー中のアイテムのNBTをコピー",
+  "key.kzeaddon.hide_teammates": "チームメイトを非表示",
   
   "menu.kzeaddon.option.widget": "ウィジェット",
   "menu.kzeaddon.option.glowColor": "発光色",
@@ -20,10 +21,25 @@
   "menu.kzeaddon.option.meleeWeapon": "近接武器",
   "menu.kzeaddon.option.totalAmmo": "総合弾薬",
   "menu.kzeaddon.option.reloadTime": "リロード時間",
+  "menu.kzeaddon.option.save": "保存",
+  "menu.kzeaddon.option.discard": "破棄",
   "menu.kzeaddon.option.close": "閉じる",
   "menu.kzeaddon.option.priorityGlowColor": "優先 発光色",
   "menu.kzeaddon.option.humanGlowColor": "人間 発光色",
   "menu.kzeaddon.option.zombieGlowColor": "ゾンビ 発光色",
+  
+  "menu.kzeaddon.option.anchor_widget": "アンカー - ウィジェット",
+  "menu.kzeaddon.option.anchor_window": "アンカー - ウィンドウ",
+  
+  "menu.kzeaddon.option.preview": "プレビュー",
+  "menu.kzeaddon.option.anchor": "アンカー",
+  "menu.kzeaddon.option.window": "ウィンドウ",
+  "menu.kzeaddon.option.position": "位置",
+  "menu.kzeaddon.option.offset.x": "オフセット X",
+  "menu.kzeaddon.option.offset.y": "オフセット Y",
+  "menu.kzeaddon.option.appearance": "見た目",
+  "menu.kzeaddon.option.opacity": "不透明度",
+  "menu.kzeaddon.visibility": "可視性",
   
   "subtitles.kzeaddon.honk": "HONK"
 }

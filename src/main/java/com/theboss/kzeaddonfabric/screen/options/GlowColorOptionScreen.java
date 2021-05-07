@@ -1,12 +1,14 @@
-package com.theboss.kzeaddonfabric.screen;
+package com.theboss.kzeaddonfabric.screen.options;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.Color;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.Options;
+import com.theboss.kzeaddonfabric.screen.ColorSelectScreen;
+import com.theboss.kzeaddonfabric.screen.Screen;
+import com.theboss.kzeaddonfabric.screen.button.TextFieldWidget;
 import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -35,7 +37,9 @@ public class GlowColorOptionScreen extends Screen {
     private AbstractButtonWidget priorityPreview;
     private AbstractButtonWidget humanPreview;
     private AbstractButtonWidget zombiePreview;
-    private AbstractButtonWidget close;
+
+    private AbstractButtonWidget save;
+    private AbstractButtonWidget discard;
 
     public GlowColorOptionScreen(Screen parent) {
         this();
@@ -58,14 +62,15 @@ public class GlowColorOptionScreen extends Screen {
         options.setZombieGlowColor(new Color(this.zombieValue));
     }
 
-    @Override
-    public void onClose() {
-        this.saveToOptions();
-        super.onClose();
+    protected void close(boolean shouldSave) {
+        if (shouldSave) this.saveToOptions();
+        this.onClose();
     }
 
     @Override
     protected void init() {
+        System.out.println("Screen initialize");
+
         this.cX = this.width / 2;
         this.cY = this.height / 2;
 
@@ -75,7 +80,9 @@ public class GlowColorOptionScreen extends Screen {
         this.priorityPreview = new TexturedButtonWidget(this.cX + 83, this.cY - 55, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 0));
         this.humanPreview = new TexturedButtonWidget(this.cX + 83, this.cY - 25, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 1));
         this.zombiePreview = new TexturedButtonWidget(this.cX + 83, this.cY + 5, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 2));
-        this.close = new ButtonWidget(this.cX - 49, this.height - 30, 98, 20, new TranslatableText("menu.kzeaddon.option.close"), btn -> this.onClose());
+
+        this.discard = new ButtonWidget(this.cX - 49, this.height - 30, 44, 20, new TranslatableText("menu.kzeaddon.option.discard"), btn -> this.close(false));
+        this.save = new ButtonWidget(this.cX + 5, this.height - 30, 44, 20, new TranslatableText("menu.kzeaddon.option.save"), btn -> this.close(true));
 
         this.initTextFieldsContents();
 
@@ -83,19 +90,20 @@ public class GlowColorOptionScreen extends Screen {
         this.human.setChangedListener(str -> this.validateColorField(str, this.human, 1));
         this.zombie.setChangedListener(str -> this.validateColorField(str, this.zombie, 2));
 
-        this.addButton(this.priority);
-        this.addButton(this.human);
-        this.addButton(this.zombie);
+        this.addTextField(this.priority);
+        this.addTextField(this.human);
+        this.addTextField(this.zombie);
         this.addButton(this.priorityPreview);
         this.addButton(this.humanPreview);
         this.addButton(this.zombiePreview);
-        this.addButton(this.close);
+        this.addButton(this.save);
+        this.addButton(this.discard);
     }
 
     public void initTextFieldsContents() {
-        this.priority.setText(Color.toHexString(this.priorityValue));
-        this.human.setText(Color.toHexString(this.humanValue));
-        this.zombie.setText(Color.toHexString(this.zombieValue));
+        this.priority.setText(Color.toHexString(this.priorityValue).toUpperCase());
+        this.human.setText(Color.toHexString(this.humanValue).toUpperCase());
+        this.zombie.setText(Color.toHexString(this.zombieValue).toUpperCase());
     }
 
     /**
@@ -143,10 +151,15 @@ public class GlowColorOptionScreen extends Screen {
     }
 
     protected void validateColorField(String str, TextFieldWidget widget, int id) {
+        System.out.println("validate with " + id);
         try {
-            int color = Integer.parseInt(str, 16);
-            if (this.setColorById(color, id)) {
+            if (str.length() <= 6) {
+                int color = Integer.parseInt(str, 16);
+                this.setColorById(color, id);
+                this.setFocusedTFW(widget);
                 widget.setEditableColor(0xE0E0E0);
+            } else {
+                widget.setEditableColor(0xFF0000);
             }
         } catch (Exception ex) {
             widget.setEditableColor(0xFF0000);

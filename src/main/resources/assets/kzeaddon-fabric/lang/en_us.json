@@ -10,6 +10,7 @@
   
   "key.kzeaddon.glow.priority.add": "Add priority glow target",
   "key.kzeaddon.wip.copy_item_tag": "Copy Item Tag from hovering item",
+  "key.kzeaddon.hide_teammates": "Hide teammates",
   
   "menu.kzeaddon.option.widget": "Widget",
   "menu.kzeaddon.option.glowColor": "Glow Color",
@@ -20,10 +21,25 @@
   "menu.kzeaddon.option.meleeWeapon": "Melee Weapon",
   "menu.kzeaddon.option.totalAmmo": "Total Ammo",
   "menu.kzeaddon.option.reloadTime": "Reload Time",
+  "menu.kzeaddon.option.save": "Save",
+  "menu.kzeaddon.option.discard": "Discard",
   "menu.kzeaddon.option.close": "Close",
   "menu.kzeaddon.option.priorityGlowColor": "Priority GlowColor",
   "menu.kzeaddon.option.humanGlowColor": "Human GlowColor",
   "menu.kzeaddon.option.zombieGlowColor": "Zombie GlowColor",
+  
+  "menu.kzeaddon.option.anchor_widget": "Anchor - Widget",
+  "menu.kzeaddon.option.anchor_window": "Anchor - Window",
+  
+  "menu.kzeaddon.option.preview": "Preview",
+  "menu.kzeaddon.option.anchor": "Anchor",
+  "menu.kzeaddon.option.window": "Window",
+  "menu.kzeaddon.option.position": "Position",
+  "menu.kzeaddon.option.offset.x": "Offset X",
+  "menu.kzeaddon.option.offset.y": "Offset Y",
+  "menu.kzeaddon.option.appearance": "Appearance",
+  "menu.kzeaddon.option.opacity": "Opacity",
+  "menu.kzeaddon.visibility": "Visibility",
   
   "subtitles.kzeaddon.honk": "HONK"
 }

@@ -3,8 +3,8 @@ package com.theboss.kzeaddonfabric;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
+import com.theboss.kzeaddonfabric.enums.Switchable;
 import com.theboss.kzeaddonfabric.events.GetTeamColorValueEvent;
-import com.theboss.kzeaddonfabric.ingame.Weapon;
 import com.theboss.kzeaddonfabric.mixin.client.KeyBindingAccessor;
 import com.theboss.kzeaddonfabric.render.BarrierVisualizer;
 import com.theboss.kzeaddonfabric.wip.MarkedArea;
@@ -22,6 +22,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.toast.ToastManager;
+import net.minecraft.client.util.GlAllocationUtils;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -30,15 +31,13 @@ import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.Tag;
 import net.minecraft.scoreboard.AbstractTeam;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,6 +46,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.awt.*;
 import java.io.*;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -62,11 +62,12 @@ public class KZEAddon implements ClientModInitializer {
     private static File optionsFile;
 
     public static Options OPTIONS;
-    public static boolean isHidePlayersEnabled;
     public static KeyBindingWrapper ADD_GROW_TARGET;
+    public static KeyBindingWrapper HIDE_PLAYERS;
     public static KeyBinding COPY_ITEM_TAG;
+
     public static boolean KEY_FLIPFLOP_COPY = false;
-    public static boolean isLastSneaking;
+    public static boolean isHideTeammates;
 
     public static final MarkedArea MARKED_AREA = new MarkedArea(new MarkedArea.Area(new BlockPos(0, 1, 0), new BlockPos(10, 11, 10)));
 
@@ -78,7 +79,6 @@ public class KZEAddon implements ClientModInitializer {
 
         optionsFile = new File(client.runDirectory.getAbsolutePath() + "\\config\\" + MOD_ID + ".json");
         loadConfig();
-        OPTIONS.setCompletelyInvisible(true);
         ADD_GROW_TARGET = new KeyBindingWrapper("key.kzeaddon.glow.priority.add", GLFW.GLFW_KEY_G, "key.categories.kzeaddon.in_game",
                 unused -> {
                     HitResult result = raycastIgnoreBlock(MinecraftClient.getInstance().player, 100.0);
@@ -94,12 +94,39 @@ public class KZEAddon implements ClientModInitializer {
                 },
                 unused -> {}
         );
+
         KZEAddon.COPY_ITEM_TAG = new KeyBinding("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
+        KZEAddon.HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.hide_teammates", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", key -> {
+            if (KZEAddon.OPTIONS.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = true;
+            else if (KZEAddon.OPTIONS.getHideTeammates() == Switchable.TOGGLE) KZEAddon.isHideTeammates = !KZEAddon.isHideTeammates;
+        }, key -> {
+            if (KZEAddon.OPTIONS.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = false;
+        });
         KeyBindingRegistryImpl.registerKeyBinding(KZEAddon.COPY_ITEM_TAG);
+
         ItemTooltipCallback.EVENT.register(KZEAddon::handleItemTooltip);
         GetTeamColorValueEvent.EVENT.register(KZEAddon::onGetTeamColorValue);
         CommandRegistrationCallback.EVENT.register(RenameItemCommand::register);
         Registry.register(Registry.SOUND_EVENT, CustomSounds.HONK_ID, CustomSounds.HONK_EVENT);
+    }
+
+    public static String[] getMatrixContents(MatrixStack matrices) {
+        FloatBuffer buffer = GlAllocationUtils.allocateFloatBuffer(4 * 4 * 4);
+        Matrix4f matrix = matrices.peek().getModel();
+        matrix.writeToBuffer(buffer);
+        String[] result = new String[4];
+        StringBuilder builder = new StringBuilder();
+
+        int i = 0;
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++) {
+                builder.append(String.format("%3.2f", buffer.get(i++))).append(" ");
+            }
+            result[y] = builder.toString();
+            builder.setLength(0);
+        }
+
+        return result;
     }
 
     public static void onGetTeamColorValue(Entity entity, CallbackInfoReturnable<Integer> cir) {
@@ -176,7 +203,6 @@ public class KZEAddon implements ClientModInitializer {
     public static void onRenderWorld(MatrixStack matrices, float tickDelta) {
         BAR_VISUALIZER.draw(tickDelta);
         // MARKED_AREA.render(matrices, tickDelta);
-        // BillboardTest.getInstance().render(matrices, tickDelta);
     }
 
     public static void onRenderInit() {
@@ -190,24 +216,24 @@ public class KZEAddon implements ClientModInitializer {
     }
 
     public static void onTick() {
-        BAR_VISUALIZER.tick();
-        KZE_INFO.tick();
 
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;
         if (player == null) return;
 
-        boolean isSneaking = player.isSneaking();
-        if (!KZEAddon.isLastSneaking) {
-            if (isSneaking) {
-                Weapon weapon = KZE_INFO.getMainHandWeapon();
-                if (weapon != null) addChatLog(weapon.toString());
+        AbstractTeam team = MinecraftClient.getInstance().player.getScoreboardTeam();
+        if (team != null) {
+            if (team.shouldShowFriendlyInvisibles() == KZEAddon.OPTIONS.isCompletelyInvisible()) {
+                ((Team) team).setShowFriendlyInvisibles(!KZEAddon.OPTIONS.isCompletelyInvisible());
+                KZEAddon.addChatLog("Visibility flag changed to " + !KZEAddon.OPTIONS.isCompletelyInvisible());
             }
         }
-        KZEAddon.isLastSneaking = isSneaking;
 
+        KZEAddon.BAR_VISUALIZER.tick();
+        KZEAddon.KZE_INFO.tick();
         // 優先発光対象指定 試作
-        ADD_GROW_TARGET.tick();
+        KZEAddon.ADD_GROW_TARGET.tick();
+        KZEAddon.HIDE_PLAYERS.tick();
     }
 
     public static void loadConfig() {
@@ -282,5 +308,9 @@ public class KZEAddon implements ClientModInitializer {
     public static void addChatLog(Text text) {
         MinecraftClient client = MinecraftClient.getInstance();
         client.inGameHud.getChatHud().addMessage(text);
+    }
+
+    public static boolean isTeammate(Entity entity) {
+        return MinecraftClient.getInstance().player.isTeammate(entity);
     }
 }

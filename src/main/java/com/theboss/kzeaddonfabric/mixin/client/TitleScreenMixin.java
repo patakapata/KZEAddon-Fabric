@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.mixin.client;
 
-import com.theboss.kzeaddonfabric.screen.RootOptionScreen;
+import com.theboss.kzeaddonfabric.screen.options.RootOptionScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
