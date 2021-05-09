@@ -21,7 +21,7 @@ public abstract class ResourcePackStatusC2SPacketMixin implements Packet<ServerP
      */
     @Overwrite
     public void write(PacketByteBuf buf) throws IOException {
-        if (KZEAddon.OPTIONS.isIgnoreResourcePack()) {
+        if (KZEAddon.Options.isIgnoreResourcePack()) {
             buf.writeEnumConstant(ResourcePackStatusC2SPacket.Status.ACCEPTED);
         } else {
             buf.writeEnumConstant(this.status);

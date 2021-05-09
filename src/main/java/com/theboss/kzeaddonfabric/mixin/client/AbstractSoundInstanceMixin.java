@@ -24,8 +24,8 @@ public abstract class AbstractSoundInstanceMixin implements SoundInstance {
     @Overwrite
     public float getVolume() {
         boolean isGunfire = this.sound.getIdentifier().getPath().startsWith("gunshot/");
-        if (isGunfire && KZEAddon.OPTIONS.isSetGunfireSoundVolume()) {
-            return KZEAddon.OPTIONS.getGunfireVolume();
+        if (isGunfire && KZEAddon.Options.isSetGunfireSoundVolume()) {
+            return KZEAddon.Options.getGunfireVolume();
         }
         return this.volume * this.sound.getVolume();
     }

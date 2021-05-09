@@ -48,14 +48,14 @@ public class GlowColorOptionScreen extends Screen {
 
     public GlowColorOptionScreen() {
         super(Text.of("GlowColor Option Screen"));
-        Options options = KZEAddon.OPTIONS;
+        Options options = KZEAddon.Options;
         this.priorityValue = options.getPriorityGlowColor().get();
         this.humanValue = options.getHumanGlowColor().get();
         this.zombieValue = options.getZombieGlowColor().get();
     }
 
     protected void saveToOptions() {
-        Options options = KZEAddon.OPTIONS;
+        Options options = KZEAddon.Options;
 
         options.setPriorityGlowColor(new Color(this.priorityValue));
         options.setHumanGlowColor(new Color(this.humanValue));

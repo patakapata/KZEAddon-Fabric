@@ -61,7 +61,7 @@ public class KZEAddon implements ClientModInitializer {
 
     private static File optionsFile;
 
-    public static Options OPTIONS;
+    public static Options Options;
     public static KeyBindingWrapper ADD_GROW_TARGET;
     public static KeyBindingWrapper HIDE_PLAYERS;
     public static KeyBinding COPY_ITEM_TAG;
@@ -97,10 +97,10 @@ public class KZEAddon implements ClientModInitializer {
 
         KZEAddon.COPY_ITEM_TAG = new KeyBinding("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
         KZEAddon.HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.hide_teammates", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", key -> {
-            if (KZEAddon.OPTIONS.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = true;
-            else if (KZEAddon.OPTIONS.getHideTeammates() == Switchable.TOGGLE) KZEAddon.isHideTeammates = !KZEAddon.isHideTeammates;
+            if (KZEAddon.Options.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = true;
+            else if (KZEAddon.Options.getHideTeammates() == Switchable.TOGGLE) KZEAddon.isHideTeammates = !KZEAddon.isHideTeammates;
         }, key -> {
-            if (KZEAddon.OPTIONS.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = false;
+            if (KZEAddon.Options.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = false;
         });
         KeyBindingRegistryImpl.registerKeyBinding(KZEAddon.COPY_ITEM_TAG);
 
@@ -134,11 +134,11 @@ public class KZEAddon implements ClientModInitializer {
         if (team != null) {
             String name = team.getName();
             if (KZEAddon.priorityGlowPlayers.contains(entity.getUuid())) {
-                cir.setReturnValue(KZEAddon.OPTIONS.getPriorityGlowColor().get());
+                cir.setReturnValue(KZEAddon.Options.getPriorityGlowColor().get());
             } else if (name.equals("e")) {
-                cir.setReturnValue(KZEAddon.OPTIONS.getHumanGlowColor().get());
+                cir.setReturnValue(KZEAddon.Options.getHumanGlowColor().get());
             } else if (name.equals("z")) {
-                cir.setReturnValue(KZEAddon.OPTIONS.getZombieGlowColor().get());
+                cir.setReturnValue(KZEAddon.Options.getZombieGlowColor().get());
             }
         }
     }
@@ -197,7 +197,7 @@ public class KZEAddon implements ClientModInitializer {
     }
 
     public static void onRenderHud(MatrixStack matrices, float tickDelta) {
-        OPTIONS.renderWidgets(matrices);
+        Options.renderWidgets(matrices);
     }
 
     public static void onRenderWorld(MatrixStack matrices, float tickDelta) {
@@ -207,7 +207,7 @@ public class KZEAddon implements ClientModInitializer {
 
     public static void onRenderInit() {
         BAR_VISUALIZER.init();
-        BAR_VISUALIZER.setDistance(OPTIONS.getBarrierVisualizeRadius());
+        BAR_VISUALIZER.setDistance(Options.getBarrierVisualizeRadius());
     }
 
     public static void onClientStop(MinecraftClient client) {
@@ -223,9 +223,9 @@ public class KZEAddon implements ClientModInitializer {
 
         AbstractTeam team = MinecraftClient.getInstance().player.getScoreboardTeam();
         if (team != null) {
-            if (team.shouldShowFriendlyInvisibles() == KZEAddon.OPTIONS.isCompletelyInvisible()) {
-                ((Team) team).setShowFriendlyInvisibles(!KZEAddon.OPTIONS.isCompletelyInvisible());
-                KZEAddon.addChatLog("Visibility flag changed to " + !KZEAddon.OPTIONS.isCompletelyInvisible());
+            if (team.shouldShowFriendlyInvisibles() == KZEAddon.Options.isCompletelyInvisible()) {
+                ((Team) team).setShowFriendlyInvisibles(!KZEAddon.Options.isCompletelyInvisible());
+                KZEAddon.addChatLog("Visibility flag changed to " + !KZEAddon.Options.isCompletelyInvisible());
             }
         }
 
@@ -240,9 +240,9 @@ public class KZEAddon implements ClientModInitializer {
         try {
             Gson gson = new GsonBuilder().create();
             JsonReader reader = new JsonReader(new FileReader(optionsFile));
-            OPTIONS = gson.fromJson(reader, Options.class);
-            OPTIONS.initWidgets();
-            KZEAddon.BAR_VISUALIZER.setDistance(OPTIONS.getBarrierVisualizeRadius());
+            Options = gson.fromJson(reader, Options.class);
+            Options.initWidgets();
+            KZEAddon.BAR_VISUALIZER.setDistance(Options.getBarrierVisualizeRadius());
         } catch (Exception e) {
             LOGGER.warn("Config file load failed");
             resetConfig();
@@ -254,7 +254,7 @@ public class KZEAddon implements ClientModInitializer {
             FileWriter fWriter = new FileWriter(optionsFile);
             PrintWriter pWriter = new PrintWriter(new BufferedWriter(fWriter));
             Gson gson = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
-            String content = gson.toJson(OPTIONS);
+            String content = gson.toJson(Options);
             pWriter.print(content);
             pWriter.close();
         } catch (Exception e) {
@@ -269,8 +269,8 @@ public class KZEAddon implements ClientModInitializer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        OPTIONS = new Options();
-        OPTIONS.initWidgets();
+        Options = new Options();
+        Options.initWidgets();
         saveConfig();
     }
 

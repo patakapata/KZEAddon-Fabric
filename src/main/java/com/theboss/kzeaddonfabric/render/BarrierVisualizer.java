@@ -41,7 +41,7 @@ public class BarrierVisualizer {
     public void tick() {
         if (MinecraftClient.getInstance().player == null) return;
         BlockPos center = null;
-        if (KZEAddon.OPTIONS.getBarrierVisualizeOrigin() == BarrierVisualizeOrigin.MYSELF) {
+        if (KZEAddon.Options.getBarrierVisualizeOrigin() == BarrierVisualizeOrigin.MYSELF) {
             center = MinecraftClient.getInstance().player.getBlockPos();
         } else {
             HitResult result = MinecraftClient.getInstance().player.raycast(50.0, MinecraftClient.getInstance().getTickDelta(), false);

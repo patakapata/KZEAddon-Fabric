@@ -4,5 +4,11 @@
     "sounds": [
       "kzeaddon-fabric:honk"
     ]
+  },
+  "voting.enter": {
+    "subtitle": "subtitles.kzeaddon.voting.enter",
+    "sounds": [
+      "kzeaddon-fabric:voting/enter"
+    ]
   }
 }
