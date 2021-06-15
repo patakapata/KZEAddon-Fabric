@@ -35,7 +35,7 @@ public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
 
     @Override
     public void onClose() {
-        this.parent.openParent(this.client);
+        this.parent.open(this.client);
     }
 
     public void setFocusedTFW(TextFieldWidget widget) {

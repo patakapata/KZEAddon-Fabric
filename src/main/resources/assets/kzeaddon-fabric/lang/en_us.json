@@ -11,6 +11,7 @@
   "key.kzeaddon.glow.priority.add": "Add priority glow target",
   "key.kzeaddon.wip.copy_item_tag": "Copy Item Tag from hovering item",
   "key.kzeaddon.hide_teammates": "Hide teammates",
+  "key.kzeaddon.debug": "Debug key",
   
   "menu.kzeaddon.option.widget": "Widget",
   "menu.kzeaddon.option.glowColor": "Glow Color",
@@ -27,6 +28,7 @@
   "menu.kzeaddon.option.priorityGlowColor": "Priority GlowColor",
   "menu.kzeaddon.option.humanGlowColor": "Human GlowColor",
   "menu.kzeaddon.option.zombieGlowColor": "Zombie GlowColor",
+  "menu.kzeaddon.option.back": "Back",
   
   "menu.kzeaddon.option.anchor_widget": "Anchor - Widget",
   "menu.kzeaddon.option.anchor_window": "Anchor - Window",

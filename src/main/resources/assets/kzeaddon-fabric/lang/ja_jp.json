@@ -11,6 +11,7 @@
   "key.kzeaddon.glow.priority.add": "優先発光対象に指定",
   "key.kzeaddon.wip.copy_item_tag": "ホバー中のアイテムのNBTをコピー",
   "key.kzeaddon.hide_teammates": "チームメイトを非表示",
+  "key.kzeaddon.debug": "デバッグ用キー",
   
   "menu.kzeaddon.option.widget": "ウィジェット",
   "menu.kzeaddon.option.glowColor": "発光色",
@@ -27,6 +28,7 @@
   "menu.kzeaddon.option.priorityGlowColor": "優先 発光色",
   "menu.kzeaddon.option.humanGlowColor": "人間 発光色",
   "menu.kzeaddon.option.zombieGlowColor": "ゾンビ 発光色",
+  "menu.kzeaddon.option.back": "戻る",
   
   "menu.kzeaddon.option.anchor_widget": "アンカー - ウィジェット",
   "menu.kzeaddon.option.anchor_window": "アンカー - ウィンドウ",

@@ -19,8 +19,12 @@ public class KeyBindingWrapper {
         this.onRelease = onRelease;
     }
 
+    public KeyBindingWrapper(String translationKey, int code, String category, Consumer<KeyBinding> onPress) {
+        this(translationKey, code, category, onPress, unused -> {});
+    }
+
     public KeyBindingWrapper(String translationKey, int code, String category) {
-        this(translationKey, code, category, unused -> {}, unused -> {});
+        this(translationKey, code, category, unused -> {});
     }
 
     public void tick() {

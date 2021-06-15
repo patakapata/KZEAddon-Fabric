@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.function.Consumer;
 
 public class GlowColorOptionScreen extends Screen {
+    public static final Identifier TEXTURE = new Identifier("kzeaddon-fabric", "textures/gui/option/background/glow_color.png");
     public static final Identifier PREVIEW = new Identifier("kzeaddon-fabric", "textures/gui/option/color_preview.png");
 
     private int cX;
@@ -63,26 +64,29 @@ public class GlowColorOptionScreen extends Screen {
     }
 
     protected void close(boolean shouldSave) {
-        if (shouldSave) this.saveToOptions();
+        if (shouldSave) {
+            this.saveToOptions();
+            KZEAddon.LOGGER.info("Glow color configuration has been saved to instance");
+        } else {
+            KZEAddon.LOGGER.info("Glow color configuration has been discard");
+        }
         this.onClose();
     }
 
     @Override
     protected void init() {
-        System.out.println("Screen initialize");
-
         this.cX = this.width / 2;
         this.cY = this.height / 2;
 
-        this.priority = new TextFieldWidget(this.textRenderer, this.cX + 5, this.cY - 55, 73, 20, Text.of("Priority field"));
-        this.human = new TextFieldWidget(this.textRenderer, this.cX + 5, this.cY - 25, 73, 20, Text.of("Human field"));
-        this.zombie = new TextFieldWidget(this.textRenderer, this.cX + 5, this.cY + 5, 73, 20, Text.of("Zombie field"));
-        this.priorityPreview = new TexturedButtonWidget(this.cX + 83, this.cY - 55, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 0));
-        this.humanPreview = new TexturedButtonWidget(this.cX + 83, this.cY - 25, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 1));
-        this.zombiePreview = new TexturedButtonWidget(this.cX + 83, this.cY + 5, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 2));
+        this.priority = new TextFieldWidget(this.textRenderer, this.cX + 6, this.cY - 50, 73, 20, Text.of("Priority field"));
+        this.human = new TextFieldWidget(this.textRenderer, this.cX + 6, this.cY - 20, 73, 20, Text.of("Human field"));
+        this.zombie = new TextFieldWidget(this.textRenderer, this.cX + 6, this.cY + 10, 73, 20, Text.of("Zombie field"));
+        this.priorityPreview = new TexturedButtonWidget(this.cX + 84, this.cY - 50, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 0));
+        this.humanPreview = new TexturedButtonWidget(this.cX + 84, this.cY - 20, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 1));
+        this.zombiePreview = new TexturedButtonWidget(this.cX + 84, this.cY + 10, 20, 20, 0, 0, 20, PREVIEW, 32, 64, btn -> this.onPressPreview(btn, 2));
 
-        this.discard = new ButtonWidget(this.cX - 49, this.height - 30, 44, 20, new TranslatableText("menu.kzeaddon.option.discard"), btn -> this.close(false));
-        this.save = new ButtonWidget(this.cX + 5, this.height - 30, 44, 20, new TranslatableText("menu.kzeaddon.option.save"), btn -> this.close(true));
+        this.discard = new ButtonWidget(this.cX - 47, this.cY + 61, 44, 20, new TranslatableText("menu.kzeaddon.option.discard"), btn -> this.close(false));
+        this.save = new ButtonWidget(this.cX + 3, this.cY + 61, 44, 20, new TranslatableText("menu.kzeaddon.option.save"), btn -> this.close(true));
 
         this.initTextFieldsContents();
 
@@ -180,22 +184,39 @@ public class GlowColorOptionScreen extends Screen {
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        if (client.world == null) this.renderBackground(matrices);
+        if (this.client.world == null) this.renderBackground(matrices);
+        // Rendering the background
+        this.client.getTextureManager().bindTexture(TEXTURE);
+        int width = 256;
+        int height = 177;
+        matrices.push();
+        matrices.translate(this.cX, this.cY, 0.0);
+        this.drawTexture(matrices, -width / 2, -height / 2, 0, 0, width, height);
+        matrices.pop();
         super.render(matrices, mouseX, mouseY, delta);
-
-        int msgX = this.cX - 5;
-        int fontHeight = textRenderer.fontHeight / 2;
-        int priorityMsgY = this.priority.y + this.priority.getHeight() / 2 - fontHeight;
-        int humanMsgY = this.human.y + this.human.getHeight() / 2 - fontHeight;
-        int zombieMsgY = this.zombie.y + this.zombie.getHeight() / 2 - fontHeight;
 
         TranslatableText priorityMsg = new TranslatableText("menu.kzeaddon.option.priorityGlowColor");
         TranslatableText humanMsg = new TranslatableText("menu.kzeaddon.option.humanGlowColor");
         TranslatableText zombieMsg = new TranslatableText("menu.kzeaddon.option.zombieGlowColor");
 
-        this.textRenderer.drawWithShadow(matrices, priorityMsg, msgX - this.textRenderer.getWidth(priorityMsg), priorityMsgY, 0xE0E0E0);
-        this.textRenderer.drawWithShadow(matrices, humanMsg, msgX - this.textRenderer.getWidth(humanMsg), humanMsgY, 0xE0E0E0);
-        this.textRenderer.drawWithShadow(matrices, zombieMsg, msgX - this.textRenderer.getWidth(zombieMsg), zombieMsgY, 0xE0E0E0);
+        int msgX = this.cX - 42;
+        int fontHeight = this.textRenderer.fontHeight / 2;
+
+        // Priority msg cord
+        int priorityMsgY = this.priority.y + this.priority.getHeight() / 2 - fontHeight;
+        float priorityMsgX = msgX - this.textRenderer.getWidth(priorityMsg) / 2F;
+        //
+        int humanMsgY = this.human.y + this.human.getHeight() / 2 - fontHeight;
+        float humanMsgX = msgX - this.textRenderer.getWidth(humanMsg) / 2F;
+        //
+        int zombieMsgY = this.zombie.y + this.zombie.getHeight() / 2 - fontHeight;
+        float zombieMsgX = msgX - this.textRenderer.getWidth(zombieMsg) / 2F;
+
+        int textColor = 0x2F2F2F;
+
+        this.textRenderer.draw(matrices, priorityMsg, priorityMsgX, priorityMsgY, textColor);
+        this.textRenderer.draw(matrices, humanMsg, humanMsgX, humanMsgY, textColor);
+        this.textRenderer.draw(matrices, zombieMsg, zombieMsgX, zombieMsgY, textColor);
 
         int[] priorityColor = Color.parse(this.priorityValue);
         int[] humanColor = Color.parse(this.humanValue);

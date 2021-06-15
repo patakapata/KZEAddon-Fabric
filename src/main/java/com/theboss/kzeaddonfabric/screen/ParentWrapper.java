@@ -28,7 +28,7 @@ public class ParentWrapper {
         }
     }
 
-    public void openParent(MinecraftClient mc) {
+    public void open(MinecraftClient mc) {
         mc.openScreen(this.parent);
     }
 }

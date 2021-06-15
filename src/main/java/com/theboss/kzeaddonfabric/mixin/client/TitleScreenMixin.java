@@ -1,7 +1,9 @@
 package com.theboss.kzeaddonfabric.mixin.client;
 
+import com.theboss.kzeaddonfabric.enums.Anchor;
 import com.theboss.kzeaddonfabric.screen.button.AnchorSelectButton;
 import com.theboss.kzeaddonfabric.screen.options.RootOptionScreen;
+import com.theboss.kzeaddonfabric.wip.WidgetConfigureScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
@@ -27,7 +29,7 @@ public abstract class TitleScreenMixin extends Screen {
     @Inject(method = "init", at = @At("RETURN"))
     private void onInit(CallbackInfo ci) {
         this.openKZEAddonOption = new ButtonWidget(this.width - 30, this.height - 30, 20, 20, Text.of("O"), btn -> MinecraftClient.getInstance().openScreen(new RootOptionScreen()));
-        this.aSButton = new AnchorSelectButton(10, 10, 30, 30, btn -> System.out.println("Anchor Button Pressed"));
+        this.aSButton = new AnchorSelectButton(Anchor.LEFT_UP, 10, 10, 30, 30, btn -> MinecraftClient.getInstance().openScreen(new WidgetConfigureScreen(Anchor.LEFT_UP, Anchor.RIGHT_DOWN, 0, 0)));
         this.addButton(this.openKZEAddonOption);
     }
 
@@ -36,7 +38,7 @@ public abstract class TitleScreenMixin extends Screen {
         this.aSButton.mouseClicked(mouseX, mouseY, button);
     }
 
-    @Inject(method = "render", at = @At("HEAD"))
+    @Inject(method = "render", at = @At("RETURN"))
     private void onRender(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         this.aSButton.render(matrices, mouseX, mouseY, delta);
     }

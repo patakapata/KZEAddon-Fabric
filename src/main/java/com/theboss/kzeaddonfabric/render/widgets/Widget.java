@@ -24,6 +24,11 @@ public abstract class Widget {
     @Expose
     private short opacity;
 
+    private float lastWidgetWidth;
+    private float lastWidgetHeight;
+    private float lastWindowWidth;
+    private float lastWindowHeight;
+
     public Widget(Anchor widgetAnchor, Anchor windowAnchor, float scaleFactor, int offsetX, int offsetY, int opacity) {
         this.widgetAnchor = widgetAnchor;
         this.windowAnchor = windowAnchor;
@@ -32,11 +37,36 @@ public abstract class Widget {
         this.offsetY = offsetY;
         this.visibility = true;
         this.opacity = (short) opacity;
+        this.lastWidgetWidth = 0.0F;
     }
 
     public Widget(Widget source) {
         this(source.widgetAnchor, source.windowAnchor, source.scaleFactor, source.offsetX, source.offsetY, source.opacity);
         this.visibility = source.visibility;
+    }
+
+    public void migrateWidgetAnchor(Anchor newWidgetAnchor) {
+        if (!this.widgetAnchor.equals(newWidgetAnchor)) {
+            float xFactorDiff = newWidgetAnchor.getXFactor() - this.widgetAnchor.getXFactor();
+            float yFactorDiff = newWidgetAnchor.getYFactor() - this.widgetAnchor.getYFactor();
+
+            this.offsetX -= (int) (this.lastWidgetWidth * xFactorDiff);
+            this.offsetY -= (int) (this.lastWidgetHeight * yFactorDiff);
+
+            this.widgetAnchor = newWidgetAnchor;
+        }
+    }
+
+    public void migrateWindowAnchor(Anchor newWindowAnchor) {
+        if (!this.windowAnchor.equals(newWindowAnchor)) {
+            float xFactorDiff = newWindowAnchor.getXFactor() - this.windowAnchor.getXFactor();
+            float yFactorDiff = newWindowAnchor.getYFactor() - this.windowAnchor.getYFactor();
+
+            this.offsetX -= (int) (this.lastWindowWidth * xFactorDiff);
+            this.offsetY -= (int) (this.lastWindowWidth * yFactorDiff);
+
+            this.windowAnchor = newWindowAnchor;
+        }
     }
 
     public short getOpacity() {
@@ -48,11 +78,13 @@ public abstract class Widget {
     }
 
     private float getWidth(Text message, TextRenderer textRenderer) {
-        return textRenderer.getWidth(message.asString()) * this.scaleFactor;
+        this.lastWidgetWidth = textRenderer.getWidth(message.asString()) * this.scaleFactor;
+        return this.lastWidgetWidth;
     }
 
     private float getHeight(TextRenderer textRenderer) {
-        return textRenderer.fontHeight * this.scaleFactor;
+        this.lastWidgetHeight = textRenderer.fontHeight * this.scaleFactor;
+        return this.lastWidgetHeight;
     }
 
     public float getAbsoluteX(Text message, Window window, TextRenderer textRenderer) {

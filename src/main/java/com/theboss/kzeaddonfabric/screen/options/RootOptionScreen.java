@@ -14,6 +14,8 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
 public class RootOptionScreen extends Screen {
+    private static final Identifier TEXTURE = new Identifier("kzeaddon-fabric", "textures/gui/option/background/root.png");
+
     private int cX;
     private int cY;
 
@@ -40,11 +42,11 @@ public class RootOptionScreen extends Screen {
         this.cX = this.width / 2;
         this.cY = this.height / 2;
 
-        this.widgets = new ButtonWidget(this.cX - 103, this.cY - 60, 98, 20, new TranslatableText("menu.kzeaddon.option.widget"), this::onPressWidget);
-        this.glowColor = new ButtonWidget(this.cX + 5, this.cY - 60, 98, 20, new TranslatableText("menu.kzeaddon.option.glowColor"), this::onPressGlowColor);
-        this._PENDING = new ButtonWidget(this.cX - 103, this.cY - 30, 98, 20, new TranslatableText("menu.kzeaddon.option.pending"), this::onPressPending);
-        this.other = new ButtonWidget(this.cX + 5, this.cY - 30, 98, 20, new TranslatableText("menu.kzeaddon.option.other"), this::onPressOther);
-        this.close = new ButtonWidget(this.cX - 49, this.height - 30, 98, 20, new TranslatableText("menu.kzeaddon.option.close"), btn -> this.onClose());
+        this.widgets = new ButtonWidget(this.cX - 94, this.cY - 80, 188, 20, new TranslatableText("menu.kzeaddon.option.widget"), this::onPressWidget);
+        this.glowColor = new ButtonWidget(this.cX - 94, this.cY - 55, 188, 20, new TranslatableText("menu.kzeaddon.option.glowColor"), this::onPressGlowColor);
+        this._PENDING = new ButtonWidget(this.cX - 94, this.cY - 30, 188, 20, new TranslatableText("menu.kzeaddon.option.pending"), this::onPressPending);
+        this.other = new ButtonWidget(this.cX - 94, this.cY - 5, 188, 20, new TranslatableText("menu.kzeaddon.option.other"), this::onPressOther);
+        this.close = new ButtonWidget(this.cX - 41, this.cY + 61, 82, 20, new TranslatableText("menu.kzeaddon.option.close"), btn -> this.onClose());
 
         this.addButton(this.widgets);
         this.addButton(this.glowColor);
@@ -56,6 +58,16 @@ public class RootOptionScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         if (client.world == null) this.renderBackground(matrices);
+
+        // Rendering the background
+        int width = 256;
+        int height = 177;
+        matrices.push();
+        matrices.translate(this.cX, this.cY, 0.0);
+        client.getTextureManager().bindTexture(TEXTURE);
+        this.drawTexture(matrices, -width / 2, -height / 2, 0, 0, width, height);
+        matrices.pop();
+
         super.render(matrices, mouseX, mouseY, delta);
     }
 
@@ -69,7 +81,7 @@ public class RootOptionScreen extends Screen {
     }
 
     protected void onPressWidget(ButtonWidget button) {
-        this.openScreen(new WidgetOptionSelectScreen(this));
+        this.openScreen(new WidgetSelectScreen(this));
     }
 
     protected void onPressGlowColor(ButtonWidget button) {
