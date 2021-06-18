@@ -1,4 +1,4 @@
-![MOD ICON ALT](https://raw.githubusercontent.com/patakapata/KZEAddon-1.16.4/master/src/main/resources/assets/kzeaddon-fabric/icon.png)# KZEAddon - Fabric
+![MOD ICON ALT](https://raw.githubusercontent.com/patakapata/KZEAddon-1.16.4/master/src/main/resources/assets/kzeaddon-fabric/icon.png) # KZEAddon - Fabric
 KaedeZombieEscapeのプレイを支援するModです
 
 [Forge版](https://github.com/tedo0627/KZEAddon)
