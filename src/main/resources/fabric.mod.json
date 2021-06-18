@@ -5,13 +5,11 @@
   "name": "KZEAddon Fabric",
   "description": "KaedeZombieEscapeをプレイする際の支援Modです",
   "authors": [
-    "_xTHEBOSSx_",
-    "GriseCalvados",
-    "traight195",
-    "coachang",
-    "Nero_chama"
+    "theBooooSS"
   ],
-  "contact": {},
+  "contact": {
+    "Twitter": "https://twitter.com/_xthebossx_"
+  },
   "license": "MIT",
   "icon": "assets/kzeaddon-fabric/icon.png",
   "environment": "client",

@@ -210,7 +210,6 @@ public class BarrierVisualizer {
             int x = this.round(center.getX());
             int y = this.round(center.getY());
             int z = this.round(center.getZ());
-            MinecraftClient.getInstance().inGameHud.setOverlayMessage(Text.of(String.format("%d, %d, %d", x, y, z)), false);
             this.updateRegion(x, y, z);
             // this.run(chunk -> CompletableFuture.runAsync(() -> chunk.update(world, this.shouldRebuild)));
             this.run(this.UPDATER);

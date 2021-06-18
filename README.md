@@ -1,14 +1,31 @@
-# KZEAddon - Fabric
+# KZEAddon - Fabric ![ALT](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJUSURBVFhHxZZBixpBFITfLmpgloRk8ZxcctBTYAM5KSgI+SX+N/9CTgp6zUJO7iGX5ORBAknYgejChK/tN2nbtjMzOrsFzfT0zFrVVW9e70WWZfKUuLTXHP1+3yjqdrsZwyzWiAMB6/XaiFgulxd2qVYEI2Dn7XZb5vN57SIOHADsXp2wS7UhWoRaA3W6EXRA4dfBx3dXGcPengWFPkOceN36Lm+uUvm9bcqPTVM+fbk/iyNRBxRK/vnPjTxvbs38XE4UEsBuv90n8v7ZrRGBCy+TfzVyCkp1QnbN7n9miXzddCRJEtM3TukZhRzwcfmwlbetO0nT1HwhpzhRSoBGQR0gov1wZxzo9Xr2jfIo7YArAuAAIqq6EK2B4XCYP5xOpwc9IX1xY+Y4gIjFYlG6HnIHINNhlwwGg4Gd7aDvbK4/mO6oxKDT6ch4PC51iu5FoGQhIe6avgeRRsDQOY4UFZFH4P94DLPZTFarVU7oXgFXRpFI9moAESoAEh88m0wmZu6Tgioigl+BklN4DHbLgNwl1LnWAkRcAVedx2AEuPkq/KoPEQP/mObccEVwH0PuAPYey18JXeLRaCSNRsPe7Y5ubdX9V7sGlfy6/e/BlQvA9lDugF0yIFTiY+9yUNGo3NxjIowAzdqsWPiRhCJy/waC69Y275BAuyaieBYSESxCjUJrQ8mPRQTYJeQQ+v+ssM4IOVG5DwDftWOAFHKcAK7QPQGQ+9nG1ooKAG5Erkt7Ebg783/cXfMFFUUoosqnYRXggl8fUQGPgeBX8Jh4YgEifwG2iat/AlGahAAAAABJRU5ErkJggg==)
 KaedeZombieEscapeのプレイを支援するModです
 
-Forge版はTedoさんが作ってます
+[Forge版](https://github.com/tedo0627/KZEAddon)
+(オリジナル)はTedoさんが作ってます
+
+
+決してこのMODの不具合等を<br>
+Tedoさんに報告*しない*ようにお願いします
+
+
+ちなみにKZE運営には許可は取っていないので
+使用する際は自己責任でどうぞ
+
+
+##ライセンスについて
+このMOD自体は MITライセンス を適用しています
+
+しかしソースコードの一部に Fabric API から抜粋したものがあります
 ## TODO
-- アイテムからWeaponへの変換
-- 銃声音量設定
-- リソースパック無視
-- ~~発光色変更~~
-- チームメイト半透明
 - スムーズカメラ
 - 設定画面(GUI)
 - ウィジェット編集画面
 - キルログ
+## 作業中
+## 完了
+- チームメイト半透明
+- 発光色変更
+- リソースパック無視
+- 銃声音量設定
+- アイテムからWeaponへの変換

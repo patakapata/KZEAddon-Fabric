@@ -1,5 +1,6 @@
 package com.theboss.kzeaddonfabric;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
@@ -10,16 +11,10 @@ import com.theboss.kzeaddonfabric.enums.Switchable;
 import com.theboss.kzeaddonfabric.events.GetTeamColorValueEvent;
 import com.theboss.kzeaddonfabric.mixin.client.KeyBindingAccessor;
 import com.theboss.kzeaddonfabric.render.BarrierVisualizer;
-import com.theboss.kzeaddonfabric.wip.MarkedArea;
-import com.theboss.kzeaddonfabric.wip.RenameItemCommand;
-import com.theboss.kzeaddonfabric.wip.WidgetConfigureScreen;
+import com.theboss.kzeaddonfabric.screen.WidgetConfigureScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
-import net.fabricmc.fabric.impl.client.keybinding.KeyBindingRegistryImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.item.TooltipContext;
@@ -64,9 +59,8 @@ import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Environment(EnvType.CLIENT)
 public class KZEAddon implements ClientModInitializer {
@@ -75,12 +69,13 @@ public class KZEAddon implements ClientModInitializer {
     public static final BarrierVisualizer BAR_VISUALIZER = new BarrierVisualizer();
     public static final KZEInformation KZE_INFO = new KZEInformation();
     public static final List<UUID> priorityGlowPlayers = new ArrayList<>();
-    public static final MarkedArea MARKED_AREA = new MarkedArea(new MarkedArea.Area(new BlockPos(0, 1, 0), new BlockPos(10, 11, 10)));
     public static Options Options;
+
+    public static List<KeyBinding> modKeys = new ArrayList<>();
     public static KeyBindingWrapper ADD_GROW_TARGET;
     public static KeyBindingWrapper HIDE_PLAYERS;
     public static KeyBindingWrapper DEBUG_KEY;
-    public static KeyBinding COPY_ITEM_TAG;
+    public static KeyBindingWrapper COPY_ITEM_TAG;
 
     public static boolean KEY_FLIPFLOP_COPY = false;
     public static boolean isHideTeammates;
@@ -141,7 +136,7 @@ public class KZEAddon implements ClientModInitializer {
     public static void handleItemTooltip(ItemStack stack, TooltipContext context, List<Text> list) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.currentScreen == null) return;
-        boolean isPressed = InputUtil.isKeyPressed(mc.getWindow().getHandle(), ((KeyBindingAccessor) COPY_ITEM_TAG).getBoundKey().getCode());
+        boolean isPressed = InputUtil.isKeyPressed(mc.getWindow().getHandle(), COPY_ITEM_TAG.getCode());
         Tag tag = stack.getTag();
         if (tag != null) {
             String str = tag.toText().getString();
@@ -497,13 +492,32 @@ public class KZEAddon implements ClientModInitializer {
     }
 
     /**
+     * From fabric keybinding api
+     *
+     * @param keysAll keys array
+     * @return processed keys array
+     */
+    public static KeyBinding[] registerKeybindings(KeyBinding[] keysAll) {
+        Map<String, Integer> categoryMap = KeyBindingAccessor.fabric_getCategoryMap();
+        Optional<Integer> largest = categoryMap.values().stream().max(Integer::compareTo);
+        int largestInt = largest.orElse(0);
+        for (KeyBinding key : modKeys) {
+            String category = key.getCategory();
+            if (!categoryMap.containsKey(category)) categoryMap.put(category, largestInt++);
+        }
+
+        List<KeyBinding> list = Lists.newArrayList(keysAll);
+        list.removeAll(modKeys);
+        list.addAll(modKeys);
+        return list.toArray(new KeyBinding[0]);
+    }
+
+    /**
      * Mod initialization
      */
     @Override
     public void onInitializeClient() {
         MinecraftClient client = MinecraftClient.getInstance();
-
-        ClientLifecycleEvents.CLIENT_STOPPING.register(KZEAddon::onClientStop);
 
         optionsFile = new File(client.runDirectory.getAbsolutePath() + "\\config\\" + MOD_ID + ".json");
         loadConfig();
@@ -523,7 +537,7 @@ public class KZEAddon implements ClientModInitializer {
                 unused -> {}
         );
 
-        KZEAddon.COPY_ITEM_TAG = new KeyBinding("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
+        KZEAddon.COPY_ITEM_TAG = new KeyBindingWrapper("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
         KZEAddon.HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.hide_teammates", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", key -> {
             if (KZEAddon.Options.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = true;
             else if (KZEAddon.Options.getHideTeammates() == Switchable.TOGGLE) KZEAddon.isHideTeammates = !KZEAddon.isHideTeammates;
@@ -534,11 +548,7 @@ public class KZEAddon implements ClientModInitializer {
             if (MinecraftClient.getInstance().world != null) MinecraftClient.getInstance().openScreen(new WidgetConfigureScreen(Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 0, 0));
             KZEAddon.addChatLog("DEBUG KEY PRESSED");
         });
-        KeyBindingRegistryImpl.registerKeyBinding(KZEAddon.COPY_ITEM_TAG);
-
-        ItemTooltipCallback.EVENT.register(KZEAddon::handleItemTooltip);
         GetTeamColorValueEvent.EVENT.register(KZEAddon::onGetTeamColorValue);
-        CommandRegistrationCallback.EVENT.register(RenameItemCommand::register);
         Registry.register(Registry.SOUND_EVENT, CustomSounds.HONK_ID, CustomSounds.HONK_EVENT);
     }
 }

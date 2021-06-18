@@ -65,7 +65,7 @@ public class Color {
     }
 
     public String toHexString() {
-        return this.fullString(this.red) + this.fullString(this.green) + this.fullString(this.blue);
+        return fullString(this.red) + fullString(this.green) + fullString(this.blue);
     }
 
     public int get() {

@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric;
 
-import net.fabricmc.fabric.impl.client.keybinding.KeyBindingRegistryImpl;
+import com.theboss.kzeaddonfabric.mixin.client.KeyBindingAccessor;
 import net.minecraft.client.options.KeyBinding;
 
 import java.util.function.Consumer;
@@ -14,15 +14,16 @@ public class KeyBindingWrapper {
 
     public KeyBindingWrapper(String translationKey, int code, String category, Consumer<KeyBinding> onPress, Consumer<KeyBinding> onRelease) {
         this.keybinding = new KeyBinding(translationKey, code, category);
-        KeyBindingRegistryImpl.registerKeyBinding(this.keybinding);
         this.onPress = onPress;
         this.onRelease = onRelease;
+        KZEAddon.modKeys.add(this.keybinding);
     }
 
     public KeyBindingWrapper(String translationKey, int code, String category, Consumer<KeyBinding> onPress) {
         this(translationKey, code, category, onPress, unused -> {});
     }
 
+    @SuppressWarnings("unused")
     public KeyBindingWrapper(String translationKey, int code, String category) {
         this(translationKey, code, category, unused -> {});
     }
@@ -43,10 +44,15 @@ public class KeyBindingWrapper {
         this.lastIsPressed = isPressed;
     }
 
+    public int getCode() {
+        return ((KeyBindingAccessor) this.keybinding).getBoundKey().getCode();
+    }
+
     public boolean isPressed() {
         return this.keybinding.isPressed();
     }
 
+    @SuppressWarnings("unused")
     public String getTranslationKey() {
         return this.keybinding.getTranslationKey();
     }

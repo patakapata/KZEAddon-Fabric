@@ -128,7 +128,7 @@ public abstract class Widget {
     }
 
     public int getColor() {
-        return 0xFFFFFF;
+        return this.opacity & 0xFF << 24 | 0xFF_FF_FF;
     }
 
     public abstract Text getText();

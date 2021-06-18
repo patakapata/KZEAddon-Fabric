@@ -83,10 +83,12 @@ public class GunAmmoWidget extends Widget {
     @Override
     public int getColor() {
         double progress = this.getWeapon().inMagazineAmmoPercentage();
+        int color;
         if (progress == 0) {
-            return this.magazineEmpty.get();
+            color = this.magazineEmpty.get();
         } else {
-            return Color.lerp(this.magazineFull, this.magazineLow, 1 - progress).get();
+            color = Color.lerp(this.magazineFull, this.magazineLow, 1 - progress).get();
         }
+        return this.getOpacity() << 24 | color;
     }
 }

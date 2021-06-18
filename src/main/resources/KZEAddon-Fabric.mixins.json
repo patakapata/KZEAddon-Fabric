@@ -12,10 +12,13 @@
     "client.ClientWorldMixin",
     "client.EntityMixin",
     "client.GameMenuScreenMixin",
+    "client.GameOptionsMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
+    "client.ItemStackMixin",
     "client.KeyBindingAccessor",
     "client.LivingEntityRendererMixin",
+    "client.MinecraftClientMixin",
     "client.ResourcePackStatusC2SPacketMixin",
     "client.TitleScreenMixin",
     "client.WorldRendererMixin"

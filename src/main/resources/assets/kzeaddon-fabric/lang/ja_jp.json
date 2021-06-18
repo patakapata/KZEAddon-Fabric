@@ -42,6 +42,8 @@
   "menu.kzeaddon.option.appearance": "見た目",
   "menu.kzeaddon.option.opacity": "不透明度",
   "menu.kzeaddon.visibility": "可視性",
+  "menu.kzeaddon.hide": "表示: オン",
+  "menu.kzeaddon.show": "表示: オフ",
   
   "subtitles.kzeaddon.honk": "HONK"
 }

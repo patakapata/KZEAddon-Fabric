@@ -3,7 +3,7 @@ package com.theboss.kzeaddonfabric.mixin.client;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import com.theboss.kzeaddonfabric.screen.button.AnchorSelectButton;
 import com.theboss.kzeaddonfabric.screen.options.RootOptionScreen;
-import com.theboss.kzeaddonfabric.wip.WidgetConfigureScreen;
+import com.theboss.kzeaddonfabric.screen.WidgetConfigureScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;

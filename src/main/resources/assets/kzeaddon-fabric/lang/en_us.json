@@ -42,6 +42,8 @@
   "menu.kzeaddon.option.appearance": "Appearance",
   "menu.kzeaddon.option.opacity": "Opacity",
   "menu.kzeaddon.visibility": "Visibility",
+  "menu.kzeaddon.hide": "Show: On",
+  "menu.kzeaddon.show": "Show: Off",
   
   "subtitles.kzeaddon.honk": "HONK"
 }

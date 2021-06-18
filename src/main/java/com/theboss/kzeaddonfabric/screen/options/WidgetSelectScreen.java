@@ -2,7 +2,7 @@ package com.theboss.kzeaddonfabric.screen.options;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.screen.Screen;
-import com.theboss.kzeaddonfabric.wip.WidgetConfigureScreen;
+import com.theboss.kzeaddonfabric.screen.WidgetConfigureScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -89,7 +89,7 @@ public class WidgetSelectScreen extends Screen {
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        this.renderBackground(matrices);
+        if (this.client.world == null) this.renderBackground(matrices);
         // Rendering the background
         int width = 256;
         int height = 177;
@@ -102,26 +102,29 @@ public class WidgetSelectScreen extends Screen {
         super.render(matrices, mouseX, mouseY, delta);
     }
 
-    public void onPressMainW(AbstractButtonWidget btn) {
-        WidgetConfigureScreen screen = new WidgetConfigureScreen(KZEAddon.Options.getPrimaryAmmo());
+    public void openScreen(Screen screen) {
         screen.setParent(this);
         MinecraftClient.getInstance().openScreen(screen);
     }
 
+    public void onPressMainW(AbstractButtonWidget btn) {
+        this.openScreen(new WidgetConfigureScreen(KZEAddon.Options.getPrimaryAmmo()));
+    }
+
     public void onPressSubW(AbstractButtonWidget btn) {
-        System.out.println("Sub Weapon");
+        this.openScreen(new WidgetConfigureScreen(KZEAddon.Options.getSecondaryAmmo()));
     }
 
     public void onPressMeleeW(AbstractButtonWidget btn) {
-        System.out.println("Melee Weapon");
+        this.openScreen(new WidgetConfigureScreen(KZEAddon.Options.getMeleeAmmo()));
     }
 
     public void onPressTotalAmmo(AbstractButtonWidget btn) {
-        System.out.println("Total Ammo");
+        this.openScreen(new WidgetConfigureScreen(KZEAddon.Options.getTotalAmmo()));
     }
 
     public void onPressReloadTime(AbstractButtonWidget btn) {
-        System.out.println("Reload Time");
+        this.openScreen(new WidgetConfigureScreen(KZEAddon.Options.getReloadIndicator()));
     }
 
     public void onPressPending(AbstractButtonWidget btn, int id) {

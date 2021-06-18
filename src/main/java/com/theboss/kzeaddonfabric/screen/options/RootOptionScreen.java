@@ -2,7 +2,6 @@ package com.theboss.kzeaddonfabric.screen.options;
 
 import com.theboss.kzeaddonfabric.CustomSounds;
 import com.theboss.kzeaddonfabric.screen.Screen;
-import com.theboss.kzeaddonfabric.screen.options.widgets.WidgetOptionScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -57,7 +56,7 @@ public class RootOptionScreen extends Screen {
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        if (client.world == null) this.renderBackground(matrices);
+        if (this.client.world == null) this.renderBackground(matrices);
 
         // Rendering the background
         int width = 256;
@@ -94,7 +93,6 @@ public class RootOptionScreen extends Screen {
         this.honkTimer = 20;
         this._PENDING.setMessage(Text.of("This is honkable"));
         this.playHonk();
-        mc.openScreen(new WidgetOptionScreen(Text.of("TEMP")));
     }
 
     @Override
