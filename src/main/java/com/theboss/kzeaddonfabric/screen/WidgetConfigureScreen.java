@@ -83,12 +83,9 @@ public class WidgetConfigureScreen extends Screen {
         };
     }
 
-    public boolean isVisible() {
-        return this.isVisible;
-    }
-
-    public void setVisible(boolean visible) {
-        this.isVisible = visible;
+    public void close(boolean shouldSave) {
+        if (shouldSave) this.saveConsumer.accept(this);
+        this.onClose();
     }
 
     public short getOpacity() {
@@ -97,6 +94,42 @@ public class WidgetConfigureScreen extends Screen {
 
     public void setOpacity(short opacity) {
         this.opacity = opacity;
+    }
+
+    public Text getVisibilityMessage() {
+        return new TranslatableText("menu.kzeaddon." + (this.isVisible ? "show" : "hide"));
+    }
+
+    public Anchor getWidgetAnc() {
+        return this.widgetAnc;
+    }
+
+    public void setWidgetAnc(Anchor widgetAnc) {
+        this.widgetAnc = widgetAnc;
+    }
+
+    public Anchor getWindowAnc() {
+        return this.windowAnc;
+    }
+
+    public void setWindowAnc(Anchor windowAnc) {
+        this.windowAnc = windowAnc;
+    }
+
+    public int getX() {
+        return this.x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return this.y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     @Override
@@ -177,41 +210,22 @@ public class WidgetConfigureScreen extends Screen {
         this.initAdditionalElements();
     }
 
-    public void close(boolean shouldSave) {
-        if (shouldSave) this.saveConsumer.accept(this);
-        this.onClose();
+    protected void initAdditionalElements() {
     }
 
-    public int getX() {
-        return this.x;
+    public boolean isVisible() {
+        return this.isVisible;
     }
 
-    public void setX(int x) {
-        this.x = x;
+    public void setVisible(boolean visible) {
+        this.isVisible = visible;
     }
 
-    public int getY() {
-        return this.y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public Anchor getWindowAnc() {
-        return this.windowAnc;
-    }
-
-    public void setWindowAnc(Anchor windowAnc) {
-        this.windowAnc = windowAnc;
-    }
-
-    public Anchor getWidgetAnc() {
-        return this.widgetAnc;
-    }
-
-    public void setWidgetAnc(Anchor widgetAnc) {
-        this.widgetAnc = widgetAnc;
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (this.windowSelectWid.mouseClicked(mouseX, mouseY, button)) return true;
+        if (this.widgetSelectWid.mouseClicked(mouseX, mouseY, button)) return true;
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @SuppressWarnings("deprecation")
@@ -246,7 +260,7 @@ public class WidgetConfigureScreen extends Screen {
 
         Text opacityText = new TranslatableText("menu.kzeaddon.option.opacity");
         int opacityWidth = this.textRenderer.getWidth(opacityText);
-        this.textRenderer.drawWithShadow(matrices, opacityText, x - 5 - opacityWidth, bY - 45, 0xFF000000);
+        this.textRenderer.draw(matrices, opacityText, x - 5 - opacityWidth, bY - 45, 0xFF000000);
 
         int x1 = x - lineLength / 2;
         int x2 = x + lineLength / 2;
@@ -259,26 +273,12 @@ public class WidgetConfigureScreen extends Screen {
         this.renderAdditionalElements(matrices, delta);
     }
 
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.windowSelectWid.mouseClicked(mouseX, mouseY, button)) return true;
-        if (this.widgetSelectWid.mouseClicked(mouseX, mouseY, button)) return true;
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    protected void initAdditionalElements() {
-    }
-
     protected void renderAdditionalElements(MatrixStack matrices, float tickDelta) {
     }
 
     public void toggleVisibility(ButtonWidget btn) {
         this.isVisible = !this.isVisible;
         this.updateVisibilityButton();
-    }
-
-    public Text getVisibilityMessage() {
-        return new TranslatableText("menu.kzeaddon." + (this.isVisible ? "show" : "hide"));
     }
 
     public void updateVisibilityButton() {

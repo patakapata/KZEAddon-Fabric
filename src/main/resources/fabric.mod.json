@@ -7,6 +7,10 @@
   "authors": [
     "theBooooSS"
   ],
+  "contributors": [
+    "coachang",
+    "Nero_chama"
+  ],
   "contact": {
     "Twitter": "https://twitter.com/_xthebossx_"
   },
@@ -22,7 +26,7 @@
     "KZEAddon-Fabric.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.11.3",
-    "minecraft": "1.16.4"
+    "fabricloader": ">=0.11.6",
+    "minecraft": "1.16.*"
   }
 }

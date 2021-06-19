@@ -33,16 +33,24 @@ public class GunAmmoWidget extends Widget {
         this(source.targetSlot, source.getWidgetAnchor(), source.getWindowAnchor(), source.getScaleFactor(), source.getOffsetX(), source.getOffsetY(), source.getOpacity(), source.magazineFull, source.magazineLow, source.magazineEmpty);
     }
 
-    protected Weapon getWeapon() {
-        return KZEAddon.KZE_INFO.getWeapon(this.targetSlot);
+    @Override
+    public int getColor() {
+        double progress = this.getWeapon().inMagazineAmmoPercentage();
+        int color;
+        if (progress == 0) {
+            color = this.magazineEmpty.get();
+        } else {
+            color = Color.lerp(this.magazineFull, this.magazineLow, 1 - progress).get();
+        }
+        return this.getOpacity() << 24 | color;
     }
 
-    public WeaponSlot getTargetSlot() {
-        return this.targetSlot;
+    public Color getMagazineEmpty() {
+        return this.magazineEmpty;
     }
 
-    public void setTargetSlot(WeaponSlot targetSlot) {
-        this.targetSlot = targetSlot;
+    public void setMagazineEmpty(Color magazineEmpty) {
+        this.magazineEmpty = magazineEmpty;
     }
 
     public Color getMagazineFull() {
@@ -61,12 +69,12 @@ public class GunAmmoWidget extends Widget {
         this.magazineLow = magazineLow;
     }
 
-    public Color getMagazineEmpty() {
-        return this.magazineEmpty;
+    public WeaponSlot getTargetSlot() {
+        return this.targetSlot;
     }
 
-    public void setMagazineEmpty(Color magazineEmpty) {
-        this.magazineEmpty = magazineEmpty;
+    public void setTargetSlot(WeaponSlot targetSlot) {
+        this.targetSlot = targetSlot;
     }
 
     @Override
@@ -74,21 +82,14 @@ public class GunAmmoWidget extends Widget {
         return Text.of(Integer.toString(this.getWeapon().getInMagazineAmmo()));
     }
 
-    @Override
-    public void render(MatrixStack matrices, Window window, TextRenderer textRenderer) {
-        this.setVisibility(this.getWeapon().isValid());
-        super.render(matrices, window, textRenderer);
+    protected Weapon getWeapon() {
+        return KZEAddon.KZE_INFO.getWeapon(this.targetSlot);
     }
 
     @Override
-    public int getColor() {
-        double progress = this.getWeapon().inMagazineAmmoPercentage();
-        int color;
-        if (progress == 0) {
-            color = this.magazineEmpty.get();
-        } else {
-            color = Color.lerp(this.magazineFull, this.magazineLow, 1 - progress).get();
+    public void render(MatrixStack matrices, Window window, TextRenderer textRenderer) {
+        if (this.getWeapon().isValid()) {
+            super.render(matrices, window, textRenderer);
         }
-        return this.getOpacity() << 24 | color;
     }
 }
