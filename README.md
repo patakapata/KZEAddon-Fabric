@@ -1,4 +1,4 @@
-# KZEAddon - Fabric ![MOD ICON ALT](https://raw.githubusercontent.com/patakapata/KZEAddon-1.16.4/master/src/main/resources/assets/kzeaddon-fabric/icon.png)
+# KZEAddon - Fabric ![MOD ICON ALT](https://raw.githubusercontent.com/patakapata/KZEAddon-1.16.5/master/src/main/resources/assets/kzeaddon-fabric/icon.png)
 
 KaedeZombieEscapeのプレイを支援するModです
 
@@ -14,7 +14,7 @@ Tedoさんに報告*しない*ようにお願いします
 使用する際は自己責任でどうぞ
 
 
-##ライセンスについて
+## ライセンスについて
 このMOD自体は MITライセンス を適用しています
 
 しかしソースコードの一部に Fabric API から抜粋したものがあります
