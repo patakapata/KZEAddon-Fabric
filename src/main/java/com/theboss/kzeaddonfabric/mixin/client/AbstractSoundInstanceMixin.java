@@ -19,7 +19,7 @@ public abstract class AbstractSoundInstanceMixin implements SoundInstance {
 
     /**
      * @author theBooooSS
-     * @reason 銃声の音量を変えるため
+     * @reason Change the gunfire sound volume
      */
     @Overwrite
     public float getVolume() {

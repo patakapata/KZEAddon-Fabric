@@ -38,6 +38,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.resource.ReloadableResourceManagerImpl;
+import net.minecraft.resource.ResourcePack;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.text.Text;
@@ -358,12 +360,11 @@ public class KZEAddon implements ClientModInitializer {
     }
 
     /**
-     * システムのデフォルトのエディターを使用して
-     * コンフィグファイルを開く
+     * Open the config file by system default editor.
      *
-     * @return 開くのに成功した場合 true 失敗したら false
+     * @return Open successfully to true, otherwise false
      * <p>
-     * Windowsでのみ使用可能
+     * Available on windows only
      */
     public static boolean openConfigWithEditor() {
         try {
@@ -519,6 +520,10 @@ public class KZEAddon implements ClientModInitializer {
         }
     }
 
+    public void addPack(ResourcePack pack) {
+        ((ReloadableResourceManagerImpl) MinecraftClient.getInstance().getResourceManager()).addPack(pack);
+    }
+
     /**
      * Mod initialization
      */
@@ -557,5 +562,6 @@ public class KZEAddon implements ClientModInitializer {
             KZEAddon.addChatLog("DEBUG KEY PRESSED");
         });
         Registry.register(Registry.SOUND_EVENT, CustomSounds.HONK_ID, CustomSounds.HONK_EVENT);
+        Registry.register(Registry.SOUND_EVENT, CustomSounds.VOTE_NOTIFIC_ID, CustomSounds.VOTE_NOTIFIC_EVENT);
     }
 }

@@ -20,17 +20,15 @@ repositories {
 }
 
 dependencies {
-    //to change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // modImplementation "net.fabricmc.fabric-api:fabric-resource-loader-v0:0.4.6+2868a2287d"
+    // modImplementation "net.fabricmc.fabric-api:fabric-textures-v0:1.0.6+ca58154a7d"
+
     // modImplementation "com.terraformersmc:modmenu:1.16.5"
-
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    // modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-    // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
-    // You may need to force-disable transitiveness on them.
     // modImplementation "com.google.code.gson:gson:${project.gson_version}"
 }
 

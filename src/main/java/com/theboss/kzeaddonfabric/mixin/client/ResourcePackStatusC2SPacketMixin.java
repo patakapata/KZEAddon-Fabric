@@ -17,7 +17,7 @@ public abstract class ResourcePackStatusC2SPacketMixin implements Packet<ServerP
 
     /**
      * @author theBooooSS
-     * @reason リソースパックを無視するため
+     * @reason Ignore the server resource pack
      */
     @Overwrite
     public void write(PacketByteBuf buf) throws IOException {

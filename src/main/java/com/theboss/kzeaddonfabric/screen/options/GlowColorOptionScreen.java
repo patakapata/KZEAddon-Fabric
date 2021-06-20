@@ -111,9 +111,9 @@ public class GlowColorOptionScreen extends Screen {
     }
 
     /**
-     * Colorを取得します
+     * Get the Color
      *
-     * @param id 対象
+     * @param id Target
      * @return {@link com.theboss.kzeaddonfabric.Color}
      */
     public int getColorById(int id) {
@@ -130,11 +130,11 @@ public class GlowColorOptionScreen extends Screen {
     }
 
     /**
-     * Colorを設定します
+     * Set the Color
      *
-     * @param color 値({@link com.theboss.kzeaddonfabric.Color})
-     * @param id    対象
-     * @return 同じだった場合 false 他の場合 true
+     * @param color Value({@link com.theboss.kzeaddonfabric.Color})
+     * @param id    Target
+     * @return When same to target true, otherwise false
      */
     public boolean setColorById(int color, int id) {
         if (this.getColorById(id) == color) return false;

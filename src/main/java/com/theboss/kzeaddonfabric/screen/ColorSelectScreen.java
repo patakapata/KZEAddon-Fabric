@@ -33,13 +33,18 @@ public class ColorSelectScreen extends Screen {
         this.saveConsumer = saveConsumer;
     }
 
-    @Override
-    public void init(MinecraftClient client, int width, int height) {
-        super.init(client, width, height);
+    public int getColor() {
+        return (this.red.getAmount() << 16) | (this.green.getAmount() << 8) | this.blue.getAmount();
     }
 
-    public void onColorUpdate() {
-        this.color = this.getColor();
+    public void setColor(int color) {
+        double red = (color >> 16 & 0xFF) / 255.0;
+        double green = (color >> 8 & 0xFF) / 255.0;
+        double blue = (color & 0xFF) / 255.0;
+
+        this.red.setValue(red);
+        this.green.setValue(green);
+        this.blue.setValue(blue);
     }
 
     @Override
@@ -69,18 +74,9 @@ public class ColorSelectScreen extends Screen {
         this.addButton(new ButtonWidget(this.cX - 49, this.height - 30, 98, 20, new TranslatableText("menu.kzeaddon.option.close"), btn -> this.onClose()));
     }
 
-    public void setColor(int color) {
-        double red = (color >> 16 & 0xFF) / 255.0;
-        double green = (color >> 8 & 0xFF) / 255.0;
-        double blue = (color & 0xFF) / 255.0;
-
-        this.red.setValue(red);
-        this.green.setValue(green);
-        this.blue.setValue(blue);
-    }
-
-    public int getColor() {
-        return (this.red.getAmount() << 16) | (this.green.getAmount() << 8) | this.blue.getAmount();
+    @Override
+    public void init(MinecraftClient client, int width, int height) {
+        super.init(client, width, height);
     }
 
     public boolean isMouseOverPreview(int mouseX, int mouseY) {
@@ -90,6 +86,16 @@ public class ColorSelectScreen extends Screen {
         int right = left + 20;
 
         return ((mouseX >= left && mouseX <= right) && (mouseY >= up && mouseY <= down));
+    }
+
+    @Override
+    public void onClose() {
+        this.saveConsumer.accept(new Color(this.getColor()));
+        super.onClose();
+    }
+
+    public void onColorUpdate() {
+        this.color = this.getColor();
     }
 
     @Override
@@ -122,11 +128,5 @@ public class ColorSelectScreen extends Screen {
         RenderSystem.enableTexture();
 
         drawTexture(matrices, left, up, isMouseOverPreview ? 20 : 0, 0, 20, 70, 64, 128);
-    }
-
-    @Override
-    public void onClose() {
-        this.saveConsumer.accept(new Color(this.getColor()));
-        super.onClose();
     }
 }

@@ -73,7 +73,6 @@ public class Weapon {
         return !this.name.equals("") && this.inMagazineAmmo != -1 && this.maxMagazineAmmo != -1 && this.reloadTime != -1 && this.totalAmmo != -1;
     }
 
-    // TODO アイテムから武器への変換
     public void parse(ItemStack item) {
         if (item.getItem().equals(Items.AIR)) {
             this.init();
