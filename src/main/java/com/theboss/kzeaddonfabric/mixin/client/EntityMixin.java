@@ -17,9 +17,19 @@ public abstract class EntityMixin implements Nameable, CommandOutput {
     @Shadow
     protected UUID uuid;
 
+    @Shadow
+    public abstract UUID getUuid();
+
     @Inject(method = "getTeamColorValue", at = @At("RETURN"), cancellable = true)
     private void onGetTeamColorValue(CallbackInfoReturnable<Integer> cir) {
         int result = KZEAddon.onGetTeamColorValue((Entity) (Object) this);
         if (result != -1) cir.setReturnValue(result);
+    }
+
+    @Inject(method = "isGlowing", at = @At("RETURN"), cancellable = true)
+    private void onIsGlowing(CallbackInfoReturnable<Boolean> cir) {
+        if (KZEAddon.priorityGlowPlayers.contains(this.getUuid())) {
+            cir.setReturnValue(true);
+        }
     }
 }

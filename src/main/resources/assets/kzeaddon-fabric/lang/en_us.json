@@ -45,5 +45,6 @@
   "menu.kzeaddon.hide": "Show: OFF",
   "menu.kzeaddon.show": "Show: ON",
   
-  "subtitles.kzeaddon.honk": "HONK"
+  "subtitles.kzeaddon.honk": "HONK",
+  "subtitles.kzeaddon.vote.start": "Vote start"
 }

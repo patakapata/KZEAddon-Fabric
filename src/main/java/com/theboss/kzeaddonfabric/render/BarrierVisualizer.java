@@ -5,16 +5,13 @@ import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.BarrierVisualizeOrigin;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.GlAllocationUtils;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
@@ -30,12 +27,38 @@ public class BarrierVisualizer {
         this.controller = new Controller();
     }
 
-    public void init() {
-        this.controller.init(0);
-    }
-
     public void destroy() {
         this.controller.destroy();
+    }
+
+    public void draw(MatrixStack matrices, float delta) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        Vec3d pos = client.gameRenderer.getCamera().getPos();
+
+        matrices.push();
+        matrices.translate(-pos.x, -pos.y, -pos.z);
+        Matrix4f matrix = matrices.peek().getModel();
+        matrix.writeRowFirst(this.MATRIX_BUFFER);
+        matrices.pop();
+
+        RenderSystem.disableTexture();
+        GL11.glMultMatrixf(this.MATRIX_BUFFER);
+        this.controller.draw();
+        GL11.glLoadIdentity();
+        RenderSystem.enableTexture();
+    }
+
+    public int getDistance() {
+        return this.controller.renderDistance;
+    }
+
+    public void setDistance(int distance) {
+        if (distance < 0) throw new IllegalArgumentException("distance should be bigger than 0!");
+        this.controller.resizeTo = distance;
+    }
+
+    public void init() {
+        this.controller.init(0);
     }
 
     public void tick() {
@@ -54,214 +77,33 @@ public class BarrierVisualizer {
         }
     }
 
-    public void draw(float delta) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        Vec3d pos = client.gameRenderer.getCamera().getPos();
-        Camera camera = client.gameRenderer.getCamera();
-
-        MatrixStack matrices = new MatrixStack();
-        matrices.push();
-        matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(camera.getPitch()));
-        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180.0F));
-        matrices.translate(-pos.x, -pos.y, -pos.z);
-        Matrix4f matrix = matrices.peek().getModel();
-        matrix.writeRowFirst(this.MATRIX_BUFFER);
-        matrices.pop();
-
-        GL11.glMultMatrixf(this.MATRIX_BUFFER);
-        this.controller.draw();
-        GL11.glLoadIdentity();
-    }
-
-    public void setDistance(int distance) {
-        if (distance < 0) throw new IllegalArgumentException("distance should be bigger than 0!");
-        this.controller.resizeTo = distance;
-    }
-
-    public int getDistance() {
-        return this.controller.renderDistance;
-    }
-
-    public static class Controller {
-        private final Consumer<Chunk> UPDATER = chunk -> CompletableFuture.runAsync(() -> chunk.update(MinecraftClient.getInstance().world, false));
-
-        private int renderDistance;
-        private int diameter;
-        private Chunk[][][] chunks;
-        private int lastChunkX;
-        private int lastChunkY;
-        private int lastChunkZ;
-        private int resizeTo = -1;
-        private boolean isFirst = true;
-        private boolean shouldRebuild;
-
-        public void init(int renderDistance) {
-            if (!this.isFirst) {
-                this.destroy();
-            }
-            this.isFirst = false;
-            this.renderDistance = renderDistance;
-            this.diameter = this.renderDistance * 2 + 1;
-            this.chunks = new Chunk[this.diameter][this.diameter][this.diameter];
-            int id = 0;
-            for (int x = 0; x < this.diameter; x++) {
-                for (int y = 0; y < this.diameter; y++) {
-                    for (int z = 0; z < this.diameter; z++) {
-                        Chunk chunk = new Chunk(id++);
-                        chunk.init(1, new BlockPos(0, 0, 0));
-                        this.chunks[x][y][z] = chunk;
-                    }
-                }
-            }
-        }
-
-        public void destroy() {
-            for (int x = 0; x < this.diameter; x++) {
-                for (int y = 0; y < this.diameter; y++) {
-                    for (int z = 0; z < this.diameter; z++) {
-                        this.chunks[x][y][z].destroy();
-                    }
-                }
-            }
-        }
-
-        public void move(int x, int y, int z) {
-            if (x != 0 && x < this.diameter) this.moveOnX(x);
-            if (y != 0 && y < this.diameter) this.moveOnY(y);
-            if (z != 0 && z < this.diameter) this.moveOnZ(z);
-            if (x != 0 || y != 0 || z != 0) {
-                this.shouldRebuild = true;
-            }
-        }
-
-        public void reallocate() {
-            int startX = this.lastChunkX - this.renderDistance;
-            int startY = this.lastChunkY - this.renderDistance;
-            int startZ = this.lastChunkZ - this.renderDistance;
-
-            for (int x = 0; x < this.diameter; x++) {
-                for (int y = 0; y < this.diameter; y++) {
-                    for (int z = 0; z < this.diameter; z++) {
-                        int chunkX = (startX + x) * 16;
-                        int chunkY = (startY + y) * 16;
-                        int chunkZ = (startZ + z) * 16;
-                        this.chunks[x][y][z].setOrigin(new BlockPos(chunkX, chunkY, chunkZ));
-                    }
-                }
-            }
-        }
-
-        private void moveOnX(int amount) {
-            Chunk[][][] holder = new Chunk[this.diameter][this.diameter][this.diameter];
-
-            for (int x = 0; x < this.diameter; x++) {
-                for (int y = 0; y < this.diameter; y++) {
-                    for (int z = 0; z < this.diameter; z++) {
-                        int moveTo = (x + amount) % this.diameter;
-                        if (moveTo < 0) moveTo = this.diameter + moveTo;
-                        holder[moveTo][y][z] = this.chunks[x][y][z];
-                    }
-                }
-            }
-
-            this.chunks = holder;
-        }
-
-        private void moveOnY(int amount) {
-            Chunk[][][] holder = new Chunk[this.diameter][this.diameter][this.diameter];
-
-            for (int x = 0; x < this.diameter; x++) {
-                for (int y = 0; y < this.diameter; y++) {
-                    for (int z = 0; z < this.diameter; z++) {
-                        int moveTo = (y + amount) % this.diameter;
-                        if (moveTo < 0) moveTo = this.diameter + moveTo;
-                        holder[x][moveTo][z] = this.chunks[x][y][z];
-                    }
-                }
-            }
-
-            this.chunks = holder;
-        }
-
-        private void moveOnZ(int amount) {
-            Chunk[][][] holder = new Chunk[this.diameter][this.diameter][this.diameter];
-
-            for (int x = 0; x < this.diameter; x++) {
-                for (int y = 0; y < this.diameter; y++) {
-                    for (int z = 0; z < this.diameter; z++) {
-                        int moveTo = (z + amount) % this.diameter;
-                        if (moveTo < 0) moveTo = this.diameter + moveTo;
-                        holder[x][y][moveTo] = this.chunks[x][y][z];
-                    }
-                }
-            }
-
-            this.chunks = holder;
-        }
-
-        public int round(int value) {
-            boolean isNegative = value < 0;
-            if (isNegative) ++value;
-            int result = value / 16;
-            return isNegative ? result - 1 : result;
-        }
-
-        public void tick(BlockPos center) {
-            int x = this.round(center.getX());
-            int y = this.round(center.getY());
-            int z = this.round(center.getZ());
-            this.updateRegion(x, y, z);
-            // this.run(chunk -> CompletableFuture.runAsync(() -> chunk.update(world, this.shouldRebuild)));
-            this.run(this.UPDATER);
-            this.shouldRebuild = false;
-        }
-
-        public void draw() {
-            if (this.resizeTo != -1) {
-                this.init(this.resizeTo);
-                this.reallocate();
-                this.resizeTo = -1;
-            }
-
-            this.run(Chunk::draw);
-        }
-
-        public void run(Consumer<Chunk> task) {
-            for (int x = 0; x < this.diameter; x++) {
-                for (int y = 0; y < this.diameter; y++) {
-                    for (int z = 0; z < this.diameter; z++) {
-                        task.accept(this.chunks[x][y][z]);
-                    }
-                }
-            }
-        }
-
-        public void updateRegion(int centerChunkX, int centerChunkY, int centerChunkZ) {
-            int moveX = centerChunkX - this.lastChunkX;
-            int moveY = centerChunkY - this.lastChunkY;
-            int moveZ = centerChunkZ - this.lastChunkZ;
-
-            this.lastChunkX = centerChunkX;
-            this.lastChunkY = centerChunkY;
-            this.lastChunkZ = centerChunkZ;
-
-            if (!(moveX == 0 && moveY == 0 && moveZ == 0)) {
-                this.move(-moveX, -moveY, -moveZ);
-                this.reallocate();
-            }
-        }
-    }
-
     public static class Chunk {
         private final VBOWrapper vbo = new VBOWrapper();
+        private final int id;
         private boolean[][][] flags;
         private BlockPos origin;
         private boolean isChanged;
         private boolean isReady;
-        private final int id;
 
         public Chunk(int id) {
             this.id = id;
+        }
+
+        public void destroy() {
+            this.vbo.destroy();
+        }
+
+        public void draw() {
+            if (!this.isReady) return;
+
+            if (this.isChanged) {
+                this.isChanged = false;
+                this.vbo.upload();
+            }
+
+            this.vbo.bind();
+            this.vbo.draw();
+            this.vbo.unbind();
         }
 
         public int getId() {
@@ -275,8 +117,11 @@ public class BarrierVisualizer {
             this.resetFlags();
         }
 
-        public void destroy() {
-            this.vbo.destroy();
+        public void resetFlags() {
+            for (int x = 0; x < 16; x++)
+                for (int y = 0; y < 16; y++)
+                    for (int z = 0; z < 16; z++)
+                        this.flags[x][y][z] = false;
         }
 
         public void setOrigin(BlockPos origin) {
@@ -286,13 +131,6 @@ public class BarrierVisualizer {
                 this.isChanged = true;
                 this.isReady = false;
             }
-        }
-
-        public void resetFlags() {
-            for (int x = 0; x < 16; x++)
-                for (int y = 0; y < 16; y++)
-                    for (int z = 0; z < 16; z++)
-                        this.flags[x][y][z] = false;
         }
 
         public void update(World world, boolean isForce) {
@@ -393,18 +231,175 @@ public class BarrierVisualizer {
             this.vbo.vertex(x[0], y[1], z[1]);
             this.vbo.color(255, 0, 0, 255);
         }
+    }
+
+    public static class Controller {
+        private final Consumer<Chunk> UPDATER = chunk -> CompletableFuture.runAsync(() -> chunk.update(MinecraftClient.getInstance().world, false));
+
+        private int renderDistance;
+        private int diameter;
+        private Chunk[][][] chunks;
+        private int lastChunkX;
+        private int lastChunkY;
+        private int lastChunkZ;
+        private int resizeTo = -1;
+        private boolean isFirst = true;
+        private boolean shouldRebuild;
+
+        public void destroy() {
+            for (int x = 0; x < this.diameter; x++) {
+                for (int y = 0; y < this.diameter; y++) {
+                    for (int z = 0; z < this.diameter; z++) {
+                        this.chunks[x][y][z].destroy();
+                    }
+                }
+            }
+        }
 
         public void draw() {
-            if (!this.isReady) return;
-
-            if (this.isChanged) {
-                this.isChanged = false;
-                this.vbo.upload();
+            if (this.resizeTo != -1) {
+                this.init(this.resizeTo);
+                this.reallocate();
+                this.resizeTo = -1;
             }
 
-            this.vbo.bind();
-            this.vbo.draw();
-            this.vbo.unbind();
+            this.run(Chunk::draw);
+        }
+
+        public void init(int renderDistance) {
+            if (!this.isFirst) {
+                this.destroy();
+            }
+            this.isFirst = false;
+            this.renderDistance = renderDistance;
+            this.diameter = this.renderDistance * 2 + 1;
+            this.chunks = new Chunk[this.diameter][this.diameter][this.diameter];
+            int id = 0;
+            for (int x = 0; x < this.diameter; x++) {
+                for (int y = 0; y < this.diameter; y++) {
+                    for (int z = 0; z < this.diameter; z++) {
+                        Chunk chunk = new Chunk(id++);
+                        chunk.init(1, new BlockPos(0, 0, 0));
+                        this.chunks[x][y][z] = chunk;
+                    }
+                }
+            }
+        }
+
+        public void move(int x, int y, int z) {
+            if (x != 0 && x < this.diameter) this.moveOnX(x);
+            if (y != 0 && y < this.diameter) this.moveOnY(y);
+            if (z != 0 && z < this.diameter) this.moveOnZ(z);
+            if (x != 0 || y != 0 || z != 0) {
+                this.shouldRebuild = true;
+            }
+        }
+
+        private void moveOnX(int amount) {
+            Chunk[][][] holder = new Chunk[this.diameter][this.diameter][this.diameter];
+
+            for (int x = 0; x < this.diameter; x++) {
+                for (int y = 0; y < this.diameter; y++) {
+                    for (int z = 0; z < this.diameter; z++) {
+                        int moveTo = (x + amount) % this.diameter;
+                        if (moveTo < 0) moveTo = this.diameter + moveTo;
+                        holder[moveTo][y][z] = this.chunks[x][y][z];
+                    }
+                }
+            }
+
+            this.chunks = holder;
+        }
+
+        private void moveOnY(int amount) {
+            Chunk[][][] holder = new Chunk[this.diameter][this.diameter][this.diameter];
+
+            for (int x = 0; x < this.diameter; x++) {
+                for (int y = 0; y < this.diameter; y++) {
+                    for (int z = 0; z < this.diameter; z++) {
+                        int moveTo = (y + amount) % this.diameter;
+                        if (moveTo < 0) moveTo = this.diameter + moveTo;
+                        holder[x][moveTo][z] = this.chunks[x][y][z];
+                    }
+                }
+            }
+
+            this.chunks = holder;
+        }
+
+        private void moveOnZ(int amount) {
+            Chunk[][][] holder = new Chunk[this.diameter][this.diameter][this.diameter];
+
+            for (int x = 0; x < this.diameter; x++) {
+                for (int y = 0; y < this.diameter; y++) {
+                    for (int z = 0; z < this.diameter; z++) {
+                        int moveTo = (z + amount) % this.diameter;
+                        if (moveTo < 0) moveTo = this.diameter + moveTo;
+                        holder[x][y][moveTo] = this.chunks[x][y][z];
+                    }
+                }
+            }
+
+            this.chunks = holder;
+        }
+
+        public void reallocate() {
+            int startX = this.lastChunkX - this.renderDistance;
+            int startY = this.lastChunkY - this.renderDistance;
+            int startZ = this.lastChunkZ - this.renderDistance;
+
+            for (int x = 0; x < this.diameter; x++) {
+                for (int y = 0; y < this.diameter; y++) {
+                    for (int z = 0; z < this.diameter; z++) {
+                        int chunkX = (startX + x) * 16;
+                        int chunkY = (startY + y) * 16;
+                        int chunkZ = (startZ + z) * 16;
+                        this.chunks[x][y][z].setOrigin(new BlockPos(chunkX, chunkY, chunkZ));
+                    }
+                }
+            }
+        }
+
+        public int round(int value) {
+            boolean isNegative = value < 0;
+            if (isNegative) ++value;
+            int result = value / 16;
+            return isNegative ? result - 1 : result;
+        }
+
+        public void run(Consumer<Chunk> task) {
+            for (int x = 0; x < this.diameter; x++) {
+                for (int y = 0; y < this.diameter; y++) {
+                    for (int z = 0; z < this.diameter; z++) {
+                        task.accept(this.chunks[x][y][z]);
+                    }
+                }
+            }
+        }
+
+        public void tick(BlockPos center) {
+            int x = this.round(center.getX());
+            int y = this.round(center.getY());
+            int z = this.round(center.getZ());
+            this.updateRegion(x, y, z);
+            // this.run(chunk -> CompletableFuture.runAsync(() -> chunk.update(world, this.shouldRebuild)));
+            this.run(this.UPDATER);
+            this.shouldRebuild = false;
+        }
+
+        public void updateRegion(int centerChunkX, int centerChunkY, int centerChunkZ) {
+            int moveX = centerChunkX - this.lastChunkX;
+            int moveY = centerChunkY - this.lastChunkY;
+            int moveZ = centerChunkZ - this.lastChunkZ;
+
+            this.lastChunkX = centerChunkX;
+            this.lastChunkY = centerChunkY;
+            this.lastChunkZ = centerChunkZ;
+
+            if (!(moveX == 0 && moveY == 0 && moveZ == 0)) {
+                this.move(-moveX, -moveY, -moveZ);
+                this.reallocate();
+            }
         }
     }
 }

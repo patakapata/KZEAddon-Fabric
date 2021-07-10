@@ -9,6 +9,7 @@
   ],
   "client": [
     "client.AbstractSoundInstanceMixin",
+    "client.BossBarHudMixin",
     "client.ClientWorldMixin",
     "client.EntityMixin",
     "client.GameMenuScreenMixin",
@@ -17,7 +18,6 @@
     "client.InGameHudMixin",
     "client.ItemStackMixin",
     "client.KeyBindingAccessor",
-    "client.LivingEntityRendererMixin",
     "client.MinecraftClientMixin",
     "client.ResourcePackStatusC2SPacketMixin",
     "client.TitleScreenMixin",

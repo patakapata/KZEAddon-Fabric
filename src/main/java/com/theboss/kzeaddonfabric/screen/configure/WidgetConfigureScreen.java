@@ -1,8 +1,9 @@
-package com.theboss.kzeaddonfabric.screen;
+package com.theboss.kzeaddonfabric.screen.configure;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import com.theboss.kzeaddonfabric.render.widgets.Widget;
+import com.theboss.kzeaddonfabric.screen.Screen;
 import com.theboss.kzeaddonfabric.screen.button.AnchorSelectButton;
 import com.theboss.kzeaddonfabric.screen.button.TextFieldWidget;
 import net.minecraft.client.MinecraftClient;
@@ -20,28 +21,30 @@ import net.minecraft.util.Identifier;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
-public class WidgetConfigureScreen extends Screen {
+public abstract class WidgetConfigureScreen extends Screen {
     public static final Identifier TEXTURE = new Identifier("kzeaddon-fabric", "textures/gui/option/background/widget_configure.png");
-    private final Consumer<WidgetConfigureScreen> saveConsumer;
-    private int cX;
-    private int cY;
-    private Anchor windowAnc;
-    private Anchor widgetAnc;
-    private int x;
-    private int y;
-    private boolean isVisible;
-    private short opacity;
 
-    private String posXContent;
-    private String posYContent;
-    private String opacityContent;
+    protected Runnable additionalDataSaver;
+    protected Consumer<WidgetConfigureScreen> saveConsumer;
+    protected int cX;
+    protected int cY;
+    protected Anchor windowAnc;
+    protected Anchor widgetAnc;
+    protected int x;
+    protected int y;
+    protected boolean isVisible;
+    protected short opacity;
 
-    private AnchorSelectButton windowSelectWid;
-    private AnchorSelectButton widgetSelectWid;
-    private TextFieldWidget xWid;
-    private TextFieldWidget yWid;
-    private TextFieldWidget opacityWid;
-    private ButtonWidget visibilityWid;
+    protected String posXContent;
+    protected String posYContent;
+    protected String opacityContent;
+
+    protected AnchorSelectButton windowSelectWid;
+    protected AnchorSelectButton widgetSelectWid;
+    protected TextFieldWidget xWid;
+    protected TextFieldWidget yWid;
+    protected TextFieldWidget opacityWid;
+    protected ButtonWidget visibilityWid;
 
     public WidgetConfigureScreen(Anchor windowAnc, Anchor widgetAnc, int x, int y, Consumer<WidgetConfigureScreen> saveConsumer) {
         super(new LiteralText("WidgetOptionScreen"));
@@ -70,7 +73,7 @@ public class WidgetConfigureScreen extends Screen {
         this.widgetAnc = widget.getWidgetAnchor();
         this.x = widget.getOffsetX();
         this.y = widget.getOffsetY();
-        this.isVisible = widget.isVisible();
+        this.isVisible = widget.getIsVisible();
         this.opacity = widget.getOpacity();
 
         this.saveConsumer = screen -> {
@@ -84,7 +87,10 @@ public class WidgetConfigureScreen extends Screen {
     }
 
     public void close(boolean shouldSave) {
-        if (shouldSave) this.saveConsumer.accept(this);
+        if (shouldSave) {
+            this.saveConsumer.accept(this);
+            if (this.additionalDataSaver != null) this.additionalDataSaver.run();
+        }
         this.onClose();
     }
 
@@ -183,18 +189,20 @@ public class WidgetConfigureScreen extends Screen {
         this.addTextField(this.xWid);
         this.addTextField(this.yWid);
 
-        int x = this.cX + 64;
+        int rX = this.cX + 64;
         int aY = 17;
-        int bY = this.cY + 88 - 16;
+        int bY = this.cY + 88 - 15;
 
-        this.visibilityWid = new ButtonWidget(x - 70 / 2, bY - 20, 70, 20, this.getVisibilityMessage(), this::toggleVisibility);
-        this.opacityWid = new TextFieldWidget(this.textRenderer, x + 5, bY - 50, 35, 20, Text.of("Opacity Field"));
+        this.visibilityWid = new ButtonWidget(rX - 70 / 2, bY - 20, 70, 20, this.getVisibilityMessage(), this::toggleVisibility);
+        this.opacityWid = new TextFieldWidget(this.textRenderer, rX + 5, bY - 50, 35, 20, Text.of("Opacity Field"));
         this.opacityWid.setText(String.valueOf(this.opacity));
         this.opacityWid.setChangedListener(s -> {
             if (!s.equals(this.opacityContent)) {
                 this.opacityContent = s;
                 try {
-                    this.opacity = Short.parseShort(this.opacityContent);
+                    short opacity = Short.parseShort(this.opacityContent);
+                    if (opacity < 0 || opacity > 255) throw new NumberFormatException("Out of bounds!");
+                    this.opacity = opacity;
                     this.opacityWid.setEditableColor(0xFFFFFF);
                 } catch (NumberFormatException ex) {
                     this.opacityWid.setEditableColor(0xFF0000);
@@ -206,11 +214,6 @@ public class WidgetConfigureScreen extends Screen {
 
         this.addButton(this.visibilityWid);
         this.addTextField(this.opacityWid);
-
-        this.initAdditionalElements();
-    }
-
-    protected void initAdditionalElements() {
     }
 
     public boolean isVisible() {
@@ -236,14 +239,7 @@ public class WidgetConfigureScreen extends Screen {
         BufferBuilder buffer = tessellator.getBuffer();
         Window window = this.client.getWindow();
 
-        // Rendering the background
-        int width = 256;
-        int height = 177;
-        matrices.push();
-        matrices.translate(this.cX, this.cY, 0.0);
-        this.client.getTextureManager().bindTexture(TEXTURE);
-        this.drawTexture(matrices, -width / 2, -height / 2, 0, 0, width, height);
-        matrices.pop();
+        this.renderCustomBackground(matrices, mouseX, mouseY);
 
         // Render buttons
         super.render(matrices, mouseX, mouseY, delta);
@@ -268,12 +264,17 @@ public class WidgetConfigureScreen extends Screen {
         this.drawHorizontalLine(matrices, x1, x2, bY - 25, 0xFF2E2E2E);
         this.drawHorizontalLine(matrices, x1, x2, bY - 55, 0xFF2E2E2E);
         RenderSystem.enableTexture();
-
-        // Vanilla but additional widgets
-        this.renderAdditionalElements(matrices, delta);
     }
 
-    protected void renderAdditionalElements(MatrixStack matrices, float tickDelta) {
+    public void renderCustomBackground(MatrixStack matrices, int mouseX, int mouseY) {
+        // Rendering the background
+        int width = 256;
+        int height = 177;
+        matrices.push();
+        matrices.translate(this.cX, this.cY, 0.0);
+        this.client.getTextureManager().bindTexture(TEXTURE);
+        this.drawTexture(matrices, -width / 2, -height / 2, 0, 0, width, height);
+        matrices.pop();
     }
 
     public void toggleVisibility(ButtonWidget btn) {

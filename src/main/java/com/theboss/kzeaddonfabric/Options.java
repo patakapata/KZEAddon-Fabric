@@ -35,6 +35,8 @@ public class Options {
     private int barrierVisualizeRadius;
     @Expose
     private boolean isCompletelyInvisible;
+    @Expose
+    private boolean shouldHighlightMyKill;
 
     @Expose
     private GunAmmoWidget primaryAmmo;
@@ -60,94 +62,45 @@ public class Options {
         this.barrierVisualizeOrigin = BarrierVisualizeOrigin.MYSELF;
         this.barrierVisualizeRadius = 1;
         this.isCompletelyInvisible = false;
+        this.shouldHighlightMyKill = true;
 
-        this.primaryAmmo = new GunAmmoWidget(WeaponSlot.PRIMARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -80, -30, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.secondaryAmmo = new GunAmmoWidget(WeaponSlot.SECONDARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -60, -30, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.meleeAmmo = new GunAmmoWidget(WeaponSlot.MELEE, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -430, -30, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.totalAmmo = new TotalAmmoWidget(Anchor.RIGHT_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -95, -10, 255);
-        this.reloadIndicator = new ReloadIndicatorWidget(Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 10, 255);
+        this.primaryAmmo = new GunAmmoWidget(WeaponSlot.PRIMARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -80, -35, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
+        this.secondaryAmmo = new GunAmmoWidget(WeaponSlot.SECONDARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -60, -35, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
+        this.meleeAmmo = new GunAmmoWidget(WeaponSlot.MELEE, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -40, -35, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
+        this.totalAmmo = new TotalAmmoWidget(Anchor.RIGHT_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -95, -10, 255, 0xFFFFFF);
+        this.reloadIndicator = new ReloadIndicatorWidget(Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 10, 255, 0xFFFFFF);
     }
 
-    public void initWidgets() {
-        this.primaryAmmo.setTargetSlot(WeaponSlot.PRIMARY);
-        this.secondaryAmmo.setTargetSlot(WeaponSlot.SECONDARY);
-        this.meleeAmmo.setTargetSlot(WeaponSlot.MELEE);
+    public BarrierVisualizeOrigin getBarrierVisualizeOrigin() {
+        return this.barrierVisualizeOrigin;
     }
 
-    public void renderWidgets(MatrixStack matrices) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        Window window = client.getWindow();
-        TextRenderer textRenderer = client.textRenderer;
-
-        this.primaryAmmo.render(matrices, window, textRenderer);
-        this.secondaryAmmo.render(matrices, window, textRenderer);
-        this.meleeAmmo.render(matrices, window, textRenderer);
-        this.totalAmmo.render(matrices, window, textRenderer);
-        this.reloadIndicator.render(matrices, window, textRenderer);
+    public void setBarrierVisualizeOrigin(BarrierVisualizeOrigin barrierVisualizeOrigin) {
+        this.barrierVisualizeOrigin = barrierVisualizeOrigin;
     }
 
-    public GunAmmoWidget getPrimaryAmmo() {
-        return this.primaryAmmo;
+    public int getBarrierVisualizeRadius() {
+        return this.barrierVisualizeRadius;
     }
 
-    public void setPrimaryAmmo(GunAmmoWidget primaryAmmo) {
-        this.primaryAmmo = primaryAmmo;
+    public void setBarrierVisualizeRadius(int barrierVisualizeRadius) {
+        this.barrierVisualizeRadius = barrierVisualizeRadius;
     }
 
-    public GunAmmoWidget getSecondaryAmmo() {
-        return this.secondaryAmmo;
+    public CameraSwitchType getForceSmoothCamera() {
+        return this.forceSmoothCamera;
     }
 
-    public void setSecondaryAmmo(GunAmmoWidget secondaryAmmo) {
-        this.secondaryAmmo = secondaryAmmo;
+    public void setForceSmoothCamera(CameraSwitchType forceSmoothCamera) {
+        this.forceSmoothCamera = forceSmoothCamera;
     }
 
-    public GunAmmoWidget getMeleeAmmo() {
-        return this.meleeAmmo;
+    public float getGunfireVolume() {
+        return this.gunfireVolume;
     }
 
-    public void setMeleeAmmo(GunAmmoWidget meleeAmmo) {
-        this.meleeAmmo = meleeAmmo;
-    }
-
-    public TotalAmmoWidget getTotalAmmo() {
-        return this.totalAmmo;
-    }
-
-    public void setTotalAmmo(TotalAmmoWidget totalAmmo) {
-        this.totalAmmo = totalAmmo;
-    }
-
-    public ReloadIndicatorWidget getReloadIndicator() {
-        return this.reloadIndicator;
-    }
-
-    public void setReloadIndicator(ReloadIndicatorWidget reloadIndicator) {
-        this.reloadIndicator = reloadIndicator;
-    }
-
-    public Color getPriorityGlowColor() {
-        return this.priorityGlowColor;
-    }
-
-    public void setPriorityGlowColor(Color priorityGlowColor) {
-        this.priorityGlowColor = priorityGlowColor;
-    }
-
-    public Color getHumanGlowColor() {
-        return this.humanGlowColor;
-    }
-
-    public void setHumanGlowColor(Color humanGlowColor) {
-        this.humanGlowColor = humanGlowColor;
-    }
-
-    public Color getZombieGlowColor() {
-        return this.zombieGlowColor;
-    }
-
-    public void setZombieGlowColor(Color zombieGlowColor) {
-        this.zombieGlowColor = zombieGlowColor;
+    public void setGunfireVolume(float gunfireVolume) {
+        this.gunfireVolume = gunfireVolume;
     }
 
     public Switchable getHideTeammates() {
@@ -158,12 +111,82 @@ public class Options {
         this.hideTeammates = hideTeammates;
     }
 
-    public CameraSwitchType getForceSmoothCamera() {
-        return this.forceSmoothCamera;
+    public Color getHumanGlowColor() {
+        return this.humanGlowColor;
     }
 
-    public void setForceSmoothCamera(CameraSwitchType forceSmoothCamera) {
-        this.forceSmoothCamera = forceSmoothCamera;
+    public void setHumanGlowColor(Color humanGlowColor) {
+        this.humanGlowColor = humanGlowColor;
+    }
+
+    public GunAmmoWidget getMeleeAmmo() {
+        return this.meleeAmmo;
+    }
+
+    public void setMeleeAmmo(GunAmmoWidget meleeAmmo) {
+        this.meleeAmmo = meleeAmmo;
+    }
+
+    public GunAmmoWidget getPrimaryAmmo() {
+        return this.primaryAmmo;
+    }
+
+    public void setPrimaryAmmo(GunAmmoWidget primaryAmmo) {
+        this.primaryAmmo = primaryAmmo;
+    }
+
+    public Color getPriorityGlowColor() {
+        return this.priorityGlowColor;
+    }
+
+    public void setPriorityGlowColor(Color priorityGlowColor) {
+        this.priorityGlowColor = priorityGlowColor;
+    }
+
+    public ReloadIndicatorWidget getReloadIndicator() {
+        return this.reloadIndicator;
+    }
+
+    public void setReloadIndicator(ReloadIndicatorWidget reloadIndicator) {
+        this.reloadIndicator = reloadIndicator;
+    }
+
+    public GunAmmoWidget getSecondaryAmmo() {
+        return this.secondaryAmmo;
+    }
+
+    public void setSecondaryAmmo(GunAmmoWidget secondaryAmmo) {
+        this.secondaryAmmo = secondaryAmmo;
+    }
+
+    public TotalAmmoWidget getTotalAmmo() {
+        return this.totalAmmo;
+    }
+
+    public void setTotalAmmo(TotalAmmoWidget totalAmmo) {
+        this.totalAmmo = totalAmmo;
+    }
+
+    public Color getZombieGlowColor() {
+        return this.zombieGlowColor;
+    }
+
+    public void setZombieGlowColor(Color zombieGlowColor) {
+        this.zombieGlowColor = zombieGlowColor;
+    }
+
+    public void initWidgets() {
+        this.primaryAmmo.setTargetSlot(WeaponSlot.PRIMARY);
+        this.secondaryAmmo.setTargetSlot(WeaponSlot.SECONDARY);
+        this.meleeAmmo.setTargetSlot(WeaponSlot.MELEE);
+    }
+
+    public boolean isCompletelyInvisible() {
+        return this.isCompletelyInvisible;
+    }
+
+    public void setCompletelyInvisible(boolean completelyInvisible) {
+        this.isCompletelyInvisible = completelyInvisible;
     }
 
     public boolean isIgnoreResourcePack() {
@@ -182,35 +205,23 @@ public class Options {
         this.setGunfireSoundVolume = setGunfireSoundVolume;
     }
 
-    public float getGunfireVolume() {
-        return this.gunfireVolume;
+    public boolean isShouldHighlightMyKill() {
+        return this.shouldHighlightMyKill;
     }
 
-    public void setGunfireVolume(float gunfireVolume) {
-        this.gunfireVolume = gunfireVolume;
+    public void setShouldHighlightMyKill(boolean shouldHighlightMyKill) {
+        this.shouldHighlightMyKill = shouldHighlightMyKill;
     }
 
-    public boolean isCompletelyInvisible() {
-        return this.isCompletelyInvisible;
-    }
+    public void renderWidgets(MatrixStack matrices) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        Window window = client.getWindow();
+        TextRenderer textRenderer = client.textRenderer;
 
-    public void setCompletelyInvisible(boolean completelyInvisible) {
-        this.isCompletelyInvisible = completelyInvisible;
-    }
-
-    public BarrierVisualizeOrigin getBarrierVisualizeOrigin() {
-        return this.barrierVisualizeOrigin;
-    }
-
-    public void setBarrierVisualizeOrigin(BarrierVisualizeOrigin barrierVisualizeOrigin) {
-        this.barrierVisualizeOrigin = barrierVisualizeOrigin;
-    }
-
-    public int getBarrierVisualizeRadius() {
-        return this.barrierVisualizeRadius;
-    }
-
-    public void setBarrierVisualizeRadius(int barrierVisualizeRadius) {
-        this.barrierVisualizeRadius = barrierVisualizeRadius;
+        this.primaryAmmo.render(matrices, window, textRenderer);
+        this.secondaryAmmo.render(matrices, window, textRenderer);
+        this.meleeAmmo.render(matrices, window, textRenderer);
+        this.totalAmmo.render(matrices, window, textRenderer);
+        this.reloadIndicator.render(matrices, window, textRenderer);
     }
 }

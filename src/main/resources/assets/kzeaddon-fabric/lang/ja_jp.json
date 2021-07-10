@@ -45,5 +45,6 @@
   "menu.kzeaddon.hide": "表示: オフ",
   "menu.kzeaddon.show": "表示: オン",
   
-  "subtitles.kzeaddon.honk": "HONK"
+  "subtitles.kzeaddon.honk": "HONK",
+  "subtitles.kzeaddon.vote.start": "投票開始"
 }

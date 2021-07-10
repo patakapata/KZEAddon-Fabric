@@ -1,4 +1,4 @@
-# KZEAddon - Fabric ![MOD ICON ALT](https://raw.githubusercontent.com/patakapata/KZEAddon-1.16.5/master/src/main/resources/assets/kzeaddon-fabric/icon.png)
+# KZEAddon - Fabric ![MOD ICON ALT](https://raw.githubusercontent.com/patakapata/KZEAddon-Fabric-1.16.5/master/src/main/resources/assets/kzeaddon-fabric/icon.png)
 
 KaedeZombieEscapeのプレイを支援するModです
 
@@ -10,18 +10,16 @@ KaedeZombieEscapeのプレイを支援するModです
 Tedoさんに報告*しない*ようにお願いします
 
 
-ちなみにKZE運営には許可は取っていないので
+ちなみにKZE運営には許可を取っていないので
 使用する際は自己責任でどうぞ
 
 ## 前提とか
-| Minecraft | KZEAddon-Fabric | Fabric Loader | Fabric API |
-|:---------:|:---------------:|:-------------:|:----------:|
-| 1.16.5 | [1.0.0](https://github.com/patakapata/KZEAddon-1.16.5/releases/tag/v1.0-1.16.5-alpha) | 0.11.6 | [0.35.1](https://www.curseforge.com/minecraft/mc-mods/fabric-api/files/3352232) |
+Fabric API を導入する必要はなくなりました！
 
-## ライセンスについて
-このMOD自体は MITライセンス を適用しています
+| Minecraft | KZEAddon-Fabric | Fabric Loader |
+|:---------:|:---------------:|:-------------:|
+| 1.16.5 | [1.0.0](https://github.com/patakapata/KZEAddon-Fabric-1.16.5/releases/tag/v1.0-1.16.5-alpha) | \>= 0.11.6 |
 
-しかしソースコードの一部に Fabric API から抜粋したものがあります
 ## 予定
 - スムーズカメラ
 - 設定画面(GUI)
@@ -34,5 +32,5 @@ Tedoさんに報告*しない*ようにお願いします
 - リソースパック無視
 - 銃声音量設定
 - アイテムからWeaponへの変換
-## 凍結
 - リソースの読み込み
+

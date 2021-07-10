@@ -48,6 +48,11 @@ public class Color {
         return red << 16 | green << 8 | blue;
     }
 
+    /**
+     *
+     * @param color 0xRRGGBB
+     * @return { R, G, B }
+     */
     public static int[] parse(int color) {
         return new int[]{color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF};
     }

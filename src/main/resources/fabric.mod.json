@@ -3,7 +3,7 @@
   "id": "kzeaddon_fabric",
   "version": "${version}",
   "name": "KZEAddon Fabric",
-  "description": "KaedeZombieEscapeをプレイする際の支援Modです",
+  "description": "KaedeZombieEscapeのプレイを支援するModです",
   "authors": [
     "theBooooSS"
   ],
@@ -20,6 +20,9 @@
   "entrypoints": {
     "client": [
       "com.theboss.kzeaddonfabric.KZEAddon"
+    ],
+    "modmenu": [
+      "com.theboss.kzeaddonfabric.KZEAddon"
     ]
   },
   "mixins": [
@@ -27,6 +30,7 @@
   ],
   "depends": {
     "fabricloader": ">=0.11.6",
-    "minecraft": "1.16.*"
+    "minecraft": "1.16.*",
+    "modmenu": "1.16.*"
   }
 }

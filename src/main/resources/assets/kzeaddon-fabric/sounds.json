@@ -5,10 +5,10 @@
       "kzeaddon-fabric:honk"
     ]
   },
-  "voting.enter": {
-    "subtitle": "subtitles.kzeaddon.voting.enter",
+  "vote.start": {
+    "subtitle": "subtitles.kzeaddon.vote.start",
     "sounds": [
-      "kzeaddon-fabric:voting/enter"
+      "kzeaddon-fabric:vote/start"
     ]
   }
 }

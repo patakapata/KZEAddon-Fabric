@@ -1,5 +1,7 @@
 package com.theboss.kzeaddonfabric.render.widgets;
 
+import com.google.gson.annotations.Expose;
+import com.theboss.kzeaddonfabric.Color;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import net.minecraft.client.font.TextRenderer;
@@ -8,12 +10,26 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
 public class TotalAmmoWidget extends Widget {
-    public TotalAmmoWidget(Anchor widgetAnchor, Anchor windowAnchor, float scaleFactor, int offsetX, int offsetY, int opacity) {
+    @Expose
+    private int color;
+
+    public TotalAmmoWidget(Anchor widgetAnchor, Anchor windowAnchor, float scaleFactor, int offsetX, int offsetY, int opacity, int color) {
         super(widgetAnchor, windowAnchor, scaleFactor, offsetX, offsetY, opacity);
+        this.color = color;
     }
 
     public TotalAmmoWidget(Widget source) {
         super(source);
+    }
+
+    @Override
+    public int getColor() {
+        return this.getOpacity() << 24 | this.color;
+    }
+
+    @Override
+    public void setColor(Color color) {
+        this.color = color.get();
     }
 
     @Override

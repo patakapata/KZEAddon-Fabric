@@ -1,12 +1,15 @@
 package com.theboss.kzeaddonfabric.wip;
 
-import com.mojang.util.UUIDTypeAdapter;
+import com.google.common.collect.Lists;
 
-import java.util.UUID;
+import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
-        UUID uuid = UUIDTypeAdapter.fromString("ca1fd023decb44b1a943f5f5c5a0a7ab");
-        System.out.println("UUID: " + uuid.toString());
+        List<String> list = Lists.newArrayList("String A", "Beta string", "EXAMPLE");
+
+        String a = list.remove(3);
+
+        System.out.println(a);
     }
 }

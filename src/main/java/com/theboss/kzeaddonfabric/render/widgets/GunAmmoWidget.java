@@ -45,6 +45,10 @@ public class GunAmmoWidget extends Widget {
         return this.getOpacity() << 24 | color;
     }
 
+    @Deprecated
+    @Override
+    public void setColor(Color color) {}
+
     public Color getMagazineEmpty() {
         return this.magazineEmpty;
     }
