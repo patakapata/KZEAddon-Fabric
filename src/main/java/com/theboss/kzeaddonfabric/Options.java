@@ -9,6 +9,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.profiler.Profiler;
 
 @SuppressWarnings("unused")
 public class Options {
@@ -215,13 +216,20 @@ public class Options {
 
     public void renderWidgets(MatrixStack matrices) {
         MinecraftClient client = MinecraftClient.getInstance();
+        Profiler profiler = client.getProfiler();
         Window window = client.getWindow();
         TextRenderer textRenderer = client.textRenderer;
 
+        profiler.push("Primary Ammo");
         this.primaryAmmo.render(matrices, window, textRenderer);
+        profiler.swap("Secondary Ammo");
         this.secondaryAmmo.render(matrices, window, textRenderer);
+        profiler.swap("Melee Ammo");
         this.meleeAmmo.render(matrices, window, textRenderer);
+        profiler.swap("Total Ammo");
         this.totalAmmo.render(matrices, window, textRenderer);
+        profiler.swap("Reload indicator");
         this.reloadIndicator.render(matrices, window, textRenderer);
+        profiler.pop();
     }
 }

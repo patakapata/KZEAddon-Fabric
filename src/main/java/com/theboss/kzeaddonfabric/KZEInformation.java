@@ -8,6 +8,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.profiler.Profiler;
 
 public class KZEInformation {
     private final Weapon primary;
@@ -20,6 +21,7 @@ public class KZEInformation {
     private int reloadTimeTick;
     private double reloadProgress;
     private double lastReloadProgress;
+    private int lastSelectedSlot;
 
     public static int lerp(int color1, int color2, double progress) {
         int[] array1 = parse(color1);
@@ -167,17 +169,31 @@ public class KZEInformation {
 
     public void tick() {
         MinecraftClient client = MinecraftClient.getInstance();
+        Profiler profiler = client.getProfiler();
         ClientPlayerEntity player = client.player;
 
         if (player == null) return;
 
+        profiler.push("Check selected slot");
         this.isHuman = (client.player.getScoreboardTeam() != null && client.player.getScoreboardTeam().getName().equals("e"));
         PlayerInventory inventory = player.inventory;
+        int selectedSlot = inventory.selectedSlot;
+        if (this.lastSelectedSlot != selectedSlot) {
+            this.lastSelectedSlot = selectedSlot;
+            this.reloadProgressTick = 0;
+            this.reloadProgress = 0.0;
+        }
 
-        this.primary.parse(inventory.getStack(WeaponSlot.PRIMARY.getId()));
-        this.secondary.parse(inventory.getStack(WeaponSlot.SECONDARY.getId()));
-        this.melee.parse(inventory.getStack(WeaponSlot.MELEE.getId()));
+        profiler.swap("Parse weapons");
+        profiler.push("Primary weapon");
+        this.primary.newParser(inventory.getStack(WeaponSlot.PRIMARY.getId()));
+        profiler.swap("Secondary weapon");
+        this.secondary.newParser(inventory.getStack(WeaponSlot.SECONDARY.getId()));
+        profiler.swap("Melee weapon");
+        this.melee.newParser(inventory.getStack(WeaponSlot.MELEE.getId()));
+        profiler.pop();
 
+        profiler.swap("Check if reloading");
         Weapon handWeapon = this.getMainHandWeapon();
         if (handWeapon == null) {
             if (this.isReloading) this.cancelReload();
@@ -190,5 +206,6 @@ public class KZEInformation {
                 else this.reloadTick();
             }
         }
+        profiler.pop();
     }
 }

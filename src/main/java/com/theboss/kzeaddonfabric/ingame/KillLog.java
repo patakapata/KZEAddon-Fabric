@@ -17,6 +17,7 @@ import net.minecraft.network.packet.s2c.play.BossBarS2CPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.profiler.Profiler;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -98,6 +99,8 @@ public class KillLog {
     }
 
     public void render(MatrixStack matrices, float delta) {
+        if (this.entries.isEmpty()) return;
+
         MinecraftClient client = MinecraftClient.getInstance();
         Window window = client.getWindow();
         Tessellator tessellator = Tessellator.getInstance();

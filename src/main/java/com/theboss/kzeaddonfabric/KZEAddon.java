@@ -12,20 +12,19 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
-import com.terraformersmc.modmenu.api.ConfigScreenFactory;
-import com.terraformersmc.modmenu.api.ModMenuApi;
 import com.theboss.kzeaddonfabric.enums.Switchable;
 import com.theboss.kzeaddonfabric.ingame.KillLog;
 import com.theboss.kzeaddonfabric.mixin.client.KeyBindingAccessor;
 import com.theboss.kzeaddonfabric.render.BarrierVisualizer;
 import com.theboss.kzeaddonfabric.render.widgets.Widget;
-import com.theboss.kzeaddonfabric.screen.options.RootOptionScreen;
 import com.theboss.kzeaddonfabric.wip.PlaneLayers;
 import com.theboss.kzeaddonfabric.wip.WidgetValueTargetArgumentType;
 import com.theboss.kzeaddonfabric.wip.WidgetsCommandArgumentType;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
@@ -61,6 +60,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.*;
+import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,7 +75,7 @@ import java.util.List;
 import java.util.*;
 
 @Environment(EnvType.CLIENT)
-public class KZEAddon implements ClientModInitializer, ModMenuApi {
+public class KZEAddon implements ClientModInitializer {
     public static final String CC_REGEX = "^(§([0-9]|[a-f]))";
     public static final BarrierVisualizer BAR_VISUALIZER = new BarrierVisualizer();
     public static final KZEInformation KZE_INFO = new KZEInformation();
@@ -250,6 +250,10 @@ public class KZEAddon implements ClientModInitializer, ModMenuApi {
         return result;
     }
 
+    public static Profiler getProfiler() {
+        return MinecraftClient.getInstance().getProfiler();
+    }
+
     private static Widget getWidgetByEnum(WidgetsCommandArgumentType.Widgets name) {
         switch (name) {
             case MAIN_W:
@@ -374,9 +378,18 @@ public class KZEAddon implements ClientModInitializer, ModMenuApi {
      */
     @SuppressWarnings("unused")
     public static void onRenderHud(MatrixStack matrices, float delta) {
+        Profiler profiler = getProfiler();
+        profiler.push("KZEAddon$onRenderHud");
+
+        profiler.push("Widgets");
         Options.renderWidgets(matrices);
-        if (MinecraftClient.getInstance().player.isSneaking())
+        profiler.swap("KillLog");
+        if (MinecraftClient.getInstance().player.isSneaking()) {
             KZE_INFO.getKillLog().render(matrices, delta);
+        }
+
+        profiler.pop();
+        profiler.pop();
     }
 
     /**
@@ -396,27 +409,33 @@ public class KZEAddon implements ClientModInitializer, ModMenuApi {
      */
     @SuppressWarnings("unused")
     public static void onRenderWorld(MatrixStack matrices, float delta) {
+        Profiler profiler = getProfiler();
+
+        profiler.swap("KZEAddon$onRenderWorld");
+        profiler.push("Barrier Visualizer");
         BAR_VISUALIZER.draw(matrices, delta);
+        profiler.pop();
         // MARKED_AREA.render(matrices, tickDelta);
-        MinecraftClient client = MinecraftClient.getInstance();
-        Vec3d pos = client.cameraEntity.getPos();
-        Entity entity = client.cameraEntity;
-        TEST_LAYERS.render(matrices,
+        // MinecraftClient client = MinecraftClient.getInstance();
+        // Vec3d pos = client.cameraEntity.getPos();
+        // Entity entity = client.cameraEntity;
+        /* TEST_LAYERS.render(matrices,
                 (float) MathHelper.lerp(delta, entity.lastRenderX, pos.getX()),
                 (float) MathHelper.lerp(delta, entity.lastRenderY, pos.getY()),
                 (float) MathHelper.lerp(delta, entity.lastRenderZ, pos.getZ()),
                 delta);
+         */
     }
 
     /**
      * Click tick event listener
      */
-    public static void onTick() {
-
-        MinecraftClient client = MinecraftClient.getInstance();
+    public static void onTick(MinecraftClient client) {
+        Profiler profiler = client.getProfiler();
         ClientPlayerEntity player = client.player;
         if (player == null) return;
 
+        profiler.push("Check team visibility");
         AbstractTeam team = MinecraftClient.getInstance().player.getScoreboardTeam();
         if (team != null) {
             if (team.shouldShowFriendlyInvisibles() == KZEAddon.Options.isCompletelyInvisible()) {
@@ -424,10 +443,14 @@ public class KZEAddon implements ClientModInitializer, ModMenuApi {
             }
         }
 
+        profiler.swap("Barrier Visualizer tick");
         KZEAddon.BAR_VISUALIZER.tick();
+        profiler.swap("KZE Information tick");
         KZEAddon.KZE_INFO.tick();
-
+        profiler.swap("Keys tick");
         KZEAddon.tickKeys();
+
+        profiler.pop();
     }
 
     /**
@@ -639,11 +662,6 @@ public class KZEAddon implements ClientModInitializer, ModMenuApi {
         tessellator.draw();
     }
 
-    @Override
-    public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        return RootOptionScreen::new;
-    }
-
     /**
      * Mod initialization
      */
@@ -677,7 +695,8 @@ public class KZEAddon implements ClientModInitializer, ModMenuApi {
         }, key -> {
             if (KZEAddon.Options.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = false;
         });
-        KZEAddon.DEBUG_KEY = new KeyBindingWrapper("key.kzeaddon.debug", GLFW.GLFW_KEY_RIGHT_BRACKET, "key.categories.kzeaddon.wip", key -> KZEAddon.addChatLog("DEBUG KEY PRESSED"));
+        KZEAddon.DEBUG_KEY = new KeyBindingWrapper("key.kzeaddon.debug", GLFW.GLFW_KEY_RIGHT_BRACKET, "key.categories.kzeaddon.wip", key -> {
+        });
 
         Registry.register(Registry.SOUND_EVENT, CustomSounds.HONK_ID, CustomSounds.HONK_EVENT);
         Registry.register(Registry.SOUND_EVENT, CustomSounds.VOTE_NOTIFIC_ID, CustomSounds.VOTE_NOTIFIC_EVENT);
@@ -759,6 +778,8 @@ public class KZEAddon implements ClientModInitializer, ModMenuApi {
                 }
         );
 
+        ClientTickEvents.START_CLIENT_TICK.register(KZEAddon::onTick);
+        ClientLifecycleEvents.CLIENT_STOPPING.register(KZEAddon::onClientStop);
         this.registerCommands();
     }
 

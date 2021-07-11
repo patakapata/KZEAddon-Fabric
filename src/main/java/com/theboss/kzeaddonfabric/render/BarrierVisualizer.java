@@ -12,6 +12,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
@@ -33,19 +34,23 @@ public class BarrierVisualizer {
 
     public void draw(MatrixStack matrices, float delta) {
         MinecraftClient client = MinecraftClient.getInstance();
+        Profiler profiler = client.getProfiler();
         Vec3d pos = client.gameRenderer.getCamera().getPos();
 
+        profiler.push("Write matrix to buffer");
         matrices.push();
         matrices.translate(-pos.x, -pos.y, -pos.z);
         Matrix4f matrix = matrices.peek().getModel();
         matrix.writeRowFirst(this.MATRIX_BUFFER);
         matrices.pop();
 
+        profiler.swap("Draw");
         RenderSystem.disableTexture();
         GL11.glMultMatrixf(this.MATRIX_BUFFER);
         this.controller.draw();
         GL11.glLoadIdentity();
         RenderSystem.enableTexture();
+        profiler.pop();
     }
 
     public int getDistance() {
@@ -74,6 +79,8 @@ public class BarrierVisualizer {
         }
         if (center != null) {
             this.controller.tick(center);
+        } else {
+            System.err.println("Center is null!");
         }
     }
 
@@ -168,9 +175,6 @@ public class BarrierVisualizer {
                 }
                 this.vbo.end();
                 this.isReady = true;
-            }
-            // this.isChanged = needUpload;
-            if (needUpload) {
                 RenderSystem.recordRenderCall(this.vbo::upload);
             }
         }
@@ -257,13 +261,18 @@ public class BarrierVisualizer {
         }
 
         public void draw() {
+            Profiler profiler = KZEAddon.getProfiler();
+
+            profiler.push("Resize a buffer");
             if (this.resizeTo != -1) {
                 this.init(this.resizeTo);
                 this.reallocate();
                 this.resizeTo = -1;
             }
 
+            profiler.swap("Draw chunks");
             this.run(Chunk::draw);
+            profiler.pop();
         }
 
         public void init(int renderDistance) {
