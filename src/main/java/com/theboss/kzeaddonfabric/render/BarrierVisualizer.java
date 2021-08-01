@@ -3,29 +3,32 @@ package com.theboss.kzeaddonfabric.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.BarrierVisualizeOrigin;
+import com.theboss.kzeaddonfabric.render.shader.InvertShader;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.GlAllocationUtils;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
-import java.nio.FloatBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class BarrierVisualizer {
     private final Controller controller;
-    private final FloatBuffer MATRIX_BUFFER = GlAllocationUtils.allocateFloatBuffer(4 * 4 * 4);
+    private int[] color;
+
+    public static BarrierVisualizer getInstance() {
+        return KZEAddon.BAR_VISUALIZER;
+    }
 
     public BarrierVisualizer() {
         this.controller = new Controller();
+        this.color = new int[]{255, 255, 255, 255};
     }
 
     public void destroy() {
@@ -37,20 +40,37 @@ public class BarrierVisualizer {
         Profiler profiler = client.getProfiler();
         Vec3d pos = client.gameRenderer.getCamera().getPos();
 
-        profiler.push("Write matrix to buffer");
+        profiler.push("Generate mvp");
         matrices.push();
         matrices.translate(-pos.x, -pos.y, -pos.z);
-        Matrix4f matrix = matrices.peek().getModel();
-        matrix.writeRowFirst(this.MATRIX_BUFFER);
+        MatrixStack mvp = new MatrixStack();
+        mvp.peek().getModel().multiply(client.gameRenderer.getBasicProjectionMatrix(client.gameRenderer.getCamera(), delta, true));
+        if (MinecraftClient.getInstance().options.bobView) {
+            KZEAddon.bobView(mvp, delta);
+        }
+        mvp.peek().getModel().multiply(matrices.peek().getModel());
         matrices.pop();
 
+        InvertShader.INSTANCE.setMVP(mvp.peek().getModel());
+        InvertShader.INSTANCE.bind();
         profiler.swap("Draw");
         RenderSystem.disableTexture();
-        GL11.glMultMatrixf(this.MATRIX_BUFFER);
         this.controller.draw();
-        GL11.glLoadIdentity();
         RenderSystem.enableTexture();
         profiler.pop();
+        InvertShader.INSTANCE.unbind();
+    }
+
+    public int[] getColor() {
+        return this.color;
+    }
+
+    public void setColor(int[] newColor) {
+        if (newColor.length == 4) {
+            this.color = newColor;
+        } else if (newColor.length == 3) {
+            this.color = new int[]{newColor[0], newColor[1], newColor[2], 255};
+        }
     }
 
     public int getDistance() {
@@ -180,60 +200,61 @@ public class BarrierVisualizer {
         }
 
         private void wireframe(BlockPos pos) {
+            int[] color = getInstance().getColor();
             float[] x = new float[]{pos.getX() + 0.1F, pos.getX() + 0.9F};
             float[] y = new float[]{pos.getY() + 0.1F, pos.getY() + 0.9F};
             float[] z = new float[]{pos.getZ() + 0.1F, pos.getZ() + 0.9F};
 
             this.vbo.vertex(x[0], y[0], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[0], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[0], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[0], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[0], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[0], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[0], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[0], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
 
             this.vbo.vertex(x[0], y[1], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[1], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[1], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[1], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[1], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[1], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[1], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[1], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
 
             this.vbo.vertex(x[0], y[0], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[1], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[0], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[1], z[0]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[0], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[1], y[1], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[0], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
             this.vbo.vertex(x[0], y[1], z[1]);
-            this.vbo.color(255, 0, 0, 255);
+            this.vbo.color(color[0], color[1], color[2], color[3]);
         }
     }
 

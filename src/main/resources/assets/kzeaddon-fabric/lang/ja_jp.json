@@ -29,6 +29,8 @@
   "menu.kzeaddon.option.humanGlowColor": "人間 発光色",
   "menu.kzeaddon.option.zombieGlowColor": "ゾンビ 発光色",
   "menu.kzeaddon.option.back": "戻る",
+  "menu.kzeaddon.option.in_game": "ゲーム内",
+  "menu.kzeaddon.option.constants": "定数",
   
   "menu.kzeaddon.option.anchor_widget": "アンカー - ウィジェット",
   "menu.kzeaddon.option.anchor_window": "アンカー - ウィンドウ",

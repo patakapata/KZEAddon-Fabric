@@ -29,6 +29,8 @@
   "menu.kzeaddon.option.humanGlowColor": "Human GlowColor",
   "menu.kzeaddon.option.zombieGlowColor": "Zombie GlowColor",
   "menu.kzeaddon.option.back": "Back",
+  "menu.kzeaddon.option.in_game": "InGame",
+  "menu.kzeaddon.option.constants": "Constants",
   
   "menu.kzeaddon.option.anchor_widget": "Anchor - Widget",
   "menu.kzeaddon.option.anchor_window": "Anchor - Window",

@@ -9,6 +9,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
@@ -16,10 +17,10 @@ import com.theboss.kzeaddonfabric.enums.Switchable;
 import com.theboss.kzeaddonfabric.ingame.KillLog;
 import com.theboss.kzeaddonfabric.mixin.client.KeyBindingAccessor;
 import com.theboss.kzeaddonfabric.render.BarrierVisualizer;
+import com.theboss.kzeaddonfabric.render.VBOWrapperRegistry;
+import com.theboss.kzeaddonfabric.render.shader.InvertShader;
 import com.theboss.kzeaddonfabric.render.widgets.Widget;
-import com.theboss.kzeaddonfabric.wip.PlaneLayers;
-import com.theboss.kzeaddonfabric.wip.WidgetValueTargetArgumentType;
-import com.theboss.kzeaddonfabric.wip.WidgetsCommandArgumentType;
+import com.theboss.kzeaddonfabric.wip.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -33,21 +34,21 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.toast.ToastManager;
 import net.minecraft.client.util.GlAllocationUtils;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.command.argument.PosArgument;
+import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.Team;
@@ -62,6 +63,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
@@ -80,10 +82,13 @@ public class KZEAddon implements ClientModInitializer {
     public static final BarrierVisualizer BAR_VISUALIZER = new BarrierVisualizer();
     public static final KZEInformation KZE_INFO = new KZEInformation();
     public static final Logger LOGGER = LogManager.getLogger("KZEAddon-Fabric");
+    public static final Identifier PARTICLE_SPRITE = new Identifier("kzeaddon-fabric", "textures/wip/particle_sprite.png");
     public static final String MOD_NAME = "KZEAddon-Fabric";
     public static final String MOD_ID = "kzeaddon-fabric";
     public static final List<UUID> priorityGlowPlayers = new ArrayList<>();
     public static final List<KeyBinding> modKeys = new ArrayList<>();
+    public static final MarkedArea MARKED_AREA = new MarkedArea(new MarkedArea.Area(new BlockPos(-10, 0, -10), new BlockPos(10, 10, 10)));
+    public static final List<PerlinParticle> PARTICLES = new ArrayList<>();
     public static KeyBindingWrapper ADD_GROW_TARGET;
     public static KeyBindingWrapper COPY_ITEM_TAG;
     public static KeyBindingWrapper DEBUG_KEY;
@@ -123,6 +128,72 @@ public class KZEAddon implements ClientModInitializer {
     public static void addChatLog(Text text) {
         MinecraftClient client = MinecraftClient.getInstance();
         client.inGameHud.getChatHud().addMessage(text);
+    }
+
+    /**
+     * Render world event listener method
+     * Not expect call by you
+     *
+     * @param matrices {@link net.minecraft.client.util.math.MatrixStack}
+     * @param delta    A render delay
+     */
+    @SuppressWarnings("unused")
+    public static void afterRenderWorld(MatrixStack matrices, float delta) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        Vec3d pos = client.gameRenderer.getCamera().getPos();
+        Profiler profiler = getProfiler();
+
+        profiler.swap("KZEAddon$onRenderWorld");
+        //        profiler.push("Marked Area");
+        //        MARKED_AREA.render(matrices, delta);
+        //        profiler.pop();
+        // Entity entity = client.cameraEntity;
+        /* TEST_LAYERS.render(matrices,
+                (float) MathHelper.lerp(delta, entity.lastRenderX, pos.getX()),
+                (float) MathHelper.lerp(delta, entity.lastRenderY, pos.getY()),
+                (float) MathHelper.lerp(delta, entity.lastRenderZ, pos.getZ()),
+                delta);
+         */
+
+        matrices.push();
+        matrices.translate(-pos.getX(), -pos.getY(), -pos.getZ());
+        PerlinParticle[] particles = PARTICLES.toArray(new PerlinParticle[0]);
+        List<PerlinParticle> list = Arrays.asList(particles);
+        list.sort((p1, p2) -> PerlinParticle.whichNear(pos, p1, p2));
+        RenderSystem.enableBlend();
+        client.getTextureManager().bindTexture(PARTICLE_SPRITE);
+        for (PerlinParticle pp : list) {
+            pp.render(matrices, delta);
+        }
+        RenderSystem.disableBlend();
+        matrices.pop();
+    }
+
+    public static void beforeRenderCutout(MatrixStack matrices, float delta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+        Profiler profiler = getProfiler();
+
+        RenderSystem.enableDepthTest();
+        profiler.push("Barrier Visualizer");
+        BAR_VISUALIZER.draw(matrices, delta);
+        profiler.pop();
+        RenderSystem.disableBlend();
+    }
+
+    public static void beforeRenderSolid(MatrixStack matrices, float delta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+    }
+
+    public static void bobView(MatrixStack matrices, float f) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.getCameraEntity() instanceof PlayerEntity) {
+            PlayerEntity playerEntity = (PlayerEntity) client.getCameraEntity();
+            float g = playerEntity.horizontalSpeed - playerEntity.prevHorizontalSpeed;
+            float h = -(playerEntity.horizontalSpeed + g * f);
+            float i = MathHelper.lerp(f, playerEntity.prevStrideDistance, playerEntity.strideDistance);
+            matrices.translate((double) (MathHelper.sin(h * 3.1415927F) * i * 0.5F), (double) (-Math.abs(MathHelper.cos(h * 3.1415927F) * i)), 0.0D);
+            matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(MathHelper.sin(h * 3.1415927F) * i * 3.0F));
+            matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(Math.abs(MathHelper.cos(h * 3.1415927F - 0.2F) * i) * 5.0F));
+        }
+
     }
 
     /**
@@ -271,8 +342,13 @@ public class KZEAddon implements ClientModInitializer {
         }
     }
 
+    /**
+     * 現在いるワールドの時間を取得します
+     *
+     * @return ワールドに入っている場合、そのワールドの時間 入っていないと -1
+     */
     public static long getWorldTime() {
-        return MinecraftClient.getInstance().world.getTime();
+        return Optional.ofNullable(MinecraftClient.getInstance().world).map(World::getTime).orElse(-1L);
     }
 
     /**
@@ -299,6 +375,15 @@ public class KZEAddon implements ClientModInitializer {
                 if (KEY_FLIPFLOP_COPY) {
                     KEY_FLIPFLOP_COPY = false;
                 }
+            }
+        }
+
+        if (context.isAdvanced()) {
+            NbtCompound nbt = stack.getTag();
+            if (nbt != null && nbt.contains("CustomModelData")) {
+                int customModelData = nbt.getInt("CustomModelData");
+                list.add(list.size() - 2, Text.of("----------"));
+                visualizeNbt("CustomModelData,HideFlags,Unbreakable,Damage", nbt, list, list.size() - 2);
             }
         }
     }
@@ -347,7 +432,10 @@ public class KZEAddon implements ClientModInitializer {
     @SuppressWarnings("unused")
     public static void onClientStop(MinecraftClient client) {
         BAR_VISUALIZER.destroy();
+        VBOWrapperRegistry.destroyWrappers();
         saveConfig();
+        // TODO Shader delete
+        InvertShader.INSTANCE.close();
     }
 
     /**
@@ -398,33 +486,9 @@ public class KZEAddon implements ClientModInitializer {
     public static void onRenderInit() {
         BAR_VISUALIZER.init();
         BAR_VISUALIZER.setDistance(Options.getBarrierVisualizeRadius());
-    }
-
-    /**
-     * Render world event listener method
-     * Not expect call by you
-     *
-     * @param matrices {@link net.minecraft.client.util.math.MatrixStack}
-     * @param delta    A render delay
-     */
-    @SuppressWarnings("unused")
-    public static void onRenderWorld(MatrixStack matrices, float delta) {
-        Profiler profiler = getProfiler();
-
-        profiler.swap("KZEAddon$onRenderWorld");
-        profiler.push("Barrier Visualizer");
-        BAR_VISUALIZER.draw(matrices, delta);
-        profiler.pop();
-        // MARKED_AREA.render(matrices, tickDelta);
-        // MinecraftClient client = MinecraftClient.getInstance();
-        // Vec3d pos = client.cameraEntity.getPos();
-        // Entity entity = client.cameraEntity;
-        /* TEST_LAYERS.render(matrices,
-                (float) MathHelper.lerp(delta, entity.lastRenderX, pos.getX()),
-                (float) MathHelper.lerp(delta, entity.lastRenderY, pos.getY()),
-                (float) MathHelper.lerp(delta, entity.lastRenderZ, pos.getZ()),
-                delta);
-         */
+        VBOWrapperRegistry.initWrappers(1024 * 1024 * 2);
+        // TODO Shader init
+        InvertShader.INSTANCE.initialize();
     }
 
     /**
@@ -442,14 +506,25 @@ public class KZEAddon implements ClientModInitializer {
                 ((Team) team).setShowFriendlyInvisibles(!KZEAddon.Options.isCompletelyInvisible());
             }
         }
-
         profiler.swap("Barrier Visualizer tick");
         KZEAddon.BAR_VISUALIZER.tick();
         profiler.swap("KZE Information tick");
         KZEAddon.KZE_INFO.tick();
         profiler.swap("Keys tick");
         KZEAddon.tickKeys();
-
+        // TODO Particle system test
+        if (client.currentScreen != null && !client.currentScreen.isPauseScreen()) {
+            profiler.swap("PerlinParticle");
+            PerlinParticle[] particles = PARTICLES.toArray(new PerlinParticle[0]);
+            for (int i = 0; i < particles.length; i++) {
+                PerlinParticle pp = particles[i];
+                if (pp == null) continue;
+                pp.tick(client);
+                if (pp.isOutdated()) {
+                    PARTICLES.remove(pp);
+                }
+            }
+        }
         profiler.pop();
     }
 
@@ -473,6 +548,42 @@ public class KZEAddon implements ClientModInitializer {
             ex.printStackTrace();
         }
         return false;
+    }
+
+    private static int perlinParticle(CommandContext<ServerCommandSource> ctx) {
+        Vec3d pos;
+        int count;
+        try {
+            pos = Vec3ArgumentType.getVec3(ctx, "pos");
+            count = IntegerArgumentType.getInteger(ctx, "count");
+        } catch (CommandSyntaxException ex) {
+            return 0;
+        }
+
+        Random rand = new Random();
+        float div = 1F / Math.max(count, 1);
+        double x = pos.getX();
+        double y = pos.getY();
+        double z = pos.getZ();
+        float seed = rand.nextFloat();
+
+        int particleNum = 0;
+        for (int xI = 0; xI < count; xI++) {
+            for (int yI = 0; yI < count; yI++) {
+                for (int zI = 0; zI < count; zI++) {
+                    if (xI == 0 || xI == count - 1 || yI == 0 || yI == count - 1 || zI == 0 || zI == count - 1) {
+                        PerlinParticle pp = new PerlinParticle(x + xI * div, y + yI * div, z + zI * div, 60 + (int) (rand.nextFloat() * 20 - 10), seed);
+                        pp.setIsShouldMove(() -> pp.getAge() > 20);
+                        PARTICLES.add(pp);
+                        particleNum++;
+                    }
+                }
+            }
+        }
+
+        ctx.getSource().sendFeedback(Text.of(particleNum + " Particle(s) added"), false);
+
+        return 1;
     }
 
     /**
@@ -602,6 +713,22 @@ public class KZEAddon implements ClientModInitializer {
         }
     }
 
+    public static void test() {
+        // TODO
+        MinecraftClient client = MinecraftClient.getInstance();
+        try {
+            InputStream stream = client.getResourceManager().getResource(new Identifier("kzeaddon-fabric:shader/particle_vs.vsh")).getInputStream();
+            int i;
+            while ((i = stream.read()) != -1) {
+                System.out.print((char) i);
+            }
+
+            stream.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     public static void tickKeys() {
         KZEAddon.ADD_GROW_TARGET.tick();
         KZEAddon.HIDE_PLAYERS.tick();
@@ -620,6 +747,26 @@ public class KZEAddon implements ClientModInitializer {
                     ex.printStackTrace();
                 }
             }
+        }
+    }
+
+    public static void visualizeNbt(String name, NbtCompound nbt, List<Text> list, int index) {
+        try {
+            String[] names = name.split(",");
+            List<Text> add = new ArrayList<>();
+            for (String str : names) {
+                if (nbt.contains(str)) {
+                    NbtElement element = nbt.get(str);
+
+                    if (element != null) {
+                        add.add(Text.of("§8" + str + " : " + element.asString() + "§r"));
+                    }
+                }
+            }
+
+            list.addAll(index, add);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -671,32 +818,7 @@ public class KZEAddon implements ClientModInitializer {
 
         optionsFile = new File(client.runDirectory.getAbsolutePath() + "\\config\\" + MOD_ID + ".json");
         loadConfig();
-        ADD_GROW_TARGET = new KeyBindingWrapper("key.kzeaddon.glow.priority.add", GLFW.GLFW_KEY_G, "key.categories.kzeaddon.in_game",
-                unused -> {
-                    @SuppressWarnings("ConstantConditions")
-                    HitResult result = raycastIgnoreBlock(MinecraftClient.getInstance().player, 100.0);
-
-                    if (result.getType() == HitResult.Type.ENTITY) {
-                        UUID uuid = ((EntityHitResult) result).getEntity().getUuid();
-                        if (!KZEAddon.priorityGlowPlayers.contains(uuid)) {
-                            KZEAddon.priorityGlowPlayers.add(uuid);
-                        } else {
-                            KZEAddon.priorityGlowPlayers.remove(uuid);
-                        }
-                    }
-                },
-                unused -> {}
-        );
-
-        KZEAddon.COPY_ITEM_TAG = new KeyBindingWrapper("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
-        KZEAddon.HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.hide_teammates", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", key -> {
-            if (KZEAddon.Options.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = true;
-            else if (KZEAddon.Options.getHideTeammates() == Switchable.TOGGLE) KZEAddon.isHideTeammates = !KZEAddon.isHideTeammates;
-        }, key -> {
-            if (KZEAddon.Options.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = false;
-        });
-        KZEAddon.DEBUG_KEY = new KeyBindingWrapper("key.kzeaddon.debug", GLFW.GLFW_KEY_RIGHT_BRACKET, "key.categories.kzeaddon.wip", key -> {
-        });
+        this.registerKeybindings();
 
         Registry.register(Registry.SOUND_EVENT, CustomSounds.HONK_ID, CustomSounds.HONK_EVENT);
         Registry.register(Registry.SOUND_EVENT, CustomSounds.VOTE_NOTIFIC_ID, CustomSounds.VOTE_NOTIFIC_EVENT);
@@ -795,6 +917,13 @@ public class KZEAddon implements ClientModInitializer {
             LiteralCommandNode<ServerCommandSource> killLog = CommandManager.literal("killlog").build();
             ArgumentCommandNode<ServerCommandSource, Integer> index = CommandManager.argument("index", IntegerArgumentType.integer(0)).build();
             ArgumentCommandNode<ServerCommandSource, Integer> isTargetVictim = CommandManager.argument("isTargetVictim", IntegerArgumentType.integer(0, 1)).executes(KZEAddon::killLogDebug).build();
+            LiteralCommandNode<ServerCommandSource> perlin = CommandManager.literal("perlin").build();
+            ArgumentCommandNode<ServerCommandSource, PosArgument> perlinPos = CommandManager.argument("pos", Vec3ArgumentType.vec3()).build();
+            ArgumentCommandNode<ServerCommandSource, Integer> perlinCount = CommandManager.argument("count", IntegerArgumentType.integer(1)).executes(KZEAddon::perlinParticle).build();
+
+            root.addChild(perlin);
+            perlin.addChild(perlinPos);
+            perlinPos.addChild(perlinCount);
 
             root.addChild(widget);
             widget.addChild(set);
@@ -806,6 +935,36 @@ public class KZEAddon implements ClientModInitializer {
             root.addChild(killLog);
             killLog.addChild(index);
             index.addChild(isTargetVictim);
+        });
+    }
+
+    private void registerKeybindings() {
+        ADD_GROW_TARGET = new KeyBindingWrapper("key.kzeaddon.glow.priority.add", GLFW.GLFW_KEY_G, "key.categories.kzeaddon.in_game",
+                unused -> {
+                    @SuppressWarnings("ConstantConditions")
+                    HitResult result = raycastIgnoreBlock(MinecraftClient.getInstance().player, 100.0);
+
+                    if (result.getType() == HitResult.Type.ENTITY) {
+                        UUID uuid = ((EntityHitResult) result).getEntity().getUuid();
+                        if (!KZEAddon.priorityGlowPlayers.contains(uuid)) {
+                            KZEAddon.priorityGlowPlayers.add(uuid);
+                        } else {
+                            KZEAddon.priorityGlowPlayers.remove(uuid);
+                        }
+                    }
+                },
+                unused -> {}
+        );
+
+        KZEAddon.COPY_ITEM_TAG = new KeyBindingWrapper("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
+        KZEAddon.HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.hide_teammates", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", key -> {
+            if (KZEAddon.Options.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = true;
+            else if (KZEAddon.Options.getHideTeammates() == Switchable.TOGGLE) KZEAddon.isHideTeammates = !KZEAddon.isHideTeammates;
+        }, key -> {
+            if (KZEAddon.Options.getHideTeammates() == Switchable.HOLD) KZEAddon.isHideTeammates = false;
+        });
+        KZEAddon.DEBUG_KEY = new KeyBindingWrapper("key.kzeaddon.debug", GLFW.GLFW_KEY_RIGHT_BRACKET, "key.categories.kzeaddon.wip", key -> {
+            com.theboss.kzeaddonfabric.Options.openOtherOptionsScreen(null);
         });
     }
 }

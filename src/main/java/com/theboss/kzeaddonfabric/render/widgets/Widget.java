@@ -2,6 +2,7 @@ package com.theboss.kzeaddonfabric.render.widgets;
 
 import com.google.gson.annotations.Expose;
 import com.theboss.kzeaddonfabric.Color;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
@@ -169,6 +170,11 @@ public abstract class Widget {
 
         float x = this.getAbsoluteX(message, window, textRenderer);
         float y = this.getAbsoluteY(message, window, textRenderer);
+
+        if (KZEAddon.Options.isShouldAlignWidgetPosition()) {
+            x = (float) Math.floor(x);
+            y = (float) Math.floor(y);
+        }
 
         matrices.push();
         matrices.scale(this.scaleFactor, this.scaleFactor, this.scaleFactor);

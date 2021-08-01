@@ -234,7 +234,7 @@ public abstract class WidgetConfigureScreen extends Screen {
     @SuppressWarnings("deprecation")
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        if (this.client.world == null) this.renderBackground(matrices);
+        this.renderBackground(matrices);
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
         Window window = this.client.getWindow();

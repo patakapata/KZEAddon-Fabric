@@ -2,6 +2,7 @@ package com.theboss.kzeaddonfabric.mixin.client;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.screen.options.RootOptionScreen;
+import com.theboss.kzeaddonfabric.wip.options.RootScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
@@ -30,17 +31,17 @@ public abstract class GameMenuScreenMixin extends Screen {
 
     @Inject(method = "initWidgets", at = @At("RETURN"))
     private void onInitWidgets(CallbackInfo ci) {
-        this.optionBtn = new ButtonWidget(this.width - 30, this.height - 120, 20, 20, Text.of("@"), btn -> MinecraftClient.getInstance().openScreen(new RootOptionScreen(this)));
-        this.openBtn = new ButtonWidget(this.width - 30, this.height - 90, 20, 20, Text.of("O"), btn -> {
+        this.optionBtn = new ButtonWidget(this.width - 25, this.height - 112, 20, 20, Text.of("@"), btn -> MinecraftClient.getInstance().openScreen(new RootOptionScreen(this)));
+        this.openBtn = new ButtonWidget(this.width - 25, this.height - 87, 20, 20, Text.of("O"), btn -> {
             btn.setMessage(Text.of(KZEAddon.openConfigWithEditor() ? "*" : "X"));
             this.openBtnTime = 20;
         });
-        this.saveBtn = new ButtonWidget(this.width - 30, this.height - 60, 20, 20, Text.of("S"), btn -> {
+        this.saveBtn = new ButtonWidget(this.width - 25, this.height - 62, 20, 20, Text.of("S"), btn -> {
             KZEAddon.saveConfig();
             btn.setMessage(Text.of("*"));
             this.saveBtnTime = 20;
         });
-        this.loadBtn = new ButtonWidget(this.width - 30, this.height - 30, 20, 20, Text.of("L"), btn -> {
+        this.loadBtn = new ButtonWidget(this.width - 25, this.height - 37, 20, 20, Text.of("L"), btn -> {
             KZEAddon.loadConfig();
             btn.setMessage(Text.of("*"));
             this.loadBtnTime = 20;
@@ -49,6 +50,8 @@ public abstract class GameMenuScreenMixin extends Screen {
         this.addButton(this.openBtn);
         this.addButton(this.saveBtn);
         this.addButton(this.loadBtn);
+
+        this.addButton(new ButtonWidget(5, this.height - 37, 20, 20, Text.of("T"), btn -> MinecraftClient.getInstance().openScreen(new RootScreen(this))));
     }
 
     @Override

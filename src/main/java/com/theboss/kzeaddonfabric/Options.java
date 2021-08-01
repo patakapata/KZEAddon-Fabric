@@ -5,11 +5,18 @@ import com.theboss.kzeaddonfabric.enums.*;
 import com.theboss.kzeaddonfabric.render.widgets.GunAmmoWidget;
 import com.theboss.kzeaddonfabric.render.widgets.ReloadIndicatorWidget;
 import com.theboss.kzeaddonfabric.render.widgets.TotalAmmoWidget;
+import com.theboss.kzeaddonfabric.screen.Screen;
+import me.shedaniel.clothconfig2.api.ConfigBuilder;
+import me.shedaniel.clothconfig2.api.ConfigCategory;
+import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.Text;
 import net.minecraft.util.profiler.Profiler;
+
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class Options {
@@ -38,6 +45,8 @@ public class Options {
     private boolean isCompletelyInvisible;
     @Expose
     private boolean shouldHighlightMyKill;
+    @Expose
+    private boolean shouldAlignWidgetPosition;
 
     @Expose
     private GunAmmoWidget primaryAmmo;
@@ -49,6 +58,17 @@ public class Options {
     private TotalAmmoWidget totalAmmo;
     @Expose
     private ReloadIndicatorWidget reloadIndicator;
+
+    public static void openOtherOptionsScreen(Screen screen) {
+        ConfigBuilder builder = ConfigBuilder.create()
+                .setParentScreen(screen)
+                .setTitle(Text.of("Other options"));
+        ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+        ConfigCategory general = builder.getOrCreateCategory(Text.of("General"));
+        general.addEntry(entryBuilder.startFloatField(Text.of("Test"), 0.0F).setDefaultValue(-1.0F).build());
+
+        MinecraftClient.getInstance().openScreen(builder.build());
+    }
 
     public Options() {
         this.priorityGlowColor = new Color(255, 0, 255);
@@ -64,6 +84,7 @@ public class Options {
         this.barrierVisualizeRadius = 1;
         this.isCompletelyInvisible = false;
         this.shouldHighlightMyKill = true;
+        this.shouldAlignWidgetPosition = true;
 
         this.primaryAmmo = new GunAmmoWidget(WeaponSlot.PRIMARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -80, -35, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
         this.secondaryAmmo = new GunAmmoWidget(WeaponSlot.SECONDARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -60, -35, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
@@ -204,6 +225,14 @@ public class Options {
 
     public void setSetGunfireSoundVolume(boolean setGunfireSoundVolume) {
         this.setGunfireSoundVolume = setGunfireSoundVolume;
+    }
+
+    public boolean isShouldAlignWidgetPosition() {
+        return this.shouldAlignWidgetPosition;
+    }
+
+    public void setShouldAlignWidgetPosition(boolean shouldAlignWidgetPosition) {
+        this.shouldAlignWidgetPosition = shouldAlignWidgetPosition;
     }
 
     public boolean isShouldHighlightMyKill() {
