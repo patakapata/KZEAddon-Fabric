@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.mixin.client;
 
-import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.events.RenderingEventsListener;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class WorldRendererMixin {
     @Inject(method = "render", at = @At(value = "INVOKE", ordinal = 2, target = "Lnet/minecraft/client/render/WorldRenderer;renderLayer(Lnet/minecraft/client/render/RenderLayer;Lnet/minecraft/client/util/math/MatrixStack;DDD)V"))
     private void beforeRenderCutout(MatrixStack matrices, float delta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
-        KZEAddon.beforeRenderCutout(matrices, delta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+        RenderingEventsListener.beforeRenderCutout(matrices, delta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = "ldc=entities"))
@@ -26,11 +26,11 @@ public abstract class WorldRendererMixin {
 
     @Inject(method = "render", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = "ldc=terrain"))
     private void beforeRenderSolid(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
-        KZEAddon.beforeRenderSolid(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+        RenderingEventsListener.beforeRenderSolid(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onInit(MinecraftClient client, BufferBuilderStorage bufferBuilders, CallbackInfo ci) {
-        KZEAddon.onRenderInit();
+        RenderingEventsListener.onRenderInit();
     }
 }

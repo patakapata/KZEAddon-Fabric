@@ -4,11 +4,14 @@
   "package": "com.theboss.kzeaddonfabric.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "Matrix4fAccessor",
     "PlayerEntityMixin"
   ],
   "client": [
     "client.AbstractSoundInstanceMixin",
     "client.BossBarHudMixin",
+    "client.ClientPlayNetworkHandlerMixin",
+    "client.DebugHudMixin",
     "client.EntityMixin",
     "client.GameMenuScreenMixin",
     "client.GameOptionsMixin",
@@ -16,8 +19,11 @@
     "client.InGameHudMixin",
     "client.ItemStackMixin",
     "client.KeyBindingAccessor",
+    "client.MinecraftClientMixin",
+    "client.PlayerEntityRendererMixin",
     "client.ResourcePackStatusC2SPacketMixin",
     "client.TitleScreenMixin",
+    "client.WorldRendererAccessor",
     "client.WorldRendererMixin"
   ],
   "injectors": {

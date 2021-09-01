@@ -10,6 +10,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.profiler.Profiler;
 
+import static com.theboss.kzeaddonfabric.KZEAddon.warn;
+
 public class KZEInformation {
     private final Weapon primary;
     private final Weapon secondary;
@@ -156,9 +158,9 @@ public class KZEInformation {
 
     @Deprecated
     protected void setReloadFromMainhandWeapon() {
-        WeaponSlot slot = WeaponSlot.valueOf(MinecraftClient.getInstance().player.inventory.selectedSlot);
+        WeaponSlot slot = WeaponSlot.valueOf(MinecraftClient.getInstance().player != null ? MinecraftClient.getInstance().player.inventory.selectedSlot : 0);
         if (slot == null) {
-            KZEAddon.addChatLog(Text.of("§c§lInvalid weapon or slot!§r"));
+            warn(Text.of("§lInvalid weapon or slot!§r"));
             return;
         }
 

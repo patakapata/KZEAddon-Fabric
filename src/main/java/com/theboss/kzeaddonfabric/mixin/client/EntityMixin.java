@@ -1,6 +1,7 @@
 package com.theboss.kzeaddonfabric.mixin.client;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.events.EventsListener;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.util.Nameable;
@@ -22,7 +23,7 @@ public abstract class EntityMixin implements Nameable, CommandOutput {
 
     @Inject(method = "getTeamColorValue", at = @At("RETURN"), cancellable = true)
     private void onGetTeamColorValue(CallbackInfoReturnable<Integer> cir) {
-        int result = KZEAddon.onGetTeamColorValue((Entity) (Object) this);
+        int result = EventsListener.onGetTeamColorValue((Entity) (Object) this);
         if (result != -1) cir.setReturnValue(result);
     }
 

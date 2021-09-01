@@ -17,12 +17,10 @@ import net.minecraft.network.packet.s2c.play.BossBarS2CPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.profiler.Profiler;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class KillLog {
     private final List<LogEntry> entries;
@@ -68,7 +66,7 @@ public class KillLog {
             if (entry != null) {
                 this.add(entry);
             } else {
-                this.add(new LogEntry("Parse failed: " + LogEntry.textAsString(name), "*", "*", false));
+                this.add(new LogEntry("Parse failed: " + KZEAddon.textAsString(name), "*", "*", false));
             }
         }
     }
@@ -145,7 +143,7 @@ public class KillLog {
         protected Identifier attackerSkin;
 
         public static LogEntry of(Text bossBarName) {
-            String nameString = textAsString(bossBarName);
+            String nameString = KZEAddon.textAsString(bossBarName);
             if (nameString.length() < 80) return null;
             boolean isInfection = nameString.startsWith("§3");
             String[] elements = nameString.substring(79).split(" ");
@@ -155,15 +153,6 @@ public class KillLog {
             String attacker = elements[2];
 
             return new LogEntry(victim, mark, attacker, isInfection);
-        }
-
-        public static String textAsString(Text text) {
-            StringBuilder builder = new StringBuilder();
-            text.visit(asString -> {
-                builder.append(asString);
-                return Optional.empty();
-            });
-            return builder.toString();
         }
 
         public LogEntry(String victim, String mark, String attacker, boolean isInfection) {
@@ -283,7 +272,7 @@ public class KillLog {
         }
 
         protected void highlightCheck() {
-            this.shouldHighlight = this.attacker.substring(2).equals(textAsString(MinecraftClient.getInstance().player.getName()));
+            this.shouldHighlight = this.attacker.substring(2).equals(KZEAddon.textAsString(MinecraftClient.getInstance().player.getName()));
         }
 
         public boolean isInfectionLog() {

@@ -6,17 +6,12 @@ import com.theboss.kzeaddonfabric.render.widgets.GunAmmoWidget;
 import com.theboss.kzeaddonfabric.render.widgets.ReloadIndicatorWidget;
 import com.theboss.kzeaddonfabric.render.widgets.TotalAmmoWidget;
 import com.theboss.kzeaddonfabric.screen.Screen;
-import me.shedaniel.clothconfig2.api.ConfigBuilder;
-import me.shedaniel.clothconfig2.api.ConfigCategory;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.profiler.Profiler;
-
-import java.util.List;
 
 @SuppressWarnings("unused")
 public class Options {
@@ -58,17 +53,6 @@ public class Options {
     private TotalAmmoWidget totalAmmo;
     @Expose
     private ReloadIndicatorWidget reloadIndicator;
-
-    public static void openOtherOptionsScreen(Screen screen) {
-        ConfigBuilder builder = ConfigBuilder.create()
-                .setParentScreen(screen)
-                .setTitle(Text.of("Other options"));
-        ConfigEntryBuilder entryBuilder = builder.entryBuilder();
-        ConfigCategory general = builder.getOrCreateCategory(Text.of("General"));
-        general.addEntry(entryBuilder.startFloatField(Text.of("Test"), 0.0F).setDefaultValue(-1.0F).build());
-
-        MinecraftClient.getInstance().openScreen(builder.build());
-    }
 
     public Options() {
         this.priorityGlowColor = new Color(255, 0, 255);

@@ -15,7 +15,6 @@ public final class InvertShader extends AbstractShader {
 
     @Override
     public void handleLoad() {
-        super.handleLoad();
         this.MVP = this.shaderInstance.getUniformByNameOrDummy("MVP");
     }
 
