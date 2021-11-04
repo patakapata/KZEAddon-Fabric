@@ -9,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 
 public class VBOWrapper {
@@ -23,6 +22,7 @@ public class VBOWrapper {
     private boolean isBuilding;
     private boolean sizeChanged;
 
+    @SuppressWarnings("RedundantCast")
     public void begin(int mode, VertexFormats.VertexFormat format) {
         if (this.isBuilding)
             throw new IllegalStateException("Already building!");
@@ -69,6 +69,7 @@ public class VBOWrapper {
         this.unbind();
     }
 
+    @SuppressWarnings("RedundantCast")
     public void end() {
         if (!this.isBuilding)
             throw new IllegalStateException("Not started building!");
@@ -88,6 +89,7 @@ public class VBOWrapper {
         return this.buffer;
     }
 
+    @SuppressWarnings("RedundantCast")
     public void grow(int count) {
         int remaining = this.buffer.remaining();
         if (count > remaining) {

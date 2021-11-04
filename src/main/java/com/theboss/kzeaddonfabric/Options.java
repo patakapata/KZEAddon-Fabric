@@ -1,248 +1,291 @@
 package com.theboss.kzeaddonfabric;
 
-import com.google.gson.annotations.Expose;
-import com.theboss.kzeaddonfabric.enums.*;
-import com.theboss.kzeaddonfabric.render.widgets.GunAmmoWidget;
-import com.theboss.kzeaddonfabric.render.widgets.ReloadIndicatorWidget;
-import com.theboss.kzeaddonfabric.render.widgets.TotalAmmoWidget;
-import com.theboss.kzeaddonfabric.screen.Screen;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.util.Window;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.profiler.Profiler;
+import com.google.gson.*;
+import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
+import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.Vec3d;
 
-@SuppressWarnings("unused")
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 public class Options {
-    @Expose
-    private Color priorityGlowColor;
-    @Expose
-    private Color humanGlowColor;
-    @Expose
-    private Color zombieGlowColor;
+    @Exclude
+    private static final Gson GSON = Util.make(() -> new GsonBuilder()
+            .setPrettyPrinting()
+            .setExclusionStrategies(new ExcludeWithAnnotateStrategy())
+            .registerTypeAdapter(Options.class, new OptionsTypeAdapter())
+            .create()
+    );
+    @Exclude
+    private static final Options DEFAULT = Util.make(() -> {
+        Options options = new Options();
+        options.restoreDefaultValues();
+        return options;
+    });
 
-    @Expose
-    private Switchable hideTeammates;
-    @Expose
-    private CameraSwitchType forceSmoothCamera;
-    @Expose
-    private boolean ignoreResourcePack;
-    @Expose
-    private boolean setGunfireSoundVolume;
-    @Expose
-    private float gunfireVolume;
-    @Expose
-    private BarrierVisualizeOrigin barrierVisualizeOrigin;
-    @Expose
-    private int barrierVisualizeRadius;
-    @Expose
-    private boolean isCompletelyInvisible;
-    @Expose
-    private boolean shouldHighlightMyKill;
-    @Expose
-    private boolean shouldAlignWidgetPosition;
+    @Exclude
+    private final File optionFile;
+    public boolean shouldShowKillLog;
+    public boolean shouldHighlightMyKill;
+    public boolean shouldShowModLog;
+    public boolean shouldIgnoreResourcePack;
+    public boolean shouldChangeGunfireVolume;
+    public boolean shouldBarrierVisualize;
+    public boolean barrierVisualizeUseCrosshairCenter;
+    public boolean shouldHideTeammates;
+    public boolean shouldShowFriendlyInvisibles;
+    public boolean shouldUseFade;
 
-    @Expose
-    private GunAmmoWidget primaryAmmo;
-    @Expose
-    private GunAmmoWidget secondaryAmmo;
-    @Expose
-    private GunAmmoWidget meleeAmmo;
-    @Expose
-    private TotalAmmoWidget totalAmmo;
-    @Expose
-    private ReloadIndicatorWidget reloadIndicator;
+    public float gunfireVolumeMultiplier;
+    public Color priorityGlowColor;
+    public Color humanGlowColor;
+    public Color zombieGlowColor;
+    public int barrierVisualizeRadius;
+    public float barrierVisualizeShowRadius;
+    public float barrierVisualizeRaycastDistance;
+    public float barrierLineWidth;
+    public Color barrierColor;
+    public Vec3d cameraOffset;
+    public float killLogScrollMultiplier;
 
-    public Options() {
-        this.priorityGlowColor = new Color(255, 0, 255);
-        this.humanGlowColor = new Color(0, 0, 255);
-        this.zombieGlowColor = new Color(0, 255, 0);
+    @SuppressWarnings("unchecked")
+    public static <T> T getDefaultValue(String name) throws NoSuchFieldException, IllegalAccessException {
+        return (T) Options.class.getDeclaredField(name).get(DEFAULT);
+    }
 
-        this.hideTeammates = Switchable.TOGGLE;
-        this.forceSmoothCamera = CameraSwitchType.DISABLED;
-        this.ignoreResourcePack = false;
-        this.setGunfireSoundVolume = true;
-        this.gunfireVolume = 1.0F;
-        this.barrierVisualizeOrigin = BarrierVisualizeOrigin.MYSELF;
-        this.barrierVisualizeRadius = 1;
-        this.isCompletelyInvisible = false;
+    public static Class<?> getValueType(String name) throws NoSuchFieldException {
+        return Options.class.getDeclaredField(name).getType();
+    }
+
+    private Options() {
+        this.optionFile = null;
+    }
+
+    /**
+     * デフォルト値設定用のコンストラクタ
+     *
+     * @param configDir {@link net.minecraft.client.MinecraftClient#runDirectory} を渡せばok
+     */
+    public Options(File configDir) {
+        this.optionFile = new File(configDir, "config.json").getAbsoluteFile();
+        this.load();
+
+        ChunkInstancedBarrierVisualizer.recordRenderCall(() -> BarrierShader.INSTANCE.setColor(this.barrierColor));
+    }
+
+    public void restoreDefaultValues() {
+        this.shouldShowKillLog = false;
+        this.shouldShowModLog = false;
         this.shouldHighlightMyKill = true;
-        this.shouldAlignWidgetPosition = true;
+        this.shouldIgnoreResourcePack = true;
+        this.shouldChangeGunfireVolume = true;
+        this.shouldBarrierVisualize = false;
+        this.barrierVisualizeUseCrosshairCenter = false;
+        this.shouldHideTeammates = false;
+        this.shouldShowFriendlyInvisibles = false;
+        this.shouldUseFade = false;
 
-        this.primaryAmmo = new GunAmmoWidget(WeaponSlot.PRIMARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -80, -35, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.secondaryAmmo = new GunAmmoWidget(WeaponSlot.SECONDARY, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -60, -35, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.meleeAmmo = new GunAmmoWidget(WeaponSlot.MELEE, Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -40, -35, 255, new Color(0x00FF00), new Color(0x990000), new Color(0xFF0000));
-        this.totalAmmo = new TotalAmmoWidget(Anchor.RIGHT_MIDDLE, Anchor.MIDDLE_DOWN, 1.0F, -95, -10, 255, 0xFFFFFF);
-        this.reloadIndicator = new ReloadIndicatorWidget(Anchor.MIDDLE_MIDDLE, Anchor.MIDDLE_MIDDLE, 1.0F, 0, 10, 255, 0xFFFFFF);
+        this.gunfireVolumeMultiplier = 0.5F;
+        this.priorityGlowColor = new Color(0xFF0000);
+        this.humanGlowColor = new Color(0x00AAAA);
+        this.zombieGlowColor = new Color(0x00AA00);
+        this.barrierVisualizeRadius = 1;
+        this.barrierVisualizeShowRadius = 16F;
+        this.barrierVisualizeRaycastDistance = 40.0F;
+        this.barrierLineWidth = 2F;
+        this.barrierColor = new Color(0xAA0000);
+        this.cameraOffset = new Vec3d(0, 0, 0);
+        this.killLogScrollMultiplier = 1.0F;
     }
 
-    public BarrierVisualizeOrigin getBarrierVisualizeOrigin() {
-        return this.barrierVisualizeOrigin;
+    private void copy(Options other) {
+        // Manual copy method
+        // -------------------------------------------------- //
+        // this.shouldShowKillLog = other.shouldShowKillLog;
+        // this.shouldHighlightMyKill = other.shouldHighlightMyKill;
+        // this.shouldShowModLog = other.shouldShowModLog;
+        // this.shouldIgnoreResourcePack = other.shouldIgnoreResourcePack;
+        // this.shouldChangeGunfireVolume = other.shouldChangeGunfireVolume;
+        // this.shouldBarrierVisualize = other.shouldBarrierVisualize;
+        // this.barrierVisualizeUseCrosshairCenter = other.barrierVisualizeUseCrosshairCenter;
+        // -------------------------------------------------- //
+        // this.gunfireVolumeMultiplier = other.gunfireVolumeMultiplier;
+        // this.priorityGlowColor = other.priorityGlowColor;
+        // this.humanGlowColor = other.humanGlowColor;
+        // this.zombieGlowColor = other.zombieGlowColor;
+        // this.barrierVisualizeRadius = other.barrierVisualizeRadius;
+        // this.barrierVisualizeShowRadius = other.barrierVisualizeShowRadius;
+        // this.barrierVisualizeRaycastDistance = other.barrierVisualizeRaycastDistance;
+        // this.barrierLineWidth = other.barrierLineWidth;
+        // this.barrierColor = other.barrierColor;
+
+        // Automatic copy method
+        // -------------------------------------------------- //
+        try {
+            for (Field field : this.getClass().getDeclaredFields()) {
+                if (field.getAnnotation(Exclude.class) == null) {
+                    field.set(this, field.get(other));
+                }
+            }
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    public void setBarrierVisualizeOrigin(BarrierVisualizeOrigin barrierVisualizeOrigin) {
-        this.barrierVisualizeOrigin = barrierVisualizeOrigin;
+    private boolean canIO() {
+        if (this.optionFile.exists()) {
+            return true;
+        } else {
+            try {
+                if (!this.optionFile.getParentFile().exists() && !this.optionFile.getParentFile().mkdirs()) return false;
+                return this.optionFile.createNewFile();
+            } catch (Exception ex) {
+                return false;
+            }
+        }
     }
 
-    public int getBarrierVisualizeRadius() {
-        return this.barrierVisualizeRadius;
+    public void load() {
+        if (this.canIO()) {
+            Options loaded;
+            try (FileReader reader = new FileReader(this.optionFile)) {
+                loaded = GSON.fromJson(reader, Options.class);
+            } catch (Exception ex) {
+                loaded = new Options();
+                loaded.restoreDefaultValues();
+                KZEAddon.LOGGER.warn("Config is missing. restore default values");
+            }
+            if (loaded != null) {
+                this.copy(loaded);
+            }
+        } else {
+            KZEAddon.LOGGER.error("Can't create or read options file!");
+            this.restoreDefaultValues();
+        }
     }
 
-    public void setBarrierVisualizeRadius(int barrierVisualizeRadius) {
-        this.barrierVisualizeRadius = barrierVisualizeRadius;
+    public void save() {
+        if (this.canIO()) {
+            try (FileWriter writer = new FileWriter(this.optionFile, false)) {
+                writer.write(GSON.toJson(this));
+            } catch (Exception ex) {
+                KZEAddon.LOGGER.warn("Options file isn't exists");
+            }
+        } else {
+            KZEAddon.LOGGER.error("Can't create or read options file!");
+        }
     }
 
-    public CameraSwitchType getForceSmoothCamera() {
-        return this.forceSmoothCamera;
-    }
 
-    public void setForceSmoothCamera(CameraSwitchType forceSmoothCamera) {
-        this.forceSmoothCamera = forceSmoothCamera;
-    }
+    private static class OptionsTypeAdapter implements JsonDeserializer<Options> {
+        private boolean shouldExclude(Field field) {
+            return field.getAnnotation(Exclude.class) != null;
+        }
 
-    public float getGunfireVolume() {
-        return this.gunfireVolume;
-    }
+        private void set(Options to, String name, Object value) throws NoSuchFieldException, IllegalAccessException {
+            Field field = Options.class.getDeclaredField(name);
+            field.set(to, value);
+        }
 
-    public void setGunfireVolume(float gunfireVolume) {
-        this.gunfireVolume = gunfireVolume;
-    }
+        @Override
+        public Options deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            Options options = new Options();
+            JsonObject jsonObj = json.getAsJsonObject();
+            List<String> declaredFields = this.declaredFields(Options.class, it -> !this.shouldExclude(it));
+            List<String> jsonEntries = this.jsonEntries(jsonObj);
+            List<String> unknownFields = this.difference(jsonEntries, declaredFields);
+            List<String> missingFields = this.difference(declaredFields, jsonEntries);
 
-    public Switchable getHideTeammates() {
-        return this.hideTeammates;
-    }
+            if (!unknownFields.isEmpty())
+                KZEAddon.LOGGER.error("Unknown fields: " + this.toString(unknownFields) + "is ignored");
+            if (!missingFields.isEmpty())
+                KZEAddon.LOGGER.error("Missing fields: " + this.toString(missingFields) + " is restored default values");
 
-    public void setHideTeammates(Switchable hideTeammates) {
-        this.hideTeammates = hideTeammates;
-    }
+            try {
+                for (String name : declaredFields) {
+                    Object value;
+                    if (missingFields.contains(name)) {
+                        value = Options.getDefaultValue(name);
+                    } else {
+                        value = context.deserialize(jsonObj.get(name), Options.getValueType(name));
+                    }
+                    this.set(options, name, value);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                KZEAddon.LOGGER.error("Error while deserialize. config restore default values");
+                options.restoreDefaultValues();
+            }
 
-    public Color getHumanGlowColor() {
-        return this.humanGlowColor;
-    }
+            // Old loading method
+            // -------------------------------------------------- //
+            // Feature flags
+            // options.shouldShowKillLog = jsonObj.get("shouldShowKillLog").getAsBoolean();
+            // options.shouldHighlightMyKill = jsonObj.get("shouldHighlightMyKill").getAsBoolean();
+            // options.shouldShowModLog = jsonObj.get("shouldShowModLog").getAsBoolean();
+            // options.shouldIgnoreResourcePack = jsonObj.get("shouldIgnoreResourcePack").getAsBoolean();
+            // options.shouldChangeGunfireVolume = jsonObj.get("shouldChangeGunfireVolume").getAsBoolean();
+            // options.shouldBarrierVisualize = jsonObj.get("shouldBarrierVisualize").getAsBoolean();
+            // options.barrierVisualizeUseCrosshairCenter = jsonObj.get("barrierVisualizeUseCrosshairCenter").getAsBoolean();
+            // -------------------------------------------------- //
+            // Feature values
+            // options.gunfireVolumeMultiplier = jsonObj.get("gunfireVolumeMultiplier").getAsFloat();
+            // options.priorityGlowColor = context.deserialize(jsonObj.get("priorityGlowColor"), Color.class);
+            // options.humanGlowColor = context.deserialize(jsonObj.get("humanGlowColor"), Color.class);
+            // options.zombieGlowColor = context.deserialize(jsonObj.get("zombieGlowColor"), Color.class);
+            // options.barrierVisualizeRadius = jsonObj.get("barrierVisualizeRadius").getAsInt();
+            // options.barrierVisualizeShowRadius = jsonObj.get("barrierVisualizeShowRadius").getAsFloat();
+            // options.barrierVisualizeRaycastDistance = jsonObj.get("barrierVisualizeRaycastDistance").getAsFloat();
+            // options.barrierLineWidth = jsonObj.get("barrierLineWidth").getAsFloat();
+            // options.barrierColor = context.deserialize(jsonObj.get("barrierColor"), Color.class);
 
-    public void setHumanGlowColor(Color humanGlowColor) {
-        this.humanGlowColor = humanGlowColor;
-    }
+            return options;
+        }
 
-    public GunAmmoWidget getMeleeAmmo() {
-        return this.meleeAmmo;
-    }
+        public String toString(List<String> list) {
+            StringBuilder builder = new StringBuilder();
+            Iterator<String> itr = list.listIterator();
+            while (itr.hasNext()) {
+                builder.append(itr.next());
+                if (itr.hasNext()) builder.append(", ");
+            }
 
-    public void setMeleeAmmo(GunAmmoWidget meleeAmmo) {
-        this.meleeAmmo = meleeAmmo;
-    }
+            return builder.toString();
+        }
 
-    public GunAmmoWidget getPrimaryAmmo() {
-        return this.primaryAmmo;
-    }
+        private List<String> difference(List<String> list1, List<String> list2) {
+            return list1.stream().filter(it -> !list2.contains(it)).collect(Collectors.toList());
+        }
 
-    public void setPrimaryAmmo(GunAmmoWidget primaryAmmo) {
-        this.primaryAmmo = primaryAmmo;
-    }
+        private List<String> jsonEntries(JsonObject jsonObj) {
+            List<String> list = new ArrayList<>();
+            for (Map.Entry<String, JsonElement> entry : jsonObj.entrySet()) {
+                list.add(entry.getKey());
+            }
 
-    public Color getPriorityGlowColor() {
-        return this.priorityGlowColor;
-    }
+            return list;
+        }
 
-    public void setPriorityGlowColor(Color priorityGlowColor) {
-        this.priorityGlowColor = priorityGlowColor;
-    }
+        @SuppressWarnings("SameParameterValue")
+        private List<String> declaredFields(Class<?> clazz, Predicate<Field> predicate) {
+            List<String> list = new ArrayList<>();
+            for (Field field : clazz.getDeclaredFields()) {
+                if (predicate.test(field)) {
+                    list.add(field.getName());
+                }
+            }
 
-    public ReloadIndicatorWidget getReloadIndicator() {
-        return this.reloadIndicator;
-    }
-
-    public void setReloadIndicator(ReloadIndicatorWidget reloadIndicator) {
-        this.reloadIndicator = reloadIndicator;
-    }
-
-    public GunAmmoWidget getSecondaryAmmo() {
-        return this.secondaryAmmo;
-    }
-
-    public void setSecondaryAmmo(GunAmmoWidget secondaryAmmo) {
-        this.secondaryAmmo = secondaryAmmo;
-    }
-
-    public TotalAmmoWidget getTotalAmmo() {
-        return this.totalAmmo;
-    }
-
-    public void setTotalAmmo(TotalAmmoWidget totalAmmo) {
-        this.totalAmmo = totalAmmo;
-    }
-
-    public Color getZombieGlowColor() {
-        return this.zombieGlowColor;
-    }
-
-    public void setZombieGlowColor(Color zombieGlowColor) {
-        this.zombieGlowColor = zombieGlowColor;
-    }
-
-    public void initWidgets() {
-        this.primaryAmmo.setTargetSlot(WeaponSlot.PRIMARY);
-        this.secondaryAmmo.setTargetSlot(WeaponSlot.SECONDARY);
-        this.meleeAmmo.setTargetSlot(WeaponSlot.MELEE);
-    }
-
-    public boolean isCompletelyInvisible() {
-        return this.isCompletelyInvisible;
-    }
-
-    public void setCompletelyInvisible(boolean completelyInvisible) {
-        this.isCompletelyInvisible = completelyInvisible;
-    }
-
-    public boolean isIgnoreResourcePack() {
-        return this.ignoreResourcePack;
-    }
-
-    public void setIgnoreResourcePack(boolean ignoreResourcePack) {
-        this.ignoreResourcePack = ignoreResourcePack;
-    }
-
-    public boolean isSetGunfireSoundVolume() {
-        return this.setGunfireSoundVolume;
-    }
-
-    public void setSetGunfireSoundVolume(boolean setGunfireSoundVolume) {
-        this.setGunfireSoundVolume = setGunfireSoundVolume;
-    }
-
-    public boolean isShouldAlignWidgetPosition() {
-        return this.shouldAlignWidgetPosition;
-    }
-
-    public void setShouldAlignWidgetPosition(boolean shouldAlignWidgetPosition) {
-        this.shouldAlignWidgetPosition = shouldAlignWidgetPosition;
-    }
-
-    public boolean isShouldHighlightMyKill() {
-        return this.shouldHighlightMyKill;
-    }
-
-    public void setShouldHighlightMyKill(boolean shouldHighlightMyKill) {
-        this.shouldHighlightMyKill = shouldHighlightMyKill;
-    }
-
-    public void renderWidgets(MatrixStack matrices) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        Profiler profiler = client.getProfiler();
-        Window window = client.getWindow();
-        TextRenderer textRenderer = client.textRenderer;
-
-        profiler.push("Primary Ammo");
-        this.primaryAmmo.render(matrices, window, textRenderer);
-        profiler.swap("Secondary Ammo");
-        this.secondaryAmmo.render(matrices, window, textRenderer);
-        profiler.swap("Melee Ammo");
-        this.meleeAmmo.render(matrices, window, textRenderer);
-        profiler.swap("Total Ammo");
-        this.totalAmmo.render(matrices, window, textRenderer);
-        profiler.swap("Reload indicator");
-        this.reloadIndicator.render(matrices, window, textRenderer);
-        profiler.pop();
+            return list;
+        }
     }
 }

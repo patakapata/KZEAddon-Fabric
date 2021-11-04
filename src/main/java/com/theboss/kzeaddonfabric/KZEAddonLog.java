@@ -27,28 +27,33 @@ public class KZEAddonLog implements HUD {
     private int y;
     private int normalShowLines;
     private boolean showTime;
+    private boolean isHiding;
 
-    protected static int getMaxWidth(TextRenderer textRenderer, List<Entry> entries, boolean showTime) {
-        int max = -1;
-        for (Entry entry : entries) {
-            int width = entry.getWidth(textRenderer, showTime);
-            if (width > max) max = width;
-        }
-
-        return max;
+    public KZEAddonLog(MinecraftClient mc, int maxHistorySize, int x, int y, int normalShowLines) {
+        this(mc, maxHistorySize, x, y, normalShowLines, true, false);
     }
 
-    public KZEAddonLog(int maxHistorySize, int x, int y, int normalShowLines) {
-        this(maxHistorySize, x, y, normalShowLines, false);
-    }
-
-    public KZEAddonLog(int maxHistorySize, int x, int y, int normalShowLines, boolean showTime) {
+    public KZEAddonLog(MinecraftClient mc, int maxHistorySize, int x, int y, int normalShowLines, boolean showTime, boolean isHiding) {
+        this.mc = mc;
+        this.textRenderer = this.mc.textRenderer;
         this.history = new ArrayList<>();
         this.maxHistorySize = maxHistorySize;
         this.x = x;
         this.y = y;
         this.normalShowLines = normalShowLines;
         this.showTime = showTime;
+        this.isHiding = isHiding;
+    }
+
+    @Override
+    public void init() {}
+
+    public boolean isHiding() {
+        return this.isHiding;
+    }
+
+    public void setHiding(boolean hiding) {
+        this.isHiding = hiding;
     }
 
     /**
@@ -241,15 +246,6 @@ public class KZEAddonLog implements HUD {
     }
 
     /**
-     * ログを初期化する
-     */
-    @Override
-    public void init() {
-        this.mc = MinecraftClient.getInstance();
-        this.textRenderer = this.mc.textRenderer;
-    }
-
-    /**
      * ログがタイムスタンプを表示しているかを取得する
      *
      * @return 表示している場合 true それ以外の場合 false
@@ -269,7 +265,6 @@ public class KZEAddonLog implements HUD {
 
     public void openLogScreen() {
         MinecraftClient.getInstance().openScreen(new KZEAddonLogScreen());
-        KZEAddon.MOD_LOG.add(Text.of("Log screen opened"));
     }
 
     /**
@@ -288,7 +283,7 @@ public class KZEAddonLog implements HUD {
      */
     @Override
     public void render(MatrixStack matrices) {
-        if (this.mc.currentScreen instanceof KZEAddonLogScreen) return;
+        if (this.mc.currentScreen instanceof KZEAddonLogScreen || this.isHiding) return;
         if (this.textRenderer == null) this.textRenderer = this.mc.textRenderer;
         matrices.push();
         matrices.translate(this.x, this.y, 0);

@@ -1,16 +1,20 @@
 package com.theboss.kzeaddonfabric.screen;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.RenderingUtils;
 import com.theboss.kzeaddonfabric.screen.button.TextFieldWidget;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
-    private final List<TextFieldWidget> textFields;
-    private final ParentWrapper parent;
+    protected static final TranslatableText WIP_TEXT = new TranslatableText("menu.kzeaddon.option.work_in_progress");
+    protected final List<TextFieldWidget> textFields;
+    protected final ParentWrapper parent;
 
     protected Screen(Text title) {
         super(title);
@@ -43,8 +47,8 @@ public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
         }
     }
 
-    public void open() {
-        this.open(this.client);
+    public void renderMatrixContents(MatrixStack matrices, int x, int y, boolean isProjectionMatrix) {
+        this.renderTooltip(matrices, RenderingUtils.getMatrixContent(isProjectionMatrix), x, y);
     }
 
     public void setFocusedTFW(TextFieldWidget widget) {
@@ -59,5 +63,12 @@ public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
     @Override
     public void tick() {
         this.textFields.forEach(TextFieldWidget::tick);
+    }
+
+    protected void renderWIPText(MatrixStack matrices) {
+        matrices.push();
+        matrices.translate(this.width, this.height, 0);
+        this.textRenderer.drawWithShadow(matrices, WIP_TEXT, -this.textRenderer.getWidth(WIP_TEXT), -this.textRenderer.fontHeight, 0xAAAAAA);
+        matrices.pop();
     }
 }

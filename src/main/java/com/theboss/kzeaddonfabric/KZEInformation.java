@@ -1,56 +1,29 @@
 package com.theboss.kzeaddonfabric;
 
 import com.theboss.kzeaddonfabric.enums.WeaponSlot;
-import com.theboss.kzeaddonfabric.ingame.KillLog;
 import com.theboss.kzeaddonfabric.ingame.Weapon;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.profiler.Profiler;
 
 import static com.theboss.kzeaddonfabric.KZEAddon.warn;
 
 public class KZEInformation {
+    private final MinecraftClient mc;
     private final Weapon primary;
     private final Weapon secondary;
     private final Weapon melee;
-    public KillLog killLog;
     private boolean isHuman;
     private boolean isReloading;
     private int reloadProgressTick;
     private int reloadTimeTick;
     private double reloadProgress;
-    private double lastReloadProgress;
     private int lastSelectedSlot;
 
-    public static int lerp(int color1, int color2, double progress) {
-        int[] array1 = parse(color1);
-        int[] array2 = parse(color2);
-        int[] diff = new int[]{array2[0] - array1[0], array2[1] - array1[1], array2[2] - array1[2]};
-
-        array1[0] += diff[0] * progress;
-        array1[1] += diff[1] * progress;
-        array1[2] += diff[2] * progress;
-
-        return parse(array1[0], array1[1], array1[2]);
-    }
-
-    public static int[] parse(int color) {
-        return new int[]{
-                color >> 16 & 0xFF,
-                color >> 8 & 0xFF,
-                color & 0xFF
-        };
-    }
-
-    public static int parse(int red, int green, int blue) {
-        return red >> 16 | green >> 8 | blue;
-    }
-
-    public KZEInformation() {
-        this.killLog = new KillLog(100);
+    public KZEInformation(MinecraftClient mc) {
+        this.mc = mc;
 
         this.isHuman = false;
         this.isReloading = false;
@@ -68,7 +41,6 @@ public class KZEInformation {
         this.reloadTimeTick = weapon.getReloadTime();
         this.reloadProgressTick = 0;
         this.reloadProgress = 0.0;
-        this.lastReloadProgress = 0.0;
     }
 
     public void cancelReload() {
@@ -76,31 +48,28 @@ public class KZEInformation {
         this.reloadTimeTick = 0;
         this.reloadProgressTick = 0;
         this.reloadProgress = 0.0;
-        this.lastReloadProgress = 0.0;
-    }
-
-    public KillLog getKillLog() {
-        return this.killLog;
     }
 
     public Weapon getMainHandWeapon() {
-        WeaponSlot slot = WeaponSlot.valueOf(MinecraftClient.getInstance().player.inventory.selectedSlot);
-        if (slot == null) return null;
+        if (this.mc.player == null) return null;
+        WeaponSlot slot = WeaponSlot.valueOf(this.mc.player.inventory.selectedSlot);
 
-        switch (slot) {
-            case PRIMARY:
-                return this.primary;
-            case SECONDARY:
-                return this.secondary;
-            case MELEE:
-                return this.melee;
-            default:
-                return null;
+        if (slot != null) {
+            switch (slot) {
+                case PRIMARY:
+                    return this.primary;
+                case SECONDARY:
+                    return this.secondary;
+                case MELEE:
+                    return this.melee;
+            }
         }
+
+        return null;
     }
 
     public double getReloadProgress() {
-        return MathHelper.lerp(MinecraftClient.getInstance().getTickDelta(), this.lastReloadProgress, this.reloadProgress);
+        return this.reloadProgress;
     }
 
     public int getReloadTimeTick() {
@@ -149,16 +118,14 @@ public class KZEInformation {
             this.reloadTimeTick = 0;
             this.reloadProgressTick = 0;
             this.reloadProgress = 0;
-            this.lastReloadProgress = 0;
         } else {
-            this.lastReloadProgress = this.reloadProgress;
             this.reloadProgress = (double) this.reloadProgressTick / this.reloadTimeTick;
         }
     }
 
     @Deprecated
     protected void setReloadFromMainhandWeapon() {
-        WeaponSlot slot = WeaponSlot.valueOf(MinecraftClient.getInstance().player != null ? MinecraftClient.getInstance().player.inventory.selectedSlot : 0);
+        WeaponSlot slot = WeaponSlot.valueOf(this.mc.player != null ? this.mc.player.inventory.selectedSlot : 0);
         if (slot == null) {
             warn(Text.of("§lInvalid weapon or slot!§r"));
             return;
@@ -170,14 +137,14 @@ public class KZEInformation {
     }
 
     public void tick() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        Profiler profiler = client.getProfiler();
-        ClientPlayerEntity player = client.player;
+        MinecraftClient mc = this.mc;
+        Profiler profiler = mc.getProfiler();
+        ClientPlayerEntity player = mc.player;
 
-        if (player == null) return;
+        if (player == null || (mc.currentScreen != null && mc.currentScreen.isPauseScreen())) return;
 
         profiler.push("Check selected slot");
-        this.isHuman = (client.player.getScoreboardTeam() != null && client.player.getScoreboardTeam().getName().equals("e"));
+        this.isHuman = (mc.player.getScoreboardTeam() != null && mc.player.getScoreboardTeam().getName().equals("e"));
         PlayerInventory inventory = player.inventory;
         int selectedSlot = inventory.selectedSlot;
         if (this.lastSelectedSlot != selectedSlot) {

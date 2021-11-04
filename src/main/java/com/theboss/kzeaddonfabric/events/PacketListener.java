@@ -1,46 +1,87 @@
 package com.theboss.kzeaddonfabric.events;
 
+import com.mojang.datafixers.util.Pair;
 import com.theboss.kzeaddonfabric.Color;
-import com.theboss.kzeaddonfabric.wip.ChunkInstancedBarrierVisualizer;
+import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.Options;
+import com.theboss.kzeaddonfabric.VanillaUtils;
+import com.theboss.kzeaddonfabric.ingame.Weapon;
+import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket;
-import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
-import net.minecraft.text.Text;
+import net.minecraft.network.packet.s2c.play.*;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.Team;
+import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Identifier;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
-import static com.theboss.kzeaddonfabric.KZEAddon.*;
-
 public class PacketListener {
+    public static final String HUMAN_TEAM_NAME = "e";
+    public static final String ZOMBIE_TEAM_NAME = "z";
 
+    @SuppressWarnings("unused")
     public static void onBlockUpdate(BlockUpdateS2CPacket packet) {
+        ChunkInstancedBarrierVisualizer.INSTANCE.onBlockUpdate(packet.getPos());
     }
 
+    @SuppressWarnings("unused")
     public static void onCustomPayload(CustomPayloadS2CPacket packet) {
-        warn(Text.of("CustomPayload Packet : " + packet.getChannel().toString()));
+        Identifier channel = packet.getChannel();
+        PacketByteBuf buffer = packet.getData();
         StringBuilder builder = new StringBuilder();
-        PacketByteBuf buf = packet.getData();
-        for (int i = 0; i < buf.capacity(); i++) {
-            byte b = buf.readByte();
-            if (b == 0x00) {
-                String content = builder.toString();
-                builder.setLength(0);
-                error("Content " + i + " : " + content);
-            }
-            builder.append((char) b);
-        }
+        for (int i = 0; i < buffer.capacity(); i++) builder.append((char) buffer.readByte());
 
+        KZEAddon.info("CustomPayload > " + channel.getPath() + ":" + channel.getNamespace() + " | " + builder.toString());
     }
 
+    @SuppressWarnings("unused")
     public static void onEquipmentUpdate(EntityEquipmentUpdateS2CPacket packet) {
+        ClientWorld world = Objects.requireNonNull(MinecraftClient.getInstance().world);
+        Entity entity = world.getEntityById(packet.getId());
+        List<Pair<EquipmentSlot, ItemStack>> equipmentList = packet.getEquipmentList();
+
+        if (entity != null && entity.getType().equals(EntityType.PLAYER)) {
+            Optional<Pair<EquipmentSlot, ItemStack>> optional = equipmentList.stream().filter(it -> it.getFirst() == EquipmentSlot.MAINHAND).findFirst();
+            if (optional.isPresent()) {
+                ItemStack item = optional.get().getSecond();
+                Weapon weapon = new Weapon();
+                weapon.newParser(item);
+
+                KZEAddon.info(" - Reloading : " + (weapon.isReloading() ? "yes" : "no"));
+                KZEAddon.info(VanillaUtils.textAsString(entity.getName()) + " > " + weapon.getInMagazineAmmo() + " / " + weapon.getMaxMagazineAmmo() + "(" + weapon.getName() + ")");
+            }
+        }
     }
 
     public static void onGameJoin(GameJoinS2CPacket packet) {
         ChunkInstancedBarrierVisualizer.INSTANCE.setShouldRebuild(true);
     }
 
+    public static void onTeam(TeamS2CPacket packet) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc.world == null) return;
+        Scoreboard scoreboard = mc.world.getScoreboard();
+        Options options = KZEAddon.options;
+        String name = packet.getTeamName();
+        Team team = scoreboard.getTeam(name);
+
+        if (team.shouldShowFriendlyInvisibles() != options.shouldShowFriendlyInvisibles) {
+            team.setShowFriendlyInvisibles(options.shouldShowFriendlyInvisibles);
+            KZEAddon.info(new TranslatableText("info.kzeaddon.change_visibility", new TranslatableText("info.kzeaddon." + (options.shouldShowFriendlyInvisibles ? "hide" : "show")), new TranslatableText("info.kzeaddon." + (options.shouldShowFriendlyInvisibles ? "show" : "hide"))));
+        }
+    }
+
+    @SuppressWarnings("unused")
     public static Color randomColor() {
         Random rand = new Random();
 

@@ -1,8 +1,9 @@
 package com.theboss.kzeaddonfabric;
 
-import com.theboss.kzeaddonfabric.mixin.client.KeyBindingAccessor;
-import java.util.function.Consumer;
+import com.theboss.kzeaddonfabric.mixin.accessor.KeyBindingAccessor;
 import net.minecraft.client.option.KeyBinding;
+
+import java.util.function.Consumer;
 
 public class KeyBindingWrapper {
     private final KeyBinding keybinding;
@@ -15,7 +16,8 @@ public class KeyBindingWrapper {
         this.keybinding = new KeyBinding(translationKey, code, category);
         this.onPress = onPress;
         this.onRelease = onRelease;
-        KZEAddon.modKeys.add(this.keybinding);
+        KeyBindings.modKeys.add(this.keybinding);
+        KeyBindings.handledKeyList.add(this);
     }
 
     public KeyBindingWrapper(String translationKey, int code, String category, Consumer<KeyBinding> onPress) {
@@ -25,6 +27,10 @@ public class KeyBindingWrapper {
     @SuppressWarnings("unused")
     public KeyBindingWrapper(String translationKey, int code, String category) {
         this(translationKey, code, category, unused -> {});
+    }
+
+    public KeyBinding getKeybinding() {
+        return this.keybinding;
     }
 
     public void tick() {

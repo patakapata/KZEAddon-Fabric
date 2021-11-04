@@ -1,6 +1,7 @@
 package com.theboss.kzeaddonfabric.screen.button;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
@@ -21,7 +22,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.function.Consumer;
 
 public class AnchorSelectButton extends DrawableHelper implements Element, Drawable {
-    private static final Identifier TEXTURE = new Identifier("kzeaddon-fabric", "textures/gui/option/anchor_select.png");
+    private static final Identifier TEXTURE = new Identifier(KZEAddon.MOD_ID, "textures/gui/option/anchor_select.png");
     private static final Logger LOGGER = LogManager.getLogger("AnchorSelectButton");
     private static long lastLogTimestamp = 0;
     private static final int logInterval = 1_000; // By milli seconds

@@ -3,7 +3,7 @@
   "id": "kzeaddon-fabric",
   "version": "${version}",
   "name": "KZEAddon Fabric",
-  "description": "KaedeZombieEscape\\u306e\\u30d7\\u30ec\\u30a4\\u3092\\u652f\\u63f4\\u3059\\u308bMod\\u3067\\u3059",
+  "description": "KaedeZombieEscapeのプレイを支援するModです",
   "authors": [
     "theBooooSS"
   ],
@@ -23,6 +23,9 @@
     ],
     "modmenu": [
       "com.theboss.kzeaddonfabric.ModMenuIntegration"
+    ],
+    "kzeaddon": [
+      "com.theboss.kzeaddonfabric.wip.DebugWidget"
     ]
   },
   "mixins": [

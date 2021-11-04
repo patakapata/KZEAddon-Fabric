@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.ingame;
 
-import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.VanillaUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -13,12 +13,21 @@ import net.minecraft.util.profiler.Profiler;
 import java.util.List;
 
 public class Weapon {
+    private static final TextColor RELOADING_COLOR = TextColor.parse("red");
+
     private String name;
     private int maxMagazineAmmo;
     private int reloadTime;
     private int inMagazineAmmo;
     private int totalAmmo;
     private boolean isReloading;
+
+    public static boolean quickReloadCheck(ItemStack item) {
+        List<Text> siblings = item.getName().getSiblings();
+        if (siblings.isEmpty()) return false;
+        TextColor color = item.getName().getSiblings().get(0).getStyle().getColor();
+        return item.getItem().equals(Items.DIAMOND_HOE) && VanillaUtils.getCustomModelData(item) != -1 && (color != null && color.equals(RELOADING_COLOR));
+    }
 
     private static Text[] getLore(ItemStack item) {
         NbtCompound display = item.getSubTag("display");
@@ -105,7 +114,7 @@ public class Weapon {
     }
 
     public void newParser(ItemStack item) {
-        Profiler profiler = KZEAddon.getProfiler();
+        Profiler profiler = VanillaUtils.getProfiler();
         profiler.push("Declare variables");
         Text name = item.getName();
         List<Text> nameSiblings = name.getSiblings();

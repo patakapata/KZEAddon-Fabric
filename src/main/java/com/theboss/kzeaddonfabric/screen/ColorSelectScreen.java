@@ -2,6 +2,7 @@ package com.theboss.kzeaddonfabric.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.Color;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.screen.button.SliderWidget;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -17,7 +18,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.function.Consumer;
 
 public class ColorSelectScreen extends Screen {
-    public static final Identifier PREVIEW_FRAME = new Identifier("kzeaddon-fabric", "textures/gui/option/colorselector_frame.png");
+    public static final Identifier PREVIEW_FRAME = new Identifier(KZEAddon.MOD_ID, "textures/gui/option/colorselector_frame.png");
     private final Consumer<Color> saveConsumer;
     private int cX;
     private int cY;

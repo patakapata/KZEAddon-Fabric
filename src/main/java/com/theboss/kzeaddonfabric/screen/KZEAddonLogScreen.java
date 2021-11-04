@@ -14,7 +14,7 @@ public class KZEAddonLogScreen extends Screen {
 
     public KZEAddonLogScreen() {
         super(Text.of("KZEAddon Log Screen"));
-        this.entries = KZEAddon.MOD_LOG.getEntries();
+        this.entries = KZEAddon.getModLog().getEntries();
         this.scroll = 0;
     }
 
@@ -44,7 +44,7 @@ public class KZEAddonLogScreen extends Screen {
 
         for (int i = 0; i <= lastIndex; i++) {
             KZEAddonLog.Entry entry = this.entries.get(lastIndex - i);
-            entry.renderAsOpaque(matrices, this.textRenderer, 0, (this.scroll * this.textRenderer.fontHeight) + (i * this.textRenderer.fontHeight), KZEAddon.MOD_LOG.isShowTime());
+            entry.renderAsOpaque(matrices, this.textRenderer, 0, (this.scroll * this.textRenderer.fontHeight) + (i * this.textRenderer.fontHeight), KZEAddon.getModLog().isShowTime());
         }
     }
 }

@@ -5,5 +5,9 @@ uniform vec4 color;
 in vec4 vertColor;
 
 void main(void) {
-    gl_FragColor = color * vertColor;
+    vec4 finalColor = color * vertColor;
+
+    if (finalColor.a < 0.2) discard;
+
+    gl_FragColor = finalColor;
 }

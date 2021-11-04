@@ -1,5 +1,6 @@
 package com.theboss.kzeaddonfabric.render.shader;
 
+import com.theboss.kzeaddonfabric.Color;
 import net.minecraft.client.gl.Uniform;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -12,6 +13,7 @@ public class BarrierShader extends AbstractShader {
     private Uniform MVP;
     private Uniform center;
     private Uniform radius;
+    private Uniform useFade;
 
     private BarrierShader() {}
 
@@ -26,6 +28,7 @@ public class BarrierShader extends AbstractShader {
         this.MVP = this.shaderInstance.getUniformByNameOrDummy("MVP");
         this.center = this.shaderInstance.getUniformByNameOrDummy("center");
         this.radius = this.shaderInstance.getUniformByNameOrDummy("radius");
+        this.useFade = this.shaderInstance.getUniformByNameOrDummy("useFade");
     }
 
     public void setCenter(float x, float y, float z) {
@@ -48,11 +51,19 @@ public class BarrierShader extends AbstractShader {
         this.color.set(red, green, blue, alpha);
     }
 
+    public void setColor(Color color) {
+        this.color.set(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, 1F);
+    }
+
     public void setMVP(Matrix4f matrix) {
         this.MVP.set(matrix);
     }
 
     public void setRadius(float radius) {
         this.radius.set(radius);
+    }
+
+    public void setUseFade(boolean isUseFade) {
+        this.useFade.set(isUseFade ? 1F : 0F);
     }
 }

@@ -1,18 +1,18 @@
 {
   "kzeaddon.widget.show": "Show",
   "kzeaddon.widget.hide": "Hide",
-  
+
   "kzeaddon.copied_to_clipboard": "Copied to clipboard",
   "kzeaddon.copy_failed": "Copy failed",
-  
+
   "key.categories.kzeaddon.in_game": "KZEAddon - In game",
   "key.categories.kzeaddon.wip": "WorkInProgress",
-  
+
   "key.kzeaddon.glow.priority.add": "Add priority glow target",
   "key.kzeaddon.wip.copy_item_tag": "Copy Item Tag from hovering item",
   "key.kzeaddon.hide_teammates": "Hide teammates",
   "key.kzeaddon.debug": "Debug key",
-  
+
   "menu.kzeaddon.option.widget": "Widget",
   "menu.kzeaddon.option.glowColor": "Glow Color",
   "menu.kzeaddon.option.pending": "! PENDING !",
@@ -31,10 +31,13 @@
   "menu.kzeaddon.option.back": "Back",
   "menu.kzeaddon.option.in_game": "InGame",
   "menu.kzeaddon.option.constants": "Constants",
-  
+  "menu.kzeaddon.option.window_anchor.tooltip": "Sets where to place the origin in the window",
+  "menu.kzeaddon.option.element_anchor.tooltip": "Sets where to place the origin of the widget",
+  "menu.kzeaddon.option.work_in_progress": "WORK IN PROGRESS",
+
   "menu.kzeaddon.option.anchor_widget": "Anchor - Widget",
   "menu.kzeaddon.option.anchor_window": "Anchor - Window",
-  
+
   "menu.kzeaddon.option.preview": "Preview",
   "menu.kzeaddon.option.anchor": "Anchor",
   "menu.kzeaddon.option.window": "Window",
@@ -46,7 +49,72 @@
   "menu.kzeaddon.visibility": "Visibility",
   "menu.kzeaddon.hide": "Show: OFF",
   "menu.kzeaddon.show": "Show: ON",
-  
+
+  "title.kzeaddon.config": "Config Screen",
+  "category.kzeaddon.general": "General",
+  "category.kzeaddon.barrier_vis": "Barrier Visualize",
+  "category.kzeaddon.debug": "Debug",
+
+  "subcategory.kzeaddon.cam_offset": "Camera offset",
+
+  "option.kzeaddon.show_kill_log": "Show KillLog",
+  "option.kzeaddon.highlight_my_kill": "Highlight my kill",
+  "option.kzeaddon.show_mod_log": "Show mod log",
+  "option.kzeaddon.ignore_resource_pack": "Ignore ResourcePack",
+  "option.kzeaddon.change_gunfire_volume": "Change gunfire sound volume",
+  "option.kzeaddon.gunfire_volume_multiplier": "Gunfire volume multiplier",
+  "option.kzeaddon.should_barrier_visualize": "Should visualize barrier",
+  "option.kzeaddon.bv_use_crosshair": "Use crosshair center",
+  "option.kzeaddon.bv_radius": "Visualize radius",
+  "option.kzeaddon.bv_raycast_distance": "Raycast distance",
+  "option.kzeaddon.bv_visualize_show_radius": "Show radius",
+  "option.kzeaddon.bv_color": "Barrier color",
+  "option.kzeaddon.bv_line_width": "Line width",
+  "option.kzeaddon.priority_color": "Priority targets color",
+  "option.kzeaddon.human_color": "Human team color",
+  "option.kzeaddon.zombie_color": "Zombie team color",
+
+  "tooltip.kzeaddon.option.show_kill_log": "Should show kill log",
+  "tooltip.kzeaddon.option.highlight_my_kill": "Should highlight my kill",
+  "tooltip.kzeaddon.option.show_mod_log": "Should show mod log",
+  "tooltip.kzeaddon.option.ignore_resource_pack": "Should ignore resource pack",
+  "tooltip.kzeaddon.option.change_gunfire_volume": "Should set gunfire sound volume",
+  "tooltip.kzeaddon.option.gunfire_volume_multiplier": "Gunfire sound volume multiply with this value",
+  "tooltip.kzeaddon.option.should_barrier_visualize": "Visualize barrier when enabled",
+  "tooltip.kzeaddon.option.bv_use_crosshair": "Center is player position when false",
+  "tooltip.kzeaddon.option.bv_radius": "Set radius in chunk",
+  "tooltip.kzeaddon.option.bv_raycast_distance": "Raycast max distance",
+  "tooltip.kzeaddon.bv_visualize_show_radius": "Show barriers only in this range",
+  "tooltip.kzeaddon.option.bv_color": "Color of barrier",
+  "tooltip.kzeaddon.option.bv_line_width": "Visualized barrier line width",
+  "tooltip.kzeaddon.option.priority_color": "Priority targets glow color",
+  "tooltip.kzeaddon.option.human_color": "Human team glow color",
+  "tooltip.kzeaddon.option.zombie_color": "Zombie team glow color",
+
   "subtitles.kzeaddon.honk": "HONK",
-  "subtitles.kzeaddon.vote.start": "Vote start"
+  "subtitles.kzeaddon.vote.start": "Vote start",
+
+  "_comment": "NEW KEY ORDER",
+  "menu.widgets.kzeaddon.main_weapon": "Main weapon",
+  "menu.widgets.kzeaddon.sub_weapon": "Sub weapon",
+  "menu.widgets.kzeaddon.melee_weapon": "Melee weapon",
+  "menu.widgets.kzeaddon.reload_time": "Reload time",
+  "menu.widgets.kzeaddon.total_ammo": "Total ammo",
+  "menu.widgets.kzeaddon.literal_widgets": "Custom widgets",
+
+  "button.literal_widgets.kzeaddon.delete": "Delete",
+  "button.literal_widgets.kzeaddon.arrange": "Arrange",
+
+  "info.kzeaddon.change_visibility": "Team visibility has been changed from %s to %s",
+  "info.kzeaddon.show": "Show",
+  "info.kzeaddon.hide": "Hide",
+  "info.kzeaddon.show_teammates": "Teammates are now displayed",
+  "info.kzeaddon.hide_teammates": "Teammates are no longer displayed",
+
+  "key.kzeaddon.open_log": "Open log",
+  "itemGroup.kzeaddon-fabric.favorites": "Favorite Items",
+  "option.kzeaddon.use_fade": "Use fade",
+  "tooltip.kzeaddon.option.use_fade": "Is should use fade",
+  "feature.key.kzeaddon.un_stack": "Unstacked",
+  "key.kzeaddon.un_stack": "Unstack"
 }

@@ -1,188 +1,123 @@
 package com.theboss.kzeaddonfabric.render.widgets;
 
-import com.google.gson.annotations.Expose;
-import com.theboss.kzeaddonfabric.Color;
+import com.google.gson.*;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
-@SuppressWarnings("unused")
-public abstract class Widget {
-    @Expose
-    private Anchor widgetAnchor;
-    @Expose
-    private Anchor windowAnchor;
-    @Expose
-    private int offsetX;
-    @Expose
-    private int offsetY;
-    @Expose
-    private float scaleFactor;
-    @Expose
-    private boolean visibility;
-    @Expose
-    private short opacity;
+import java.lang.reflect.Type;
 
-    private float lastWidgetWidth;
-    private float lastWidgetHeight;
-    private float lastWindowWidth;
-    private float lastWindowHeight;
+public interface Widget {
+    void render(int scaledWidth, int scaledHeight, TextRenderer textRenderer, MatrixStack matrices, float delta);
 
-    public Widget(Anchor widgetAnchor, Anchor windowAnchor, float scaleFactor, int offsetX, int offsetY, int opacity) {
-        this.widgetAnchor = widgetAnchor;
-        this.windowAnchor = windowAnchor;
-        this.scaleFactor = scaleFactor;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
-        this.visibility = true;
-        this.opacity = (short) opacity;
-        this.lastWidgetWidth = 0.0F;
-    }
+    /**
+     * ウィジェットの色を取得
+     *
+     * @return 0xRRGGBB
+     */
+    int getColor();
 
-    public Widget(Widget source) {
-        this(source.widgetAnchor, source.windowAnchor, source.scaleFactor, source.offsetX, source.offsetY, source.opacity);
-        this.visibility = source.visibility;
-    }
+    /**
+     * ウィジェットの不透明度を取得
+     *
+     * @return 0xAA
+     */
+    short getAlpha();
 
-    public float getAbsoluteX(Text message, Window window, TextRenderer textRenderer) {
-        float msgWidth = this.getWidth(message, textRenderer);
-        int scaledWidth = window.getScaledWidth();
-        float windowX = scaledWidth * this.windowAnchor.getXFactor();
-        float widgetX = windowX - (msgWidth * this.widgetAnchor.getXFactor());
+    /**
+     * ウィジェットの拡大率を取得
+     *
+     * @return ウィジェットの拡大率
+     */
+    float getScale();
 
-        return (widgetX + this.offsetX) / this.scaleFactor;
-    }
+    /**
+     * ウィジェットのテキストを取得
+     *
+     * @return ウィジェットのテキスト
+     */
+    Text getText();
 
-    public float getAbsoluteY(Text message, Window window, TextRenderer textRenderer) {
-        float msgHeight = this.getHeight(textRenderer);
-        int scaledHeight = window.getScaledHeight();
-        float windowY = scaledHeight * this.windowAnchor.getYFactor();
-        float widgetY = windowY - (msgHeight * this.widgetAnchor.getYFactor());
+    /**
+     * ウィジェットのウィンドウアンカーを取得
+     *
+     * @return ウィジェットのウィンドウアンカー
+     */
+    Anchor getWindowAnchor();
 
-        return (widgetY + this.offsetY) / this.scaleFactor;
-    }
+    /**
+     * ウィジェットのエレメントアンカーを取得
+     *
+     * @return ウィジェットのエレメントアンカー
+     */
+    Anchor getElementAnchor();
 
-    public int getColor() {
-        return this.opacity & 0xFF << 24 | 0xFF_FF_FF;
-    }
+    /**
+     * テキストの幅を取得
+     *
+     * @param textRenderer テキストレンダラー
+     * @return テキストの幅
+     */
+    int getWidth(TextRenderer textRenderer);
 
-    public abstract void setColor(Color color);
+    void setX(float x);
 
-    private float getHeight(TextRenderer textRenderer) {
-        this.lastWidgetHeight = textRenderer.fontHeight * this.scaleFactor;
-        return this.lastWidgetHeight;
-    }
+    float getX();
 
-    public boolean getIsVisible() {
-        return this.isVisible();
-    }
+    void setY(float y);
 
-    public int getOffsetX() {
-        return this.offsetX;
-    }
+    float getY();
 
-    public void setOffsetX(int offsetX) {
-        this.offsetX = offsetX;
-    }
+    void setScale(float scale);
 
-    public int getOffsetY() {
-        return this.offsetY;
-    }
+    void setWindowAnchor(Anchor anchor);
 
-    public void setOffsetY(int offsetY) {
-        this.offsetY = offsetY;
-    }
+    void setElementAnchor(Anchor anchor);
 
-    public short getOpacity() {
-        return this.opacity;
-    }
+    class InstanceCreator implements com.google.gson.InstanceCreator<Widget> {
 
-    public void setOpacity(short opacity) {
-        this.opacity = opacity;
-    }
-
-    public float getScaleFactor() {
-        return this.scaleFactor;
-    }
-
-    public void setScaleFactor(float scaleFactor) {
-        this.scaleFactor = scaleFactor;
-    }
-
-    public abstract Text getText();
-
-    public Anchor getWidgetAnchor() {
-        return this.widgetAnchor;
-    }
-
-    public void setWidgetAnchor(Anchor widgetAnchor) {
-        this.widgetAnchor = widgetAnchor;
-    }
-
-    private float getWidth(Text message, TextRenderer textRenderer) {
-        this.lastWidgetWidth = textRenderer.getWidth(message.asString()) * this.scaleFactor;
-        return this.lastWidgetWidth;
-    }
-
-    public Anchor getWindowAnchor() {
-        return this.windowAnchor;
-    }
-
-    public void setWindowAnchor(Anchor windowAnchor) {
-        this.windowAnchor = windowAnchor;
-    }
-
-    public boolean isVisible() {
-        return this.visibility && this.opacity > 0;
-    }
-
-    public void migrateWidgetAnchor(Anchor newWidgetAnchor) {
-        if (!this.widgetAnchor.equals(newWidgetAnchor)) {
-            float xFactorDiff = newWidgetAnchor.getXFactor() - this.widgetAnchor.getXFactor();
-            float yFactorDiff = newWidgetAnchor.getYFactor() - this.widgetAnchor.getYFactor();
-
-            this.offsetX -= (int) (this.lastWidgetWidth * xFactorDiff);
-            this.offsetY -= (int) (this.lastWidgetHeight * yFactorDiff);
-
-            this.widgetAnchor = newWidgetAnchor;
+        @Override
+        public Widget createInstance(Type type) {
+            KZEAddon.LOGGER.info("Instance creator : " + type.getTypeName());
+            return new LiteralWidget();
         }
     }
 
-    public void migrateWindowAnchor(Anchor newWindowAnchor) {
-        if (!this.windowAnchor.equals(newWindowAnchor)) {
-            float xFactorDiff = newWindowAnchor.getXFactor() - this.windowAnchor.getXFactor();
-            float yFactorDiff = newWindowAnchor.getYFactor() - this.windowAnchor.getYFactor();
+    class Serializer implements JsonSerializer<Widget>, JsonDeserializer<Widget> {
+        private static final String CLASS_NAME = "type";
+        private static final String INSTANCE = "data";
 
-            this.offsetX -= (int) (this.lastWindowWidth * xFactorDiff);
-            this.offsetY -= (int) (this.lastWindowWidth * yFactorDiff);
-
-            this.windowAnchor = newWindowAnchor;
-        }
-    }
-
-    public void render(MatrixStack matrices, Window window, TextRenderer textRenderer) {
-        if (!this.isVisible()) return;
-
-        Text message = this.getText();
-
-        float x = this.getAbsoluteX(message, window, textRenderer);
-        float y = this.getAbsoluteY(message, window, textRenderer);
-
-        if (KZEAddon.Options.isShouldAlignWidgetPosition()) {
-            x = (float) Math.floor(x);
-            y = (float) Math.floor(y);
+        @Override
+        public JsonElement serialize(Widget src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject result = new JsonObject();
+            String className = src.getClass().getSimpleName();
+            result.addProperty(CLASS_NAME, className);
+            JsonElement element = context.serialize(src);
+            result.add(INSTANCE, element);
+            return result;
         }
 
-        matrices.push();
-        matrices.scale(this.scaleFactor, this.scaleFactor, this.scaleFactor);
-        textRenderer.drawWithShadow(matrices, message, x, y, this.getColor());
-        matrices.pop();
-    }
+        @Override
+        public Widget deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject jsonObj = json.getAsJsonObject();
+            JsonPrimitive prim = (JsonPrimitive) jsonObj.get(CLASS_NAME);
+            String className = prim.getAsString();
 
-    public void setVisibility(boolean visibility) {
-        this.visibility = visibility;
+            Class<?> klass;
+            switch (className) {
+                case "LiteralWidget":
+                    klass = LiteralWidget.class;
+                    break;
+                case "WeaponWidget":
+                    klass = WeaponWidget.class;
+                    break;
+                default:
+                    throw new JsonParseException("Class not found. className=" + className);
+            }
+
+            return context.deserialize(jsonObj.get(INSTANCE), klass);
+        }
     }
 }
