@@ -1,10 +1,10 @@
 package com.theboss.kzeaddonfabric.events;
 
 import com.mojang.datafixers.util.Pair;
-import com.theboss.kzeaddonfabric.Color;
+import com.theboss.kzeaddonfabric.utils.Color;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.Options;
-import com.theboss.kzeaddonfabric.VanillaUtils;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import com.theboss.kzeaddonfabric.ingame.Weapon;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
 import net.minecraft.client.MinecraftClient;
@@ -31,7 +31,11 @@ public class PacketListener {
 
     @SuppressWarnings("unused")
     public static void onBlockUpdate(BlockUpdateS2CPacket packet) {
-        ChunkInstancedBarrierVisualizer.INSTANCE.onBlockUpdate(packet.getPos());
+        EventsListener.onBlockUpdate(packet.getPos(), packet.getState());
+    }
+
+    public static void onChunkDeltaUpdate(ChunkDeltaUpdateS2CPacket packet) {
+        packet.visitUpdates(EventsListener::onBlockUpdate);
     }
 
     @SuppressWarnings("unused")

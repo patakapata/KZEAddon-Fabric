@@ -3,11 +3,9 @@ package com.theboss.kzeaddonfabric.render;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.RenderingUtils;
-import com.theboss.kzeaddonfabric.VanillaUtils;
-import com.theboss.kzeaddonfabric.commands.KZEAddonFabricCommand;
+import com.theboss.kzeaddonfabric.utils.RenderingUtils;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
-import com.theboss.kzeaddonfabric.wip.LFrameBuffer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -15,9 +13,8 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.*;
-import net.minecraft.world.chunk.Chunk;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -31,6 +28,7 @@ public class ChunkInstancedBarrierVisualizer {
     private final Queue<Runnable> renderQueue = new ArrayDeque<>();
     private final BlockPos.Mutable lastCenter;
     private final List<Chunk> chunks;
+    private final Queue<Chunk> needUpdateChunks;
     private BlockPos center;
     private int radius;
     private boolean shouldRebuild;
@@ -38,7 +36,6 @@ public class ChunkInstancedBarrierVisualizer {
     private int vboModel;
     private int modelVertices;
     private Vec3d visualizeCenter;
-    private float alphaThreshold;
     private long lastPollQueueTime;
 
     private int lastDiameter;
@@ -47,16 +44,10 @@ public class ChunkInstancedBarrierVisualizer {
     private int lastMoveZ;
     private boolean lastShouldRebuild;
 
+    public final OriginalFramebuffer framebuffer;
+
     public long getLastPollQueueTime() {
         return this.lastPollQueueTime;
-    }
-
-    public static BlockPos asChunkPos(Vec3d pos) {
-        return new BlockPos(
-                pos.x / 16,
-                pos.y / 16,
-                pos.z / 16
-        );
     }
 
     public static Iterator<Chunk> chunkIterator() {
@@ -73,8 +64,9 @@ public class ChunkInstancedBarrierVisualizer {
         if (radius < 0) radius = 0;
         this.radius = radius;
         this.chunks = new ArrayList<>();
+        this.needUpdateChunks = new ArrayDeque<>();
         this.visualizeCenter = VisualizeCenter;
-        this.alphaThreshold = 0.0F;
+        this.framebuffer = new OriginalFramebuffer("CIBV");
     }
 
     public ChunkInstancedBarrierVisualizer(int radius) {
@@ -83,6 +75,7 @@ public class ChunkInstancedBarrierVisualizer {
 
     public void close() {
         GlStateManager.deleteBuffers(this.vboModel);
+        this.framebuffer.close();
         this.chunks.forEach(Chunk::close);
     }
 
@@ -96,14 +89,6 @@ public class ChunkInstancedBarrierVisualizer {
             }
         }
         this.shouldRebuild = true;
-    }
-
-    public float getAlphaThreshold() {
-        return this.alphaThreshold;
-    }
-
-    public void setAlphaThreshold(float alphaThreshold) {
-        this.alphaThreshold = alphaThreshold;
     }
 
     public BlockPos getCenter() {
@@ -165,22 +150,15 @@ public class ChunkInstancedBarrierVisualizer {
     }
 
     public void initialize() {
-        RenderingUtils.glError("initialize body head");
         this.vboModel = GlStateManager.genBuffers();
-        RenderingUtils.glError("vboModel initialize");
         this.bufferModel = new ByteBufferWrapper(1024 * 1024 * 2, () -> recordRenderCall(() -> {
-            RenderingUtils.glError("initialize head");
             this.bufferModel.updateSizeOnVBO(this.vboModel);
-            RenderingUtils.glError("initialize tail");
         }));
-        RenderingUtils.glError("bufferModel initialize");
         this.bufferModel.updateSizeOnVBO(this.vboModel);
-        RenderingUtils.glError("model vbo update size");
         this.useDefaultModel();
-        RenderingUtils.glError("use the default model");
         this.setRadius(this.radius);
-        RenderingUtils.glError("setting up radius");
-        RenderingUtils.glError("initialize body tail");
+        this.framebuffer.initialize(MinecraftClient.getInstance().getWindow());
+        RenderingUtils.glError("Initialize CIBV");
     }
 
     public boolean isLastShouldRebuild() {
@@ -205,21 +183,24 @@ public class ChunkInstancedBarrierVisualizer {
         RenderingUtils.glError("pollRenderQueue Tail");
     }
 
-    public void render(boolean useFBO, float delta) {
+    public static void render(boolean useFBO, float delta) {
+        INSTANCE.doRender(useFBO, delta);
+    }
+
+    public void doRender(boolean useFBO, float delta) {
         if (useFBO) {
             RenderSystem.blendFunc(GL_ONE, GL_ZERO);
 
             RenderSystem.depthMask(false);
-            LFrameBuffer.getInstance().copyDepth(MinecraftClient.getInstance().getFramebuffer());
-            LFrameBuffer.getInstance().begin();
-            // RenderSystem.enableDepthTest();
+            this.framebuffer.loadDepth(MinecraftClient.getInstance().getFramebuffer());
+            this.framebuffer.begin();
+            RenderSystem.depthMask(true);
         } else {
             RenderSystem.defaultBlendFunc();
         }
 
-
-        RenderingUtils.glError("render head");
         this.pollRenderQueue();
+        this.pollUpdateQueue();
 
         if (!KZEAddon.options.shouldBarrierVisualize) return;
 
@@ -228,45 +209,109 @@ public class ChunkInstancedBarrierVisualizer {
         shader.setRadius(KZEAddon.options.barrierVisualizeShowRadius);
         shader.setUseFade(KZEAddon.options.shouldUseFade);
         shader.setColor(KZEAddon.options.barrierColor);
-        shader.setMVP(VanillaUtils.getVPMatrix(delta));
+
+        Vec3d cam = MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
+        MatrixStack mvp = new MatrixStack();
+        Matrix4f vp = mvp.peek().getModel();
+        vp.loadIdentity();
+        vp.multiply(VanillaUtils.getVPMatrix(delta));
+        mvp.translate(-cam.x, -cam.y, -cam.z);
+
+        shader.setMVP(vp);
 
         RenderSystem.lineWidth(KZEAddon.options.barrierLineWidth);
         RenderSystem.enableBlend();
+        RenderSystem.enableDepthTest();
 
         shader.bind();
         this.chunks.forEach(Chunk::render);
         shader.unbind();
 
+        RenderSystem.disableDepthTest();
         RenderSystem.disableBlend();
         RenderSystem.lineWidth(1.0F);
 
         if (useFBO) {
-            LFrameBuffer.getInstance().end();
-            RenderSystem.depthMask(true);
-
+            this.framebuffer.end();
             RenderSystem.defaultBlendFunc();
-            // RenderSystem.disableDepthTest();
+            this.framebuffer.blit(MinecraftClient.getInstance().getFramebuffer());
         }
 
-        RenderingUtils.glError("render tail");
+
+        RenderingUtils.glError("render");
     }
 
+    private void pollUpdateQueue() {
+        Chunk chunk;
+        while (!this.needUpdateChunks.isEmpty()) {
+            chunk = this.needUpdateChunks.poll();
+            Chunk finalChunk = chunk;
+            CompletableFuture.runAsync(() -> finalChunk.rebuild(false));
+        }
+    }
+
+    @Nullable
+    public Chunk getChunk(int x, int y, int z) {
+        Iterator<Chunk> chunks = chunkIterator();
+        Chunk chunk;
+        while (chunks.hasNext()) {
+            chunk = chunks.next();
+            if (chunk.offset.getX() == x && chunk.offset.getY() == y && chunk.offset.getZ() == z) return chunk;
+        }
+
+        return null;
+    }
+
+    public boolean isInRange(BlockPos offset) {
+        int diameter = this.radius * 2 + 1;
+        return offset.getX() <= diameter && offset.getY() <= diameter && offset.getZ() <= diameter;
+    }
+
+    public void uploadAllChunks() {
+        this.chunks.forEach(Chunk::upload);
+    }
+
+    /**
+     * Update a chunk contains specified block position.
+     * @param pos The position that the chunk to be updated contains
+     */
+    public void update(BlockPos pos) {
+        BlockPos offset = VanillaUtils.toChunk(pos).subtract(this.center);
+        if (!this.isInRange(offset)) return;
+
+        Chunk chunk = this.getChunk(offset.getX(), offset.getY(), offset.getZ());
+
+        if (chunk != null && !this.needUpdateChunks.contains(chunk)) {
+            this.needUpdateChunks.add(chunk);
+        }
+    }
+
+    /**
+     * Use instead {@link #update(BlockPos)}
+     *
+     * @param pos The position that the chunk to be updated contains
+     */
+    @Deprecated
     public void onBlockUpdate(BlockPos pos) {
         BlockPos offset = new BlockPos(pos.getX() / 16F - this.center.getX(), pos.getY() / 16F - this.center.getY(), pos.getZ() / 16F - this.center.getZ());
         int diameter = this.radius * 2 + 1;
-        if(offset.getX() > diameter || offset.getY() > diameter || offset.getZ() > diameter) return;
+        if (offset.getX() > diameter || offset.getY() > diameter || offset.getZ() > diameter) return;
         Iterator<Chunk> itr = chunkIterator();
-        while(itr.hasNext()) {
+        while (itr.hasNext()) {
             Chunk chunk = itr.next();
-            if(chunk.getOffset().equals(offset) && chunk.getUpdateState() == ChunkUpdateState.NEUTRAL) {
+            if (chunk.getOffset().equals(offset) && chunk.getState() == ChunkUpdateState.NEUTRAL) {
                 KZEAddon.info("CIBV > " + offset.toShortString() + "(" + pos.toShortString() + ") is updated");
-                chunk.rebuild(true);
+                chunk.rebuild(false);
                 return;
             }
         }
     }
 
-    public void renderChunkOffsets(MatrixStack matrices, Function<Chunk, String> parser) {
+    public static void renderChunkStates(MatrixStack matrices, Function<Chunk, String> parser) {
+        INSTANCE.doRenderChunkStates(matrices, parser);
+    }
+
+    public void doRenderChunkStates(MatrixStack matrices, Function<Chunk, String> parser) {
         MinecraftClient mc = MinecraftClient.getInstance();
         Camera camera = mc.gameRenderer.getCamera();
         Vec3d camPos = camera.getPos();
@@ -291,13 +336,6 @@ public class ChunkInstancedBarrierVisualizer {
 
     public void setCenter(int x, int y, int z) {
         this.setCenter(new BlockPos(x, y, z));
-    }
-
-    public void setDebugOverlay() {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        mc.inGameHud.setOverlayMessage(Text.of(
-                this.chunks.size() + " Chunk(s), Radius: " + this.radius + "(" + (this.radius * 2 + 1) + "^3)"
-        ), false);
     }
 
     public void setModel(float[] vertices) {
@@ -345,7 +383,6 @@ public class ChunkInstancedBarrierVisualizer {
     public void tick() {
         if (!KZEAddon.options.shouldBarrierVisualize) return;
 
-        if (KZEAddonFabricCommand.cibvDebug) this.setDebugOverlay();
         BlockPos moveAmount = this.center.subtract(this.lastCenter);
         this.lastCenter.set(this.center);
         int diameter = this.radius * 2 + 1;
@@ -357,7 +394,6 @@ public class ChunkInstancedBarrierVisualizer {
         this.lastMoveZ = Math.abs(moveAmount.getZ());
         this.lastShouldRebuild = forceRebuild;
         this.chunks.forEach(it -> it.tick(moveAmount, forceRebuild));
-        if (KZEAddonFabricCommand.printMoveAmountNumber > 0) KZEAddonFabricCommand.printMoveAmountNumber--;
     }
 
     public void useDefaultModel() {
@@ -496,7 +532,7 @@ public class ChunkInstancedBarrierVisualizer {
             glBindVertexArray(0);
         }
 
-        public ChunkUpdateState getUpdateState() {
+        public ChunkUpdateState getState() {
             return this.state;
         }
 
@@ -521,9 +557,23 @@ public class ChunkInstancedBarrierVisualizer {
             );
         }
 
-        public void rebuild(boolean ignoreFlag) {
+        private void upload() {
+            RenderSystem.recordRenderCall(() -> {
+                if(this.state != ChunkUpdateState.UPDATE_CPU) {
+                    this.bufferOffset.updateDataOnVBO(this.vboOffset);
+                    KZEAddon.getModLog().info(this.getId() + " | Uploaded");
+                }
+            });
+        }
+
+        public void rebuild(boolean forceRebuild) {
             ClientWorld world = MinecraftClient.getInstance().world;
-            if (world != null && (!this.isRebuilding() || ignoreFlag)) {
+            if(!this.isLoaded()) {
+                this.state = ChunkUpdateState.UPDATE_CPU;
+                recordRenderCall(() -> this.rebuild(true));
+                return;
+            }
+            if (world != null && (!this.isRebuilding() || forceRebuild)) {
                 this.state = ChunkUpdateState.UPDATE_CPU;
 
                 Iterator<BlockPos> itr = this.chunkIterator();
@@ -542,7 +592,6 @@ public class ChunkInstancedBarrierVisualizer {
                     }
                 }
 
-                this.barrierCount = barrierCount;
                 this.bufferOffset.flip();
                 this.state = ChunkUpdateState.WAIT_UPLOAD;
                 // recordRenderCall(() -> {
@@ -551,8 +600,10 @@ public class ChunkInstancedBarrierVisualizer {
                 //     KZEAddon.glError("Chunk rebuild tail");
                 //     this.state = ChunkUpdateState.NEUTRAL;
                 // });
+                int finalBarrierCount = barrierCount;
                 RenderSystem.recordRenderCall(() -> {
                     RenderingUtils.glError("Chunk rebuild head");
+                    this.barrierCount = finalBarrierCount;
                     this.lastLimit = this.bufferOffset.limit();
                     this.bufferOffset.updateDataOnVBO(this.vboOffset);
                     RenderingUtils.glError("Chunk rebuild tail");
@@ -592,16 +643,22 @@ public class ChunkInstancedBarrierVisualizer {
     }
 
     public enum ChunkUpdateState {
-        NEUTRAL(0), UPDATE_CPU(1), WAIT_UPLOAD(2);
+        NEUTRAL(0, 'a'), UPDATE_CPU(1, 'c'), WAIT_UPLOAD(2, 'e');
 
         private final int id;
+        private final char colorCode;
 
-        ChunkUpdateState(int id) {
+        ChunkUpdateState(int id, char colorCode) {
             this.id = id;
+            this.colorCode = colorCode;
         }
 
         public int getId() {
             return this.id;
+        }
+
+        public char getColorCode() {
+            return this.colorCode;
         }
     }
 }

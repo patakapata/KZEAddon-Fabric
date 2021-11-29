@@ -3,6 +3,9 @@ package com.theboss.kzeaddonfabric.events;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.KeyBindings;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
+import com.theboss.kzeaddonfabric.wip.BlockEventListener;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
@@ -10,16 +13,22 @@ import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.profiler.Profiler;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
 public class EventsListener {
     public static final Queue<Runnable> onTickTasks = new ArrayDeque<>();
+    public static final List<BlockEventListener> listeners = new ArrayList<>();
     private static long lastPollQueueTime = System.currentTimeMillis();
+
+    public static void onBlockUpdate(BlockPos pos, BlockState state) {
+        ChunkInstancedBarrierVisualizer.INSTANCE.update(pos);
+        listeners.forEach(listener -> listener.handle(pos, state));
+    }
 
     /**
      * クライアントが終了するときに実行
@@ -61,8 +70,8 @@ public class EventsListener {
      */
     public static int onGetTeamColorValue(Entity entity) {
         AbstractTeam team = entity.getScoreboardTeam();
-        if (KZEAddon.getPriorityGlowPlayers().contains(entity.getUuid())) {
-            return KZEAddon.options.priorityGlowColor.get();
+        if (KZEAddon.getObsessions().contains(entity.getUuid())) {
+            return KZEAddon.options.obsessionGlowColor.get();
         } else if (team != null) {
             String name = team.getName();
             if (name.equals("e")) {
@@ -91,7 +100,7 @@ public class EventsListener {
         HitResult hitResult = player.raycast(KZEAddon.options.barrierVisualizeRaycastDistance, 0, false);
         if (KZEAddon.options.barrierVisualizeUseCrosshairCenter && hitResult.getType() == HitResult.Type.BLOCK) {
             BlockPos pos = ((BlockHitResult) hitResult).getBlockPos();
-            ChunkInstancedBarrierVisualizer.INSTANCE.setCenter(MathHelper.floor(pos.getX() / 16F), MathHelper.floor(pos.getY() / 16F), MathHelper.floor(pos.getZ() / 16F));
+            ChunkInstancedBarrierVisualizer.INSTANCE.setCenter(VanillaUtils.toChunk(pos));
             ChunkInstancedBarrierVisualizer.INSTANCE.setVisualizeCenter(hitResult.getPos());
         } else {
             ChunkInstancedBarrierVisualizer.INSTANCE.setCenter(player.chunkX, player.chunkY, player.chunkZ);

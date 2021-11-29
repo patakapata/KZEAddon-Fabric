@@ -1,41 +1,51 @@
 package com.theboss.kzeaddonfabric.events;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.ModUtils;
-import com.theboss.kzeaddonfabric.VanillaUtils;
-import com.theboss.kzeaddonfabric.screen.KillLogScreen;
-import com.theboss.kzeaddonfabric.screen.Screen;
+import com.theboss.kzeaddonfabric.render.shader.HoloWallShader;
+import com.theboss.kzeaddonfabric.utils.ModUtils;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.entity.Entity;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 public class KeyPressingEvents {
-    public static void onPressAddGlowTarget(KeyBinding keyBinding) {
+    public static void onPressAddObsessionTarget(KeyBinding keyBinding) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        List<UUID> glowPlayers = KZEAddon.getPriorityGlowPlayers();
+        List<UUID> obsessions = KZEAddon.getObsessions();
         if (mc.player == null) return;
-        HitResult result = VanillaUtils.raycastIgnoreBlock(mc.player, 100.0);
+        HitResult result = VanillaUtils.raycastIgnoreBlock(mc.player, 100.0, entity -> !entity.isSpectator() && entity.collides());
+        LiteralText body = new LiteralText("Obsession > ");
 
         if (result.getType() == HitResult.Type.ENTITY) {
-            UUID uuid = ((EntityHitResult) result).getEntity().getUuid();
-            if (!glowPlayers.contains(uuid)) {
-                glowPlayers.add(uuid);
+            Entity entity = ((EntityHitResult) result).getEntity();
+            HoloWallShader.INSTANCE.setCenter(entity.getPos());
+            UUID uuid = entity.getUuid();
+            if (!obsessions.contains(uuid)) {
+                obsessions.add(uuid);
+                body.append("Target added (");
             } else {
-                glowPlayers.remove(uuid);
+                obsessions.remove(uuid);
+                body.append("Target removed (");
             }
+            body.append(entity.getDisplayName()).append(")");
+        } else {
+            body.append("Target not found");
         }
+
+        KZEAddon.getModLog().info(body);
     }
 
     public static void onPressDebug(KeyBinding keyBinding) {
-        Screen screen = new KillLogScreen();
-        screen.setParent(MinecraftClient.getInstance().currentScreen);
-        screen.open(MinecraftClient.getInstance());
+        KZEAddon.getModLog().info("Key feature implementing pending");
     }
 
     public static void onCamX(KeyBinding keyBinding) {

@@ -22,7 +22,7 @@
       "com.theboss.kzeaddonfabric.KZEAddon"
     ],
     "modmenu": [
-      "com.theboss.kzeaddonfabric.ModMenuIntegration"
+      "com.theboss.kzeaddonfabric.integrate.ModMenuIntegration"
     ],
     "kzeaddon": [
       "com.theboss.kzeaddonfabric.wip.DebugWidget"
@@ -33,6 +33,7 @@
   ],
   "depends": {
     "fabricloader": ">=0.11.6",
+    "fabric": ">=0.40.6",
     "minecraft": "1.16.*"
   },
   "suggests": {

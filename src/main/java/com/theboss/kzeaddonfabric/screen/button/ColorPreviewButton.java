@@ -2,7 +2,7 @@ package com.theboss.kzeaddonfabric.screen.button;
 
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.theboss.kzeaddonfabric.Color;
+import com.theboss.kzeaddonfabric.utils.Color;
 import com.theboss.kzeaddonfabric.screen.ColorSelectScreen;
 import com.theboss.kzeaddonfabric.screen.Screen;
 import net.minecraft.client.MinecraftClient;

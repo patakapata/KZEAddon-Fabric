@@ -55,7 +55,7 @@ public class KeyBindings {
 
     public static void registerKeybindings() {
         OPEN_LOG = new KeyBindingWrapper("key.kzeaddon.open_log", 0, "key.categories.kzeaddon.wip", unused -> KZEAddon.getModLog().openLogScreen());
-        ADD_GROW_TARGET = new KeyBindingWrapper("key.kzeaddon.glow.priority.add", GLFW.GLFW_KEY_G, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressAddGlowTarget);
+        ADD_GROW_TARGET = new KeyBindingWrapper("key.kzeaddon.glow.obsession.add", GLFW.GLFW_KEY_G, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressAddObsessionTarget);
         COPY_ITEM_TAG = new KeyBindingWrapper("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
         HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.hide_teammates", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressHideTeammates);
         DEBUG_KEY = new KeyBindingWrapper("key.kzeaddon.debug", GLFW.GLFW_KEY_RIGHT_BRACKET, "key.categories.kzeaddon.wip", KeyPressingEvents::onPressDebug);

@@ -2,7 +2,7 @@ package com.theboss.kzeaddonfabric.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.enums.Anchor;
-import com.theboss.kzeaddonfabric.render.widgets.Widget;
+import com.theboss.kzeaddonfabric.widgets.Widget;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;

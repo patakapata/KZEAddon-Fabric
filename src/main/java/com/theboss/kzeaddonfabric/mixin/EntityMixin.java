@@ -29,7 +29,7 @@ public abstract class EntityMixin implements Nameable, CommandOutput {
 
     @Inject(method = "isGlowing", at = @At("RETURN"), cancellable = true)
     private void onIsGlowing(CallbackInfoReturnable<Boolean> cir) {
-        if (KZEAddon.getPriorityGlowPlayers().contains(this.getUuid())) {
+        if (KZEAddon.getObsessions().contains(this.getUuid())) {
             cir.setReturnValue(true);
         }
     }

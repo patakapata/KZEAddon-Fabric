@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.mixin;
 
-import com.theboss.kzeaddonfabric.VanillaUtils;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import com.theboss.kzeaddonfabric.events.RenderingEventsListener;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -39,10 +39,5 @@ public abstract class WorldRendererMixin {
 
     @Inject(method = "render", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = "ldc=entities"))
     private void onPreRenderEntities(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
-    }
-
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void onRenderInit(MinecraftClient client, BufferBuilderStorage bufferBuilders, CallbackInfo ci) {
-        RenderingEventsListener.onInit();
     }
 }

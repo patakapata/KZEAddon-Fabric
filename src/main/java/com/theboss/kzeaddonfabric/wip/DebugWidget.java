@@ -1,36 +1,18 @@
 package com.theboss.kzeaddonfabric.wip;
 
-import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.WidgetDispatcher;
-import com.theboss.kzeaddonfabric.WidgetRegister;
 import com.theboss.kzeaddonfabric.enums.Anchor;
-import com.theboss.kzeaddonfabric.render.widgets.AbstractWidget;
+import com.theboss.kzeaddonfabric.utils.Color;
+import com.theboss.kzeaddonfabric.widgets.AbstractWidget;
+import com.theboss.kzeaddonfabric.widgets.WidgetDispatcher;
+import com.theboss.kzeaddonfabric.widgets.WidgetRegister;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 public class DebugWidget implements WidgetRegister {
     @Override
     public void register(WidgetDispatcher dispatcher) {
-        dispatcher.register(new TotalKillWidget(0, 0, 1.0F, Anchor.MIDDLE_MIDDLE, Anchor.LEFT_UP));
-    }
-
-    public static class TotalKillWidget extends AbstractWidget {
-        public TotalKillWidget(float x, float y, float scale, Anchor windowAnchor, Anchor elementAnchor) {
-            super(x, y, scale, windowAnchor, elementAnchor);
-        }
-
-        @Override
-        public int getColor() {
-            return 0xFFFFFF;
-        }
-
-        @Override
-        public short getAlpha() {
-            return 0xFF;
-        }
-
-        @Override
-        public Text getText() {
-            return Text.of(KZEAddon.stats.getTotalKillCount() + " kills");
-        }
     }
 }

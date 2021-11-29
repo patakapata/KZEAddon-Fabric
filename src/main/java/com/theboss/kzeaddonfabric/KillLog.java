@@ -1,6 +1,8 @@
 package com.theboss.kzeaddonfabric;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.theboss.kzeaddonfabric.events.KillLogEvents;
+import com.theboss.kzeaddonfabric.utils.RenderingUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -38,7 +40,11 @@ public class KillLog {
 
         // -------------------------------------------------- //
         // Example entries
-        this.logs.add(new Entry(new Player("Attacker"), new Player("Victim"), "@", false, this.mc));
+        this.add(new Entry(new Player("Attacker"), new Player("Victim"), "@", false, this.mc));
+    }
+
+    public List<Entry> getLogs() {
+        return new ArrayList<>(this.logs);
     }
 
     public int getLogSize() {
@@ -79,6 +85,9 @@ public class KillLog {
 
     public void add(Entry entry) {
         this.logs.add(entry);
+
+        // Ignite event
+        KillLogEvents.ADD_ENTRY.invoker().apply(this, entry);
     }
 
     public void remove(int index) {
@@ -147,6 +156,18 @@ public class KillLog {
             this.shouldHighlight = mc.getSession().getUsername().equals(this.attacker.getName());
             this.lifeTime = 200;
             this.textRenderer = mc.textRenderer;
+        }
+
+        public Player getAttacker() {
+            return this.attacker;
+        }
+
+        public Player getVictim() {
+            return this.victim;
+        }
+
+        public String getMark() {
+            return this.mark;
         }
 
         public boolean isShouldHighlight() {

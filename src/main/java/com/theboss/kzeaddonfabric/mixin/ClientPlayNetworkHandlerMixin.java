@@ -4,6 +4,7 @@ import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.events.PacketListener;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.*;
+import net.minecraft.text.LiteralText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,6 +15,11 @@ public abstract class ClientPlayNetworkHandlerMixin {
     @Inject(method = "onBlockUpdate", at = @At("RETURN"))
     private void onBlockUpdate(BlockUpdateS2CPacket packet, CallbackInfo ci) {
         PacketListener.onBlockUpdate(packet);
+    }
+
+    @Inject(method = "onChunkDeltaUpdate", at = @At("RETURN"))
+    private void onChunkDeltaUpdate(ChunkDeltaUpdateS2CPacket packet, CallbackInfo ci) {
+        PacketListener.onChunkDeltaUpdate(packet);
     }
 
     @Inject(method = "onEquipmentUpdate", at = @At("RETURN"))
@@ -33,7 +39,13 @@ public abstract class ClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onBossBar", at = @At("RETURN"))
     private void onBossBar(BossBarS2CPacket packet, CallbackInfo ci) {
-        // TODO handle BossBar
+        // TODO Handle Boss bar
+        BossBarS2CPacket.Type type = packet.getType();
+        if (type == BossBarS2CPacket.Type.ADD || type == BossBarS2CPacket.Type.UPDATE_NAME) {
+            LiteralText body = new LiteralText("BossBar > ");
+            body.append(packet.getName());
+            KZEAddon.getModLog().info(body);
+        }
     }
 
     @Inject(method = "onTeam", at = @At("RETURN"))

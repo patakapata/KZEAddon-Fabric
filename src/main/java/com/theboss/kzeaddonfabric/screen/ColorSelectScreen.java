@@ -1,7 +1,7 @@
 package com.theboss.kzeaddonfabric.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.theboss.kzeaddonfabric.Color;
+import com.theboss.kzeaddonfabric.utils.Color;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.screen.button.SliderWidget;
 import net.minecraft.client.MinecraftClient;

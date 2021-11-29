@@ -16,7 +16,7 @@ import static org.lwjgl.opengl.GL33.*;
 @SuppressWarnings("RedundantCast")
 public class ByteBufferWrapper {
     public ByteBuffer buffer;
-    private Runnable uploadTask;
+    private Runnable onSizeChange;
 
     /**
      * x を y で丸めた値を返す
@@ -46,11 +46,11 @@ public class ByteBufferWrapper {
      * バッファーの初期容量とサイズ変更時のタスクを指定する
      *
      * @param initialCapacity バッファーの初期容量
-     * @param uploadTask      サイズ変更のタスク
+     * @param onSizeChange    サイズ変更のタスク
      */
-    public ByteBufferWrapper(int initialCapacity, Runnable uploadTask) {
+    public ByteBufferWrapper(int initialCapacity, Runnable onSizeChange) {
         this.buffer = GlAllocationUtils.allocateByteBuffer(initialCapacity);
-        this.uploadTask = uploadTask;
+        this.onSizeChange = onSizeChange;
     }
 
     /**
@@ -103,7 +103,7 @@ public class ByteBufferWrapper {
             newBuffer.put(this.buffer);
 
             this.buffer = newBuffer;
-            this.uploadTask.run();
+            this.onSizeChange.run();
         }
     }
 
@@ -250,10 +250,21 @@ public class ByteBufferWrapper {
     /**
      * バッファーのサイズが変わった時に実行されるタスクを変更する
      *
-     * @param uploadTask 実行するタスク
+     * @param onSizeChange 実行するタスク
      */
-    public void setUploadTask(Runnable uploadTask) {
-        this.uploadTask = uploadTask;
+    public void setOnSizeChange(Runnable onSizeChange) {
+        this.onSizeChange = onSizeChange;
+    }
+
+    /**
+     * VBOのサイズを更新し、内容物をすべて破棄する(?)
+     *
+     * @param vbo 対象の VBO ID
+     */
+    public void updateSizeOnVBO(int vbo) {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, this.buffer.capacity(), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     /**
@@ -265,17 +276,6 @@ public class ByteBufferWrapper {
     public void updateDataOnVBO(int vbo) {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0, this.buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    /**
-     * VBOのサイズを更新し、内容物をすべて破棄する(?)
-     *
-     * @param vbo 対象の VBO ID
-     */
-    public void updateSizeOnVBO(int vbo) {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, this.buffer.capacity(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 

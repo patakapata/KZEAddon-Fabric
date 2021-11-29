@@ -3,6 +3,9 @@ package com.theboss.kzeaddonfabric;
 import com.google.gson.*;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
 import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
+import com.theboss.kzeaddonfabric.utils.Color;
+import com.theboss.kzeaddonfabric.utils.Exclude;
+import com.theboss.kzeaddonfabric.utils.ExcludeWithAnnotateStrategy;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Vec3d;
 
@@ -47,7 +50,7 @@ public class Options {
     public boolean shouldUseFade;
 
     public float gunfireVolumeMultiplier;
-    public Color priorityGlowColor;
+    public Color obsessionGlowColor;
     public Color humanGlowColor;
     public Color zombieGlowColor;
     public int barrierVisualizeRadius;
@@ -72,8 +75,6 @@ public class Options {
     }
 
     /**
-     * デフォルト値設定用のコンストラクタ
-     *
      * @param configDir {@link net.minecraft.client.MinecraftClient#runDirectory} を渡せばok
      */
     public Options(File configDir) {
@@ -96,7 +97,7 @@ public class Options {
         this.shouldUseFade = false;
 
         this.gunfireVolumeMultiplier = 0.5F;
-        this.priorityGlowColor = new Color(0xFF0000);
+        this.obsessionGlowColor = new Color(0xFF0000);
         this.humanGlowColor = new Color(0x00AAAA);
         this.zombieGlowColor = new Color(0x00AA00);
         this.barrierVisualizeRadius = 1;
@@ -109,28 +110,6 @@ public class Options {
     }
 
     private void copy(Options other) {
-        // Manual copy method
-        // -------------------------------------------------- //
-        // this.shouldShowKillLog = other.shouldShowKillLog;
-        // this.shouldHighlightMyKill = other.shouldHighlightMyKill;
-        // this.shouldShowModLog = other.shouldShowModLog;
-        // this.shouldIgnoreResourcePack = other.shouldIgnoreResourcePack;
-        // this.shouldChangeGunfireVolume = other.shouldChangeGunfireVolume;
-        // this.shouldBarrierVisualize = other.shouldBarrierVisualize;
-        // this.barrierVisualizeUseCrosshairCenter = other.barrierVisualizeUseCrosshairCenter;
-        // -------------------------------------------------- //
-        // this.gunfireVolumeMultiplier = other.gunfireVolumeMultiplier;
-        // this.priorityGlowColor = other.priorityGlowColor;
-        // this.humanGlowColor = other.humanGlowColor;
-        // this.zombieGlowColor = other.zombieGlowColor;
-        // this.barrierVisualizeRadius = other.barrierVisualizeRadius;
-        // this.barrierVisualizeShowRadius = other.barrierVisualizeShowRadius;
-        // this.barrierVisualizeRaycastDistance = other.barrierVisualizeRaycastDistance;
-        // this.barrierLineWidth = other.barrierLineWidth;
-        // this.barrierColor = other.barrierColor;
-
-        // Automatic copy method
-        // -------------------------------------------------- //
         try {
             for (Field field : this.getClass().getDeclaredFields()) {
                 if (field.getAnnotation(Exclude.class) == null) {
@@ -207,7 +186,7 @@ public class Options {
             List<String> missingFields = this.difference(declaredFields, jsonEntries);
 
             if (!unknownFields.isEmpty())
-                KZEAddon.LOGGER.error("Unknown fields: " + this.toString(unknownFields) + "is ignored");
+                KZEAddon.LOGGER.error("Unknown fields: " + this.toString(unknownFields) + " is ignored");
             if (!missingFields.isEmpty())
                 KZEAddon.LOGGER.error("Missing fields: " + this.toString(missingFields) + " is restored default values");
 
@@ -226,28 +205,6 @@ public class Options {
                 KZEAddon.LOGGER.error("Error while deserialize. config restore default values");
                 options.restoreDefaultValues();
             }
-
-            // Old loading method
-            // -------------------------------------------------- //
-            // Feature flags
-            // options.shouldShowKillLog = jsonObj.get("shouldShowKillLog").getAsBoolean();
-            // options.shouldHighlightMyKill = jsonObj.get("shouldHighlightMyKill").getAsBoolean();
-            // options.shouldShowModLog = jsonObj.get("shouldShowModLog").getAsBoolean();
-            // options.shouldIgnoreResourcePack = jsonObj.get("shouldIgnoreResourcePack").getAsBoolean();
-            // options.shouldChangeGunfireVolume = jsonObj.get("shouldChangeGunfireVolume").getAsBoolean();
-            // options.shouldBarrierVisualize = jsonObj.get("shouldBarrierVisualize").getAsBoolean();
-            // options.barrierVisualizeUseCrosshairCenter = jsonObj.get("barrierVisualizeUseCrosshairCenter").getAsBoolean();
-            // -------------------------------------------------- //
-            // Feature values
-            // options.gunfireVolumeMultiplier = jsonObj.get("gunfireVolumeMultiplier").getAsFloat();
-            // options.priorityGlowColor = context.deserialize(jsonObj.get("priorityGlowColor"), Color.class);
-            // options.humanGlowColor = context.deserialize(jsonObj.get("humanGlowColor"), Color.class);
-            // options.zombieGlowColor = context.deserialize(jsonObj.get("zombieGlowColor"), Color.class);
-            // options.barrierVisualizeRadius = jsonObj.get("barrierVisualizeRadius").getAsInt();
-            // options.barrierVisualizeShowRadius = jsonObj.get("barrierVisualizeShowRadius").getAsFloat();
-            // options.barrierVisualizeRaycastDistance = jsonObj.get("barrierVisualizeRaycastDistance").getAsFloat();
-            // options.barrierLineWidth = jsonObj.get("barrierLineWidth").getAsFloat();
-            // options.barrierColor = context.deserialize(jsonObj.get("barrierColor"), Color.class);
 
             return options;
         }

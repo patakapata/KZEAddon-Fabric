@@ -23,7 +23,7 @@ public class WidgetsScreen extends Screen {
         this.addButton(new ButtonWidget(cX + 5, cY - 10, 98, 20, new TranslatableText("menu.widgets.kzeaddon.reload_time"), unused -> KZEAddon.widgetRenderer.openArrangementScreen("reload_time")));
 
         this.addButton(new ButtonWidget(cX - 103, cY + 20, 98, 20, new TranslatableText("menu.widgets.kzeaddon.total_ammo"), unused -> KZEAddon.widgetRenderer.openArrangementScreen("total_ammo")));
-        this.addButton(new ButtonWidget(cX + 5, cY + 20, 98, 20, new TranslatableText("menu.widgets.kzeaddon.literal_widgets"), unused -> KZEAddon.widgetRenderer.openLiteralWidgetsScreen()));
+        this.addButton(new ButtonWidget(cX + 5, cY + 20, 98, 20, new TranslatableText("menu.widgets.kzeaddon.literal_widgets"), unused -> KZEAddon.widgetRenderer.openOtherWidgetsScreen()));
     }
 
     @Override

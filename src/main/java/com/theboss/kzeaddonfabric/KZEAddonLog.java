@@ -20,7 +20,7 @@ import java.util.List;
 
 public class KZEAddonLog implements HUD {
     private final List<Entry> history;
-    private MinecraftClient mc;
+    private final MinecraftClient mc;
     private TextRenderer textRenderer;
     private int maxHistorySize;
     private int x;

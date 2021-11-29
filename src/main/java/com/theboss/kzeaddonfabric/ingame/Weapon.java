@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.ingame;
 
-import com.theboss.kzeaddonfabric.VanillaUtils;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;

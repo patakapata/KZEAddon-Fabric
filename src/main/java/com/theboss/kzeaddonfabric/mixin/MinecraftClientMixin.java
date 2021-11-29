@@ -27,7 +27,7 @@ public abstract class MinecraftClientMixin extends ReentrantThreadExecutor<Runna
 
     @Inject(method = "onResolutionChanged", at = @At("RETURN"))
     private void onResolutionChanged(CallbackInfo ci) {
-        RenderingEventsListener.onWindowResized();
+        RenderingEventsListener.onWindowResized(this.window);
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))

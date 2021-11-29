@@ -1,13 +1,16 @@
 package com.theboss.kzeaddonfabric.events;
 
-import com.theboss.kzeaddonfabric.*;
-import com.theboss.kzeaddonfabric.commands.KZEAddonFabricCommand;
+import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.KeyBindings;
 import com.theboss.kzeaddonfabric.mixin.accessor.CameraAccessor;
 import com.theboss.kzeaddonfabric.mixin.accessor.KeyBindingAccessor;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
 import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
+import com.theboss.kzeaddonfabric.render.shader.HoloWallShader;
 import com.theboss.kzeaddonfabric.screen.KillLogScreen;
-import com.theboss.kzeaddonfabric.wip.LFrameBuffer;
+import com.theboss.kzeaddonfabric.utils.ModUtils;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
+import com.theboss.kzeaddonfabric.wip.HoloWall;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.item.TooltipContext;
@@ -28,6 +31,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -50,6 +54,7 @@ public class RenderingEventsListener extends DrawableHelper {
     // -------------------------------------------------- //
     // Work in progress
     public static boolean useFBO = false;
+    public static HoloWall holoWall = new HoloWall(Direction.NORTH, Vec3d.ZERO, 3);
 
     /**
      * ワールド描画後の処理
@@ -58,11 +63,7 @@ public class RenderingEventsListener extends DrawableHelper {
      * @param delta    A render delay
      */
     public static void onPostRenderWorld(MatrixStack matrices, float delta) {
-        RenderingUtils.glError("afterRenderWorld Head");
-        Profiler profiler = VanillaUtils.getProfiler();
-
-        profiler.swap("KZEAddon$onRenderWorld");
-        RenderingUtils.glError("afterRenderWorld Tail");
+        // holoWall.render(matrices, delta);
     }
 
     /**
@@ -80,32 +81,8 @@ public class RenderingEventsListener extends DrawableHelper {
     public static void onPreRenderCutout(MatrixStack matrices, float delta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightTexManager, Matrix4f unused) {
         Profiler profiler = VanillaUtils.getProfiler();
 
-        profiler.push("Chunk Instanced Barrier Visualizer");
-        ChunkInstancedBarrierVisualizer.INSTANCE.render(useFBO, delta);
-        if (useFBO) LFrameBuffer.getInstance().blit();
-        profiler.swap("State and Offset");
-        if (KZEAddonFabricCommand.showCIBVChunkStates) {
-            ChunkInstancedBarrierVisualizer.INSTANCE.renderChunkOffsets(matrices, c -> {
-                ChunkInstancedBarrierVisualizer.ChunkUpdateState state = c.getUpdateState();
-                char colorCode;
-                switch (state) {
-                    case NEUTRAL:
-                        colorCode = 'a';
-                        break;
-                    case UPDATE_CPU:
-                        colorCode = 'c';
-                        break;
-                    case WAIT_UPLOAD:
-                        colorCode = 'e';
-                        break;
-                    default:
-                        colorCode = 'f';
-                }
-
-                return "§" + colorCode + c.getId() + " / " + c.getOffset().toShortString() + " (" + (c.getLastLimit() / 12);
-            });
-        }
-
+        profiler.push("State and Offset");
+        ChunkInstancedBarrierVisualizer.render(useFBO, delta);
         profiler.pop();
     }
 
@@ -207,15 +184,6 @@ public class RenderingEventsListener extends DrawableHelper {
         }
     }
 
-    /**
-     * クライアント終了時の処理
-     */
-    public static void onClose() {
-        BarrierShader.INSTANCE.close();
-        ChunkInstancedBarrierVisualizer.INSTANCE.close();
-        LFrameBuffer.getInstance().deleteBuffers();
-    }
-
     public static Optional<BipedEntityModel.ArmPose> onGetArmPose(AbstractClientPlayerEntity player, Hand hand) {
         ItemStack item = player.getStackInHand(hand);
 
@@ -230,9 +198,22 @@ public class RenderingEventsListener extends DrawableHelper {
      * シェーダーやバッファーの初期化
      */
     public static void onInit() {
+        // holoWall.init();
+
         BarrierShader.INSTANCE.initialize();
+        HoloWallShader.INSTANCE.initialize();
         ChunkInstancedBarrierVisualizer.INSTANCE.initialize();
-        LFrameBuffer.getInstance().initFBO(MinecraftClient.getInstance().getWindow());
+    }
+
+    /**
+     * クライアント終了時の処理
+     */
+    public static void onClose() {
+        // holoWall.close();
+
+        BarrierShader.INSTANCE.close();
+        HoloWallShader.INSTANCE.close();
+        ChunkInstancedBarrierVisualizer.INSTANCE.close();
     }
 
     public static float lerpDegreesAngle(float delta, float from, float to) {
@@ -252,7 +233,6 @@ public class RenderingEventsListener extends DrawableHelper {
     @SuppressWarnings("unused")
     public static void onRenderHud(MatrixStack matrices, float delta) {
         Profiler profiler = VanillaUtils.getProfiler();
-        profiler.push("KZEAddon$onRenderHud");
         MinecraftClient mc = MinecraftClient.getInstance();
         Window window = mc.getWindow();
 
@@ -262,8 +242,6 @@ public class RenderingEventsListener extends DrawableHelper {
         if (!(mc.currentScreen instanceof KillLogScreen))
             KZEAddon.killLog.render(matrices, window.getScaledWidth(), 0);
         KZEAddon.getModLog().render(matrices);
-
-        profiler.pop();
         profiler.pop();
     }
 
@@ -275,9 +253,8 @@ public class RenderingEventsListener extends DrawableHelper {
         }
     }
 
-    public static void onWindowResized() {
-        Window window = MinecraftClient.getInstance().getWindow();
-
-        LFrameBuffer.getInstance().setSize(window);
+    public static void onWindowResized(Window window) {
+        ChunkInstancedBarrierVisualizer.INSTANCE.framebuffer.setSize(window);
+        // holoWall.onWindowResized(window);
     }
 }

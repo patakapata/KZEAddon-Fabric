@@ -2,8 +2,7 @@ package com.theboss.kzeaddonfabric.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.render.widgets.LiteralWidget;
-import com.theboss.kzeaddonfabric.render.widgets.Widget;
+import com.theboss.kzeaddonfabric.widgets.Widget;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -17,12 +16,12 @@ import org.lwjgl.opengl.GL11;
 import java.util.List;
 
 public class LiteralWidgetsScreen extends Screen {
-    private final List<LiteralWidget> widgets;
+    private final List<Widget> widgets;
     private int margin;
     private float scroll;
     private int selected;
 
-    public LiteralWidgetsScreen(List<LiteralWidget> widgets) {
+    public LiteralWidgetsScreen(List<Widget> widgets) {
         super(Text.of("Literal widgets screen"));
         this.widgets = widgets;
         this.margin = 5;
@@ -70,7 +69,7 @@ public class LiteralWidgetsScreen extends Screen {
     protected void arrangePressed(ButtonWidget btn) {
         if (this.assertSelect()) {
             KZEAddon.LOGGER.info("Arrange button Pressed");
-            KZEAddon.widgetRenderer.openArrangementScreen(this.selected);
+            KZEAddon.widgetRenderer.openArrangementScreen(this.widgets.get(this.selected));
         }
     }
 

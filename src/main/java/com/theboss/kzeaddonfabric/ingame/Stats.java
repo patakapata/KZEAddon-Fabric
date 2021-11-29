@@ -1,8 +1,8 @@
 package com.theboss.kzeaddonfabric.ingame;
 
 import com.google.gson.*;
-import com.theboss.kzeaddonfabric.Exclude;
-import com.theboss.kzeaddonfabric.ExcludeWithAnnotateStrategy;
+import com.theboss.kzeaddonfabric.utils.Exclude;
+import com.theboss.kzeaddonfabric.utils.ExcludeWithAnnotateStrategy;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import net.minecraft.util.Util;
 

@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.render.shader;
 
-import com.theboss.kzeaddonfabric.Color;
+import com.theboss.kzeaddonfabric.utils.Color;
 import net.minecraft.client.gl.Uniform;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;

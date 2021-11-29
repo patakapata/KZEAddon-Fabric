@@ -23,7 +23,9 @@
     "accessor.CameraAccessor",
     "accessor.DefaultPosArgumentAccessor",
     "accessor.GameRendererAccessor",
+    "accessor.JsonEffectGlShaderAccessor",
     "accessor.KeyBindingAccessor",
+    "accessor.LookingPosArgumentAccessor",
     "accessor.Matrix4fAccessor"
   ],
   "injectors": {

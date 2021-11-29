@@ -2,7 +2,7 @@ package com.theboss.kzeaddonfabric.mixin;
 
 import com.mojang.authlib.GameProfile;
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.VanillaUtils;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
