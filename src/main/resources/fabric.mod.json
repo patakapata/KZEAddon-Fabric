@@ -23,9 +23,6 @@
     ],
     "modmenu": [
       "com.theboss.kzeaddonfabric.integrate.ModMenuIntegration"
-    ],
-    "kzeaddon": [
-      "com.theboss.kzeaddonfabric.wip.DebugWidget"
     ]
   },
   "mixins": [

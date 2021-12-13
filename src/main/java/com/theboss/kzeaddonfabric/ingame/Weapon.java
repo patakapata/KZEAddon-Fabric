@@ -26,7 +26,7 @@ public class Weapon {
         List<Text> siblings = item.getName().getSiblings();
         if (siblings.isEmpty()) return false;
         TextColor color = item.getName().getSiblings().get(0).getStyle().getColor();
-        return item.getItem().equals(Items.DIAMOND_HOE) && VanillaUtils.getCustomModelData(item) != -1 && (color != null && color.equals(RELOADING_COLOR));
+        return item.getItem().equals(Items.DIAMOND_HOE) && VanillaUtils.getCustomModelData(item) > 1000 && (color != null && color.equals(RELOADING_COLOR));
     }
 
     private static Text[] getLore(ItemStack item) {

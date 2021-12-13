@@ -16,7 +16,7 @@ public abstract class OtherClientPlayerEntityMixin extends AbstractClientPlayerE
 
     @Override
     public boolean isInvisible() {
-        if (KZEAddon.options.shouldHideTeammates && VanillaUtils.isTeammate(this)) return true;
+        if (KZEAddon.options.isHideAllies && VanillaUtils.isTeammate(this)) return true;
         return super.isInvisible();
     }
 }

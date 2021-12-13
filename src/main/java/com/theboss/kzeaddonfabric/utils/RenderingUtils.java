@@ -104,6 +104,9 @@ public class RenderingUtils {
         return GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING);
     }
 
+    /**
+     * Note: Y axis is down to plus
+     */
     public static void drawRadialTexture(MatrixStack matrices, double progress, float size, float u1, float v1, float u2, float v2) {
         double radian = progress * Math.PI * 2 - Math.PI / 2;
         float cos = (float) Math.cos(radian);

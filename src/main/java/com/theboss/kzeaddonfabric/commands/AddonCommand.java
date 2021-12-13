@@ -11,13 +11,15 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.KZEAddonLog;
 import com.theboss.kzeaddonfabric.KillLog;
+import com.theboss.kzeaddonfabric.commands.arguments.BuiltInWidgetArgumentType;
 import com.theboss.kzeaddonfabric.commands.arguments.DirectionArgumentType;
+import com.theboss.kzeaddonfabric.enums.Anchor;
 import com.theboss.kzeaddonfabric.events.RenderingEventsListener;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
-import com.theboss.kzeaddonfabric.screen.WidgetArrangementScreen;
 import com.theboss.kzeaddonfabric.utils.VanillaUtils;
-import com.theboss.kzeaddonfabric.widgets.LiteralWidget;
-import com.theboss.kzeaddonfabric.widgets.Widget;
+import com.theboss.kzeaddonfabric.widgets.Offset;
+import com.theboss.kzeaddonfabric.widgets.TextWidget;
+import com.theboss.kzeaddonfabric.widgets.WidgetRenderer;
 import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v1.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
@@ -51,7 +53,6 @@ public class AddonCommand {
                                 l("holo_wall").then(
                                         l("position").then(
                                                 a("pos", Vec3ArgumentType.vec3()).executes(ctx -> {
-                                                    // PASS Set new position
                                                     Vec3d newPos = VanillaUtils.toAbsoluteCoordinate(ctx, ctx.getArgument("pos", PosArgument.class));
                                                     Vec3d old = RenderingEventsListener.holoWall.getPosition();
                                                     RenderingEventsListener.holoWall.setPosition(newPos);
@@ -59,13 +60,11 @@ public class AddonCommand {
                                                     return 0;
                                                 })
                                         ).executes(ctx -> {
-                                            // PASS Get current position
                                             ctx.getSource().sendFeedback(Text.of("Position > " + VanillaUtils.toShortString(RenderingEventsListener.holoWall.getPosition())));
                                             return 0;
                                         })
                                 ).then(
                                         l("direction").then(
-                                                // PASS Set new direction
                                                 a("dir", DirectionArgumentType.direction()).executes(ctx -> {
                                                     Direction newDir = DirectionArgumentType.getDirection("dir", ctx);
                                                     Direction old = RenderingEventsListener.holoWall.getDirection();
@@ -74,14 +73,11 @@ public class AddonCommand {
                                                     return 0;
                                                 })
                                         ).executes(ctx -> {
-                                            // PASS Get current direction
                                             ctx.getSource().sendFeedback(Text.of("Direction > " + RenderingEventsListener.holoWall.getDirection().toString()));
                                             return 0;
                                         })
                                 ).then(
                                         l("size").then(
-                                                // TODO Need verify
-                                                // Set new size
                                                 a("value", FloatArgumentType.floatArg(0)).executes(ctx -> {
                                                     float value = FloatArgumentType.getFloat(ctx, "value");
                                                     float oldValue = RenderingEventsListener.holoWall.getSize();
@@ -90,7 +86,6 @@ public class AddonCommand {
                                                     return 0;
                                                 })
                                         ).executes(ctx -> {
-                                            // PASS Get current size
                                             ctx.getSource().sendFeedback(Text.of(String.format("Size > %.2f", RenderingEventsListener.holoWall.getSize())));
                                             return 0;
                                         })
@@ -133,7 +128,7 @@ public class AddonCommand {
                                         l("add").then(
                                                 a("value", TextArgumentType.text()).executes(ctx -> {
                                                     Text text = ctx.getArgument("value", Text.class);
-                                                    KZEAddon.getModLog().add(text);
+                                                    KZEAddon.info(text);
                                                     ctx.getSource().sendFeedback(Text.of("Log added [" + VanillaUtils.textAsString(text) + "]"));
                                                     return 0;
                                                 })
@@ -178,8 +173,8 @@ public class AddonCommand {
                                         l("add").then(
                                                 a("value", TextArgumentType.text()).executes(ctx -> {
                                                     Text text = ctx.getArgument("value", Text.class);
-                                                    LiteralWidget widget = new LiteralWidget(text);
-                                                    KZEAddon.widgetRenderer.addLiteral(widget);
+                                                    TextWidget widget = new TextWidget(1.0F, text, new Offset(Anchor.MIDDLE_MIDDLE, 0, 0), Anchor.LEFT_UP, 0xFFFFFF, 0xFF);
+                                                    KZEAddon.widgetRenderer.addText(widget);
                                                     ctx.getSource().sendFeedback(Text.of("Widget > Widget added [" + VanillaUtils.textAsString(text) + "]"));
                                                     return 0;
                                                 })
@@ -188,12 +183,12 @@ public class AddonCommand {
                                         l("remove").then(
                                                 a("value", IntegerArgumentType.integer(0)).executes(ctx -> {
                                                     int value = IntegerArgumentType.getInteger(ctx, "value");
-                                                    if (value > KZEAddon.widgetRenderer.literalSize()) {
+                                                    if (value > KZEAddon.widgetRenderer.textWidgetCount()) {
                                                         ctx.getSource().sendError(Text.of("Widget > Index outbounds"));
                                                         return -1;
                                                     }
-                                                    LiteralWidget removed = KZEAddon.widgetRenderer.getLiteral(value);
-                                                    KZEAddon.widgetRenderer.removeLiteral(value);
+                                                    TextWidget removed = KZEAddon.widgetRenderer.getTextWidget(value);
+                                                    KZEAddon.widgetRenderer.remove(value);
                                                     ctx.getSource().sendFeedback(Text.of("Widget > Widget removed [" + VanillaUtils.textAsString((Text) removed) + "]"));
                                                     return 0;
                                                 })
@@ -201,12 +196,12 @@ public class AddonCommand {
                                 ).then(
                                         l("list").executes(ctx -> {
                                             StringBuilder builder = new StringBuilder();
-                                            KZEAddon.widgetRenderer.forEachLiteral(widget -> {
-                                                builder.append(VanillaUtils.textAsString(widget.getText()));
+                                            KZEAddon.widgetRenderer.forEachText(widget -> {
+                                                builder.append(VanillaUtils.textAsString(widget.getName()));
                                                 builder.append(", ");
                                             });
                                             ctx.getSource().sendFeedback(Text.of(builder.toString()));
-                                            return KZEAddon.widgetRenderer.literalSize();
+                                            return KZEAddon.widgetRenderer.textWidgetCount();
                                         })
                                 ).then(
                                         l("save").executes(ctx -> {
@@ -222,60 +217,49 @@ public class AddonCommand {
                                         })
                                 ).then(
                                         l("edit").then(
-                                                a("index", IntegerArgumentType.integer(0)).executes(ctx -> {
-                                                    int index = ctx.getArgument("index", Integer.class);
-                                                    if (index >= KZEAddon.widgetRenderer.literalSize()) {
-                                                        ctx.getSource().sendError(Text.of("Index " + index + " is out of bounds!"));
-                                                        return -1;
-                                                    }
-                                                    Widget widget = KZEAddon.widgetRenderer.getLiteral(index);
-                                                    WidgetArrangementScreen screen = new WidgetArrangementScreen(widget);
-                                                    RenderSystem.recordRenderCall(() -> screen.open(MinecraftClient.getInstance()));
-                                                    ctx.getSource().sendFeedback(Text.of("Widget [" + VanillaUtils.textAsString(widget.getText()) + "] arrange screen opened"));
-                                                    return 1;
-                                                })
+                                                l("builtin").then(
+                                                        a("name", BuiltInWidgetArgumentType.builtin()).executes(ctx -> {
+                                                            WidgetRenderer.BuiltInWidget name = BuiltInWidgetArgumentType.getBuiltInWidget("name", ctx);
+                                                            RenderSystem.recordRenderCall(() -> {
+                                                                KZEAddon.widgetRenderer.openEditScreen(name);
+                                                            });
+                                                            return 0;
+                                                        })
+                                                )
                                         ).then(
-                                                l("primary").executes(ctx -> {
-                                                    RenderSystem.recordRenderCall(() -> KZEAddon.widgetRenderer.openArrangementScreen("primary"));
-                                                    ctx.getSource().sendFeedback(Text.of("Primary weapon widget arrangement screen opened"));
-                                                    return 1;
-                                                })
+                                                l("text").then(
+                                                        a("index", IntegerArgumentType.integer(0)).executes(ctx -> {
+                                                            int index = IntegerArgumentType.getInteger(ctx, "index");
+                                                            RenderSystem.recordRenderCall(() -> {
+                                                                WidgetRenderer renderer = KZEAddon.widgetRenderer;
+                                                                renderer.openEditScreen(renderer.getTextWidget(index));
+                                                            });
+                                                            return 0;
+                                                        })
+                                                )
                                         ).then(
-                                                l("secondary").executes(ctx -> {
-                                                    RenderSystem.recordRenderCall(() -> KZEAddon.widgetRenderer.openArrangementScreen("secondary"));
-                                                    ctx.getSource().sendFeedback(Text.of("Secondary weapon widget arrangement screen opened"));
-                                                    return 1;
-                                                })
-                                        ).then(
-                                                l("melee").executes(ctx -> {
-                                                    RenderSystem.recordRenderCall(() -> KZEAddon.widgetRenderer.openArrangementScreen("melee"));
-                                                    ctx.getSource().sendFeedback(Text.of("Melee weapon widget arrangement screen opened"));
-                                                    return 1;
-                                                })
-                                        ).then(
-                                                l("reload_time").executes(ctx -> {
-                                                    RenderSystem.recordRenderCall(() -> KZEAddon.widgetRenderer.openArrangementScreen("reload_time"));
-                                                    ctx.getSource().sendFeedback(Text.of("Reload time widget arrangement screen opened"));
-                                                    return 1;
-                                                })
-                                        ).then(
-                                                l("total_ammo").executes(ctx -> {
-                                                    RenderSystem.recordRenderCall(() -> KZEAddon.widgetRenderer.openArrangementScreen("total_ammo"));
-                                                    ctx.getSource().sendFeedback(Text.of("Total ammo widget arrangement screen opened"));
-                                                    return 1;
-                                                })
+                                                l("custom").then(
+                                                        a("index", IntegerArgumentType.integer(0)).executes(ctx -> {
+                                                            int index = IntegerArgumentType.getInteger(ctx, "index");
+                                                            RenderSystem.recordRenderCall(() -> {
+                                                                WidgetRenderer renderer = KZEAddon.widgetRenderer;
+                                                                renderer.openEditScreen(renderer.getCustomWidget(index));
+                                                            });
+                                                            return 0;
+                                                        })
+                                                )
                                         )
                                 )
                         ).then(
                                 l("kill_log").then(
                                         l("list").executes(ctx -> {
-                                            KZEAddon.getModLog().info("---------- Kill log entries ----------");
+                                            KZEAddon.info("---------- Kill log entries ----------");
                                             List<KillLog.Entry> list = killLog.getLogs();
                                             for (int i = 0; i < list.size(); i++) {
                                                 KillLog.Entry entry = list.get(i);
-                                                KZEAddon.getModLog().info(i + " | [" + entry.getAttacker().getName() + " " + entry.getMark() + " " + entry.getVictim().getName() + "]");
+                                                KZEAddon.info(i + " | [" + entry.getAttacker().getName() + " " + entry.getMark() + " " + entry.getVictim().getName() + "]");
                                             }
-                                            KZEAddon.getModLog().info("---------------------------------");
+                                            KZEAddon.info("---------------------------------");
                                             return 0;
                                         })
                                 ).then(

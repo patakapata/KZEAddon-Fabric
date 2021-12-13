@@ -3,9 +3,9 @@ package com.theboss.kzeaddonfabric.render;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
 import com.theboss.kzeaddonfabric.utils.RenderingUtils;
 import com.theboss.kzeaddonfabric.utils.VanillaUtils;
-import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -273,6 +273,7 @@ public class ChunkInstancedBarrierVisualizer {
 
     /**
      * Update a chunk contains specified block position.
+     *
      * @param pos The position that the chunk to be updated contains
      */
     public void update(BlockPos pos) {
@@ -559,16 +560,16 @@ public class ChunkInstancedBarrierVisualizer {
 
         private void upload() {
             RenderSystem.recordRenderCall(() -> {
-                if(this.state != ChunkUpdateState.UPDATE_CPU) {
+                if (this.state != ChunkUpdateState.UPDATE_CPU) {
                     this.bufferOffset.updateDataOnVBO(this.vboOffset);
-                    KZEAddon.getModLog().info(this.getId() + " | Uploaded");
+                    KZEAddon.info(this.getId() + " | Uploaded");
                 }
             });
         }
 
         public void rebuild(boolean forceRebuild) {
             ClientWorld world = MinecraftClient.getInstance().world;
-            if(!this.isLoaded()) {
+            if (!this.isLoaded()) {
                 this.state = ChunkUpdateState.UPDATE_CPU;
                 recordRenderCall(() -> this.rebuild(true));
                 return;

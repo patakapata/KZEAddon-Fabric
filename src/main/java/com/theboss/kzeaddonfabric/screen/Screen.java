@@ -1,8 +1,8 @@
 package com.theboss.kzeaddonfabric.screen;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.utils.RenderingUtils;
 import com.theboss.kzeaddonfabric.screen.button.TextFieldWidget;
+import com.theboss.kzeaddonfabric.utils.RenderingUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;

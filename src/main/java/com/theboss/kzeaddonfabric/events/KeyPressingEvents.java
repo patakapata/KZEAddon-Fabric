@@ -7,6 +7,8 @@ import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.entity.Entity;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.hit.EntityHitResult;
@@ -14,7 +16,6 @@ import net.minecraft.util.hit.HitResult;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 public class KeyPressingEvents {
@@ -41,11 +42,11 @@ public class KeyPressingEvents {
             body.append("Target not found");
         }
 
-        KZEAddon.getModLog().info(body);
+        KZEAddon.info(body);
     }
 
     public static void onPressDebug(KeyBinding keyBinding) {
-        KZEAddon.getModLog().info("Key feature implementing pending");
+        KZEAddon.widgetRenderer.openWidgetsScreen();
     }
 
     public static void onCamX(KeyBinding keyBinding) {
@@ -61,8 +62,8 @@ public class KeyPressingEvents {
     }
 
     public static void onPressHideTeammates(KeyBinding keyBinding) {
-        KZEAddon.options.shouldHideTeammates = !KZEAddon.options.shouldHideTeammates;
-        KZEAddon.info(new TranslatableText("info.kzeaddon." + (KZEAddon.options.shouldHideTeammates ? "hide" : "show") + "_teammates"));
+        KZEAddon.options.isHideAllies = !KZEAddon.options.isHideAllies;
+        KZEAddon.info(new TranslatableText("info.kzeaddon." + (KZEAddon.options.isHideAllies ? "hide" : "show") + "_teammates"));
     }
 
     public static void onPressUnStack(KeyBinding keyBinding) {

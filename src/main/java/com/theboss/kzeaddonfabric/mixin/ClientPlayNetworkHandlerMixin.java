@@ -42,9 +42,10 @@ public abstract class ClientPlayNetworkHandlerMixin {
         // TODO Handle Boss bar
         BossBarS2CPacket.Type type = packet.getType();
         if (type == BossBarS2CPacket.Type.ADD || type == BossBarS2CPacket.Type.UPDATE_NAME) {
-            LiteralText body = new LiteralText("BossBar > ");
-            body.append(packet.getName());
-            KZEAddon.getModLog().info(body);
+            LiteralText body = new LiteralText("BossBar > [");
+            body.append(packet.getName())
+                    .append("]");
+            KZEAddon.info(body);
         }
     }
 

@@ -1,47 +1,58 @@
 package com.theboss.kzeaddonfabric.widgets;
 
-import com.theboss.kzeaddonfabric.utils.Exclude;
-import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import com.theboss.kzeaddonfabric.ingame.Weapon;
-import net.minecraft.client.font.TextRenderer;
+import com.theboss.kzeaddonfabric.utils.Exclude;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
-public class WeaponWidget extends AbstractWidget {
+public class WeaponWidget extends AbstractTextWidget {
     @Exclude
     private final Weapon weapon;
+    private String name;
     private int emptyColor;
     private int lowColor;
     private int fullColor;
     private short alpha;
 
-    public WeaponWidget(Weapon weapon, int emptyColor, int lowColor, int fullColor, int alpha, float x, float y, float scale, Anchor windowAnchor, Anchor elementAnchor) {
-        super(x, y, scale, windowAnchor, elementAnchor);
+    public WeaponWidget(Weapon weapon, String name, int emptyColor, int lowColor, int fullColor, int alpha, float scale, Offset offset, Anchor anchor) {
+        super(scale, offset, anchor);
 
         this.weapon = weapon;
-        this.emptyColor = emptyColor;
-        this.lowColor = lowColor;
-        this.fullColor = fullColor;
+        this.name = name;
+        this.emptyColor = emptyColor & 0xFFFFFF;
+        this.lowColor = lowColor & 0xFFFFFF;
+        this.fullColor = fullColor & 0xFFFFFF;
         this.alpha = (short) (alpha & 0xFF);
     }
 
     public WeaponWidget() {
-        super(0F, 0F, 0F, null, null);
+        super(0, null, null);
 
         this.weapon = null;
+        this.name = null;
     }
 
     public void copy(WeaponWidget other) {
-        this.setX(other.getX());
-        this.setY(other.getY());
+        this.setOffset(other.getOffset());
         this.setScale(other.getScale());
-        this.setWindowAnchor(other.getWindowAnchor());
-        this.setElementAnchor(other.getElementAnchor());
+        this.setAnchor(other.getAnchor());
+        this.name = other.name;
         this.emptyColor = other.emptyColor;
         this.lowColor = other.lowColor;
         this.fullColor = other.fullColor;
         this.alpha = other.alpha;
+    }
+
+    @Override
+    public boolean isBuiltIn() {
+        return true;
+    }
+
+    @Override
+    public Text getName() {
+        return Text.of(this.name);
     }
 
     public int getEmptyColor() {
@@ -70,7 +81,7 @@ public class WeaponWidget extends AbstractWidget {
 
     @Override
     public int getColor() {
-        @SuppressWarnings("ConstantConditions") int ammo = this.weapon.getInMagazineAmmo();
+        int ammo = this.weapon.getInMagazineAmmo();
         if (ammo == 0) {
             return this.emptyColor;
         } else {
@@ -80,20 +91,18 @@ public class WeaponWidget extends AbstractWidget {
     }
 
     @Override
-    public short getAlpha() {
+    public int getAlpha() {
         return this.alpha;
     }
 
     @Override
     public Text getText() {
-        //noinspection ConstantConditions
         return Text.of(String.valueOf(this.weapon.getInMagazineAmmo()));
     }
 
     @Override
-    public void render(int scaledWidth, int scaledHeight, TextRenderer textRenderer, MatrixStack matrices, float delta) {
-        //noinspection ConstantConditions
-        if (this.weapon.getInMagazineAmmo() == -1) return;
-        super.render(scaledWidth, scaledHeight, textRenderer, matrices, delta);
+    public void render(MatrixStack matrices, float delta) {
+        if (this.weapon == null || this.weapon.getInMagazineAmmo() == -1) return;
+        super.render(matrices, delta);
     }
 }

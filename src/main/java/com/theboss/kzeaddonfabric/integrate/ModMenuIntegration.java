@@ -5,8 +5,6 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import com.theboss.kzeaddonfabric.utils.ModUtils;
 
 public class ModMenuIntegration implements ModMenuApi {
-    // TODO ModMenu互換のコンフィグボタン
-
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         return ModUtils::createConfigScreen;

@@ -2,6 +2,7 @@ package com.theboss.kzeaddonfabric.events;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.KeyBindings;
+import com.theboss.kzeaddonfabric.ingame.Weapon;
 import com.theboss.kzeaddonfabric.mixin.accessor.CameraAccessor;
 import com.theboss.kzeaddonfabric.mixin.accessor.KeyBindingAccessor;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
@@ -187,7 +188,9 @@ public class RenderingEventsListener extends DrawableHelper {
     public static Optional<BipedEntityModel.ArmPose> onGetArmPose(AbstractClientPlayerEntity player, Hand hand) {
         ItemStack item = player.getStackInHand(hand);
 
-        if (item.getItem().equals(Items.DIAMOND_HOE)) {
+        if (Weapon.quickReloadCheck(item)) {
+            return Optional.of(BipedEntityModel.ArmPose.CROSSBOW_CHARGE);
+        } else if (item.getItem().equals(Items.DIAMOND_HOE)) {
             return Optional.of(BipedEntityModel.ArmPose.CROSSBOW_HOLD);
         }
 

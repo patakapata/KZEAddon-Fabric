@@ -13,18 +13,37 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Random;
 
 public class ModUtils {
+
+    public static boolean prepareIO(File file) {
+        try {
+            if (file.exists()) {
+                return true;
+            } else {
+                if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
+                    return file.createNewFile();
+                } else {
+                    return false;
+                }
+            }
+        } catch (Exception ex) {
+            return false;
+        }
+    }
 
     private ModUtils() {}
 
@@ -240,16 +259,41 @@ public class ModUtils {
                         .setSaveConsumer(newV -> options.shouldChangeGunfireVolume = newV)
                         .build()
         );
+        // 味方を透明化時に見えないようにするか
+        general.addEntry(
+                entryBuilder.startBooleanToggle(new TranslatableText("option.kzeaddon.completely_hide_allies"), options.shouldShowFriendlyInvisibles)
+                        .setDefaultValue(false)
+                        .setTooltip(new TranslatableText("tooltip.kzeaddon.completely_hide_allies"))
+                        .setSaveConsumer(newV -> {
+                            options.shouldShowFriendlyInvisibles = newV;
+                            // 所属チームの可視フラグを更新
+                            MinecraftClient mc = MinecraftClient.getInstance();
+                            if (mc.player != null && mc.world != null && mc.player.getScoreboardTeam() != null) {
+                                Scoreboard scoreboard = mc.world.getScoreboard();
+                                Team team = scoreboard.getTeam(mc.player.getScoreboardTeam().getName());
+                                if (team.shouldShowFriendlyInvisibles() != newV)
+                                    team.setShowFriendlyInvisibles(newV);
+                            }
+                        })
+                        .build()
+        );
         // -------------------------------------------------- //
         // 機能の値
         // 銃声の音量の倍率
         general.addEntry(
-                entryBuilder.startFloatField(new TranslatableText("option.kzeaddon.gunfire_volume_multiplier"), options.gunfireVolumeMultiplier)
-                        .setDefaultValue(0.5F)
-                        .setTooltip(new TranslatableText("tooltip.kzeaddon.option.gunfire_volume_multiplier"))
-                        .setSaveConsumer(newV -> options.gunfireVolumeMultiplier = newV)
+                entryBuilder.startIntSlider(new TranslatableText("option.kzeaddon.gunfire_volume"), (int) (options.gunfireVolumeMultiplier * 100), 0, 100)
+                        .setDefaultValue(50)
+                        .setTooltip(new TranslatableText("tooltip.kzeaddon.option.gunfire_volume"))
+                        .setSaveConsumer(newV -> options.gunfireVolumeMultiplier = newV / 100F)
                         .build()
         );
+        // general.addEntry(
+        //         entryBuilder.startFloatField(new TranslatableText("option.kzeaddon.gunfire_volume_multiplier"), options.gunfireVolumeMultiplier)
+        //                 .setDefaultValue(0.5F)
+        //                 .setTooltip(new TranslatableText("tooltip.kzeaddon.option.gunfire_volume_multiplier"))
+        //                 .setSaveConsumer(newV -> options.gunfireVolumeMultiplier = newV)
+        //                 .build()
+        // );
         // 優先ターゲットの発光色
         general.addEntry(
                 entryBuilder.startColorField(new TranslatableText("option.kzeaddon.obsession_color"), options.obsessionGlowColor.get())

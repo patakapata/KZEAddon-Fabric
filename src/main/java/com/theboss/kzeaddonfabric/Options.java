@@ -6,6 +6,7 @@ import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
 import com.theboss.kzeaddonfabric.utils.Color;
 import com.theboss.kzeaddonfabric.utils.Exclude;
 import com.theboss.kzeaddonfabric.utils.ExcludeWithAnnotateStrategy;
+import com.theboss.kzeaddonfabric.utils.ModUtils;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Vec3d;
 
@@ -45,7 +46,7 @@ public class Options {
     public boolean shouldChangeGunfireVolume;
     public boolean shouldBarrierVisualize;
     public boolean barrierVisualizeUseCrosshairCenter;
-    public boolean shouldHideTeammates;
+    public boolean isHideAllies;
     public boolean shouldShowFriendlyInvisibles;
     public boolean shouldUseFade;
 
@@ -92,7 +93,7 @@ public class Options {
         this.shouldChangeGunfireVolume = true;
         this.shouldBarrierVisualize = false;
         this.barrierVisualizeUseCrosshairCenter = false;
-        this.shouldHideTeammates = false;
+        this.isHideAllies = false;
         this.shouldShowFriendlyInvisibles = false;
         this.shouldUseFade = false;
 
@@ -121,21 +122,8 @@ public class Options {
         }
     }
 
-    private boolean canIO() {
-        if (this.optionFile.exists()) {
-            return true;
-        } else {
-            try {
-                if (!this.optionFile.getParentFile().exists() && !this.optionFile.getParentFile().mkdirs()) return false;
-                return this.optionFile.createNewFile();
-            } catch (Exception ex) {
-                return false;
-            }
-        }
-    }
-
     public void load() {
-        if (this.canIO()) {
+        if (ModUtils.prepareIO(this.optionFile)) {
             Options loaded;
             try (FileReader reader = new FileReader(this.optionFile)) {
                 loaded = GSON.fromJson(reader, Options.class);
@@ -154,7 +142,7 @@ public class Options {
     }
 
     public void save() {
-        if (this.canIO()) {
+        if (ModUtils.prepareIO(this.optionFile)) {
             try (FileWriter writer = new FileWriter(this.optionFile, false)) {
                 writer.write(GSON.toJson(this));
             } catch (Exception ex) {

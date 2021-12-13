@@ -15,15 +15,33 @@ public enum Anchor {
         this.yFactor = yFactor;
     }
 
+    public Anchor getById(int id) {
+        Anchor[] values = values();
+        if (id < 0 || id >= values.length) throw new ArrayIndexOutOfBoundsException(id + " is out of bounds!");
+        return values[id];
+    }
+
     public int getId() {
         return this.id;
     }
 
-    public float getXFactor() {
+    public float getX() {
         return this.xFactor;
     }
 
-    public float getYFactor() {
+    public float getY() {
         return this.yFactor;
+    }
+
+    public Anchor next() {
+        Anchor[] values = values();
+
+        return values[(this.id + 1) % values.length];
+    }
+
+    public Anchor prev() {
+        Anchor[] values = values();
+
+        return values[(values.length + this.id - 1) % values.length];
     }
 }

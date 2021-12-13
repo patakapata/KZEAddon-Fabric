@@ -1,84 +1,71 @@
 package com.theboss.kzeaddonfabric.widgets;
 
 import com.google.gson.*;
-import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.Anchor;
-import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 public interface Widget {
-    void render(int scaledWidth, int scaledHeight, TextRenderer textRenderer, MatrixStack matrices, float delta);
+    default void transform(MatrixStack matrices, Window window) {
+        float scale = this.getScale();
+        this.getOffset().apply(matrices, window);
+        matrices.scale(scale, scale, scale);
+        matrices.translate(
+                -this.getWidth() * this.getAnchor().getX(),
+                -this.getHeight() * this.getAnchor().getY(),
+                0
+        );
+    }
 
-    /**
-     * ウィジェットの色を取得
-     *
-     * @return 0xRRGGBB
-     */
-    int getColor();
+    void render(MatrixStack matrices, float delta);
 
-    /**
-     * ウィジェットの不透明度を取得
-     *
-     * @return 0xAA
-     */
-    short getAlpha();
-
-    /**
-     * ウィジェットの拡大率を取得
-     *
-     * @return ウィジェットの拡大率
-     */
-    float getScale();
-
-    /**
-     * ウィジェットのテキストを取得
-     *
-     * @return ウィジェットのテキスト
-     */
-    Text getText();
-
-    /**
-     * ウィジェットのウィンドウアンカーを取得
-     *
-     * @return ウィジェットのウィンドウアンカー
-     */
-    Anchor getWindowAnchor();
-
-    /**
-     * ウィジェットのエレメントアンカーを取得
-     *
-     * @return ウィジェットのエレメントアンカー
-     */
-    Anchor getElementAnchor();
-
-    /**
-     * テキストの幅を取得
-     *
-     * @param textRenderer テキストレンダラー
-     * @return テキストの幅
-     */
-    int getWidth(TextRenderer textRenderer);
-
-    void setX(float x);
-
-    float getX();
-
-    void setY(float y);
-
-    float getY();
+    Text getName();
 
     void setScale(float scale);
 
-    void setWindowAnchor(Anchor anchor);
+    float getScale();
 
-    void setElementAnchor(Anchor anchor);
+    void setOffset(Offset offset);
+
+    Offset getOffset();
+
+    void setAnchor(Anchor anchor);
+
+    Anchor getAnchor();
+
+    float getWidth();
+
+    default float getScaledWidth() {
+        return this.getWidth() * this.getScale();
+    }
+
+    float getHeight();
+
+    default float getScaledHeight() {
+        return this.getHeight() * this.getScale();
+    }
+
+    int getColor();
+
+    int getAlpha();
+
+    boolean isBuiltIn();
 
     class Serializer implements JsonSerializer<Widget>, JsonDeserializer<Widget> {
+        private static final Map<String, Class<?>> REGISTERED_TYPES = new HashMap<>();
         private static final String CLASS_NAME = "type";
         private static final String INSTANCE = "data";
+
+        public static void registerType(Class<?> type) {
+            String name = type.getSimpleName();
+            if (REGISTERED_TYPES.containsKey(name)) return;
+            REGISTERED_TYPES.put(name, type);
+        }
 
         @Override
         public JsonElement serialize(Widget src, Type typeOfSrc, JsonSerializationContext context) {
@@ -96,19 +83,10 @@ public interface Widget {
             JsonPrimitive prim = (JsonPrimitive) jsonObj.get(CLASS_NAME);
             String className = prim.getAsString();
 
-            Class<?> klass;
-            switch (className) {
-                case "LiteralWidget":
-                    klass = LiteralWidget.class;
-                    break;
-                case "WeaponWidget":
-                    klass = WeaponWidget.class;
-                    break;
-                default:
-                    throw new JsonParseException("Class not found. className=" + className);
-            }
+            if (!REGISTERED_TYPES.containsKey(className))
+                throw new JsonParseException("Class not found. className=" + className);
 
-            return context.deserialize(jsonObj.get(INSTANCE), klass);
+            return context.deserialize(jsonObj.get(INSTANCE), REGISTERED_TYPES.get(className));
         }
     }
 }

@@ -1,33 +1,43 @@
 package com.theboss.kzeaddonfabric.widgets;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.ingame.KZEInformation;
 import com.theboss.kzeaddonfabric.enums.Anchor;
-import net.minecraft.client.font.TextRenderer;
+import com.theboss.kzeaddonfabric.ingame.KZEInformation;
+import com.theboss.kzeaddonfabric.utils.Exclude;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
-public class ReloadTimeWidget extends AbstractWidget {
+public class ReloadTimeWidget extends AbstractTextWidget {
     private int color;
     private short alpha;
+    @Exclude
     private float lastDelta;
+    @Exclude
     private double lastProgress;
 
-    public ReloadTimeWidget(float x, float y, float scale, Anchor windowAnchor, Anchor elementAnchor, int color, int alpha) {
-        super(x, y, scale, windowAnchor, elementAnchor);
+    public ReloadTimeWidget(float scale, Offset offset, Anchor anchor, int color, int alpha) {
+        super(scale, offset, anchor);
         this.color = color;
         this.alpha = (short) (alpha & 0xFF);
     }
 
     public void copy(ReloadTimeWidget other) {
-        this.setX(other.getX());
-        this.setY(other.getY());
+        this.setOffset(other.getOffset());
         this.setScale(other.getScale());
-        this.setWindowAnchor(other.getWindowAnchor());
-        this.setElementAnchor(other.getElementAnchor());
+        this.setAnchor(other.getAnchor());
         this.alpha = other.alpha;
         this.color = other.color;
+    }
+
+    @Override
+    public boolean isBuiltIn() {
+        return true;
+    }
+
+    @Override
+    public Text getName() {
+        return Text.of("Reload time");
     }
 
     @Override
@@ -36,7 +46,7 @@ public class ReloadTimeWidget extends AbstractWidget {
     }
 
     @Override
-    public short getAlpha() {
+    public int getAlpha() {
         return this.alpha;
     }
 
@@ -63,18 +73,18 @@ public class ReloadTimeWidget extends AbstractWidget {
         // return text;
 
         KZEInformation kzeInfo = KZEAddon.kzeInfo;
-        double progress = kzeInfo.getReloadTimeTick() * (1.0 - kzeInfo.getReloadProgress());
+        double progress = kzeInfo.getReloadTimeTick() / 20.0 * (1.0 - kzeInfo.getReloadProgress());
         if (progress > this.lastProgress) this.lastProgress = progress;
         progress = MathHelper.lerp(this.lastDelta, this.lastProgress, progress);
         this.lastProgress = progress;
 
-        return Text.of(String.format("%.2f", progress / 20));
+        return Text.of(String.format("%.2f", progress));
     }
 
     @Override
-    public void render(int scaledWidth, int scaledHeight, TextRenderer textRenderer, MatrixStack matrices, float delta) {
+    public void render(MatrixStack matrices, float delta) {
         if (!KZEAddon.kzeInfo.isReloading()) return;
         this.lastDelta = delta;
-        super.render(scaledWidth, scaledHeight, textRenderer, matrices, delta);
+        super.render(matrices, delta);
     }
 }

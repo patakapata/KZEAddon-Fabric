@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class EnumArgumentType<T> implements ArgumentType<T> {
+public abstract class EnumArgumentType<T> implements ArgumentType<T> {
     protected List<T> list;
 
     protected EnumArgumentType() {
@@ -39,14 +39,19 @@ public class EnumArgumentType<T> implements ArgumentType<T> {
     }
 
     @Override
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-        String[] input = context.getInput().split(" ");
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> ctx, SuggestionsBuilder builder) {
+        if (ctx.getInput().endsWith(" ")) {
+            for (T tmp : this.list)
+                builder.suggest(tmp.toString().toUpperCase());
+            return builder.buildFuture();
+        }
+
+        String[] input = ctx.getInput().split(" ");
         String last = input[input.length - 1].toUpperCase();
 
         for (T tmp : this.list) {
             String name = tmp.toString().toUpperCase();
-
-            if (last.equals("DIRECTION") || name.startsWith(last))
+            if (name.startsWith(last))
                 builder.suggest(name);
         }
         return builder.buildFuture();

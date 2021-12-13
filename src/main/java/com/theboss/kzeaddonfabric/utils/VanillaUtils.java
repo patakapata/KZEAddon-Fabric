@@ -1,6 +1,7 @@
 package com.theboss.kzeaddonfabric.utils;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.mixin.accessor.DefaultPosArgumentAccessor;
 import com.theboss.kzeaddonfabric.mixin.accessor.GameRendererAccessor;
@@ -24,6 +25,8 @@ import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.SelectorText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.hit.BlockHitResult;
@@ -37,6 +40,7 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public class VanillaUtils {
@@ -48,6 +52,10 @@ public class VanillaUtils {
         if (vec1.equals(vec2)) return 0;
         else if (y > 0 && x > 0 && z > 0) return 1;
         else return -1;
+    }
+
+    public static Text randomText() {
+        return Text.of(UUID.randomUUID().toString());
     }
 
     private static Vec3d toAbsoluteCoordinate(CommandContext<FabricClientCommandSource> ctx, DefaultPosArgument pos) {

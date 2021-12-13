@@ -2,9 +2,10 @@ plugins {
     id 'fabric-loom' version '0.7-SNAPSHOT'
     id 'maven-publish'
 }
-
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -23,35 +24,12 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "com.terraformersmc:modmenu:1.16.5"
+    modImplementation "com.terraformersmc:modmenu:${project.modmenu}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}") {
-        exclude(group: "net.fabricmc.fabric-api")
+        exclude('group': "net.fabricmc.fabric-api")
     }
-
-    // 同封
     include "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}"
-    // include "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-    // modImplementation "net.fabricmc.fabric-api:fabric-resource-loader-v0:${project.fabric_resource_loader}"
-    // modImplementation "net.fabricmc.fabric-api:fabric-command-api-v1:${project.fabric_command_api}"
-    // modImplementation "net.fabricmc.fabric-api:fabric-api-base:${project.fabric_api_base}"
-    // modImplementation "net.fabricmc.fabric-api:fabric-commands-v0:${project.fabric_commands}"
-    // modImplementation "net.fabricmc.fabric-api:fabric-lifecycle-events-v1:${project.fabric_lifecycle_events}"
-
-
-    // 同封
-    // include "net.fabricmc.fabric-api:fabric-resource-loader-v0:${project.fabric_resource_loader}"
-    // include "net.fabricmc.fabric-api:fabric-command-api-v1:${project.fabric_command_api}"
-    // include "net.fabricmc.fabric-api:fabric-api-base:${project.fabric_api_base}"
-    // include "net.fabricmc.fabric-api:fabric-commands-v0:${project.fabric_commands}"
-    // include "net.fabricmc.fabric-api:fabric-lifecycle-events-v1:${project.fabric_lifecycle_events}"
-    // include "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}"
-
-    // modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    // modImplementation "net.fabricmc.fabric-api:fabric-resource-loader-v0:0.4.6+2868a2287d"
-    // modImplementation "net.fabricmc.fabric-api:fabric-textures-v0:1.0.6+ca58154a7d"
-    // modImplementation "com.google.code.gson:gson:${project.gson_version}"
 }
 
 compileJava.dependsOn clean

@@ -10,11 +10,9 @@ import com.theboss.kzeaddonfabric.ingame.KZEInformation;
 import com.theboss.kzeaddonfabric.ingame.Stats;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
 import com.theboss.kzeaddonfabric.utils.CustomSounds;
+import com.theboss.kzeaddonfabric.utils.Dispatcher;
 import com.theboss.kzeaddonfabric.utils.RenderingUtils;
-import com.theboss.kzeaddonfabric.widgets.Widget;
-import com.theboss.kzeaddonfabric.widgets.WidgetDispatcher;
-import com.theboss.kzeaddonfabric.widgets.WidgetRegister;
-import com.theboss.kzeaddonfabric.widgets.WidgetRenderer;
+import com.theboss.kzeaddonfabric.widgets.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -40,7 +38,7 @@ import java.io.File;
 import java.util.*;
 
 @Environment(EnvType.CLIENT)
-public class KZEAddon implements ClientModInitializer {
+public class KZEAddon implements ClientModInitializer, WidgetRegister {
     private static List<UUID> obsessions;
     private static KZEAddonLog modLog;
 
@@ -76,6 +74,17 @@ public class KZEAddon implements ClientModInitializer {
                 .icon(() -> new ItemStack(Items.BELL))
                 .appendItems(list -> favoriteItems.stream().filter(Objects::nonNull).forEach(list::add))
                 .build();
+    }
+
+    @Override
+    public void registerWidget(Dispatcher<Widget> dispatcher) {}
+
+    @Override
+    public void registerWidgetType(Dispatcher<Class<?>> dispatcher) {
+        dispatcher.register(TextWidget.class);
+        dispatcher.register(WeaponWidget.class);
+        dispatcher.register(ReloadTimeWidget.class);
+        dispatcher.register(TotalAmmoWidget.class);
     }
 
     public static void addFavoriteItem(ItemStack item) {
@@ -169,20 +178,18 @@ public class KZEAddon implements ClientModInitializer {
         ClientLifecycleEvents.CLIENT_STOPPING.register(EventsListener::onClientStop);
 
         // Original events
-        ReloadEvents.BEGIN.register(info -> getModLog().info("Reload is start"));
-        ReloadEvents.REFUSE.register(info -> getModLog().info("Reload was refused"));
-        ReloadEvents.COMPLETE.register(info -> getModLog().info("Reload is complete"));
+        ReloadEvents.BEGIN.register(info -> info("Reload is start"));
+        ReloadEvents.REFUSE.register(info -> info("Reload was refused"));
+        ReloadEvents.COMPLETE.register(info -> info("Reload is complete"));
         KillLogEvents.ADD_ENTRY.register((log, entry) -> {
             LiteralText body = new LiteralText("Add entry: [");
-            body
-                    .append(entry.getAttacker().getName())
+            body.append(entry.getAttacker().getName())
                     .append(" ")
                     .append(entry.getMark())
                     .append(" ")
                     .append(entry.getVictim().getName())
                     .append("]");
-
-            getModLog().info(body);
+            info(body);
         });
     }
 
@@ -190,6 +197,9 @@ public class KZEAddon implements ClientModInitializer {
         RenderingUtils.registerTexture(MOD_ID, "textures/gui/missing_skin.png");
         RenderingUtils.registerTexture(MOD_ID, "textures/gui/frame.png");
 
+        AbstractTextWidget.textRenderer = mc.textRenderer;
+
+        handleWidgetTypeRegistration();
         options = new Options(configFolder);
         kzeInfo = new KZEInformation(mc);
         widgetRenderer = new WidgetRenderer(configFolder);
@@ -204,20 +214,25 @@ public class KZEAddon implements ClientModInitializer {
         RenderingEventsListener.onInit();
     }
 
+    private static void handleWidgetTypeRegistration() {
+        List<Class<?>> types = new ArrayList<>();
+        Dispatcher<Class<?>> dispatcher = new Dispatcher<>(types);
+        for (EntrypointContainer<WidgetRegister> entryPoint : FabricLoader.getInstance().getEntrypointContainers("kzeaddon", WidgetRegister.class)) {
+            entryPoint.getEntrypoint().registerWidgetType(dispatcher);
+        }
+        if (!types.isEmpty()) {
+            types.forEach(Widget.Serializer::registerType);
+        }
+    }
+
     private static void handleWidgetRegistration() {
         List<Widget> widgets = new ArrayList<>();
-        WidgetDispatcher dispatcher = new WidgetDispatcher(widgets);
-        LOGGER.info("Widget Registration");
+        Dispatcher<Widget> dispatcher = new Dispatcher<>(widgets);
         for (EntrypointContainer<WidgetRegister> entryPoint : FabricLoader.getInstance().getEntrypointContainers("kzeaddon", WidgetRegister.class)) {
-            entryPoint.getEntrypoint().register(dispatcher);
-
-            int count = widgets.size();
-            String modName = entryPoint.getProvider().getMetadata().getName();
-            LOGGER.info(modName + ": " + count + " widget(s) registered");
-            if (!widgets.isEmpty()) {
-                widgets.forEach(it -> widgetRenderer.addCustom(it));
-                widgets.clear();
-            }
+            entryPoint.getEntrypoint().registerWidget(dispatcher);
+        }
+        if (!widgets.isEmpty()) {
+            widgets.forEach(widgetRenderer::add);
         }
     }
 

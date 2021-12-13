@@ -111,8 +111,8 @@ public class AnchorSelectButton extends DrawableHelper implements Element, Drawa
         buffer.vertex(innerX[1], innerY[0], 0).color(0, 0, 0, 255).next();
         tessellator.draw();
 
-        float vX = innerX[0] + (innerWidth - partX) * this.value.getXFactor();
-        float vY = innerY[0] + (innerHeight - partY) * this.value.getYFactor();
+        float vX = innerX[0] + (innerWidth - partX) * this.value.getX();
+        float vY = innerY[0] + (innerHeight - partY) * this.value.getY();
         buffer.begin(GL11.GL_QUADS, VertexFormats.POSITION_COLOR);
         buffer.vertex(vX, vY, 0).color(100, 100, 100, 255).next();
         buffer.vertex(vX, vY + partY, 0).color(100, 100, 100, 255).next();

@@ -2,26 +2,33 @@ package com.theboss.kzeaddonfabric.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.widgets.TextWidget;
 import com.theboss.kzeaddonfabric.widgets.Widget;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
-import org.lwjgl.opengl.GL11;
 
 import java.util.List;
 
-public class LiteralWidgetsScreen extends Screen {
+import static com.theboss.kzeaddonfabric.render.Constants.*;
+
+public class WidgetListScreen extends Screen {
     private final List<Widget> widgets;
     private int margin;
     private float scroll;
     private int selected;
+    private ButtonWidget deleteButton;
+    private ButtonWidget editButton;
 
-    public LiteralWidgetsScreen(List<Widget> widgets) {
+    public WidgetListScreen(List<Widget> widgets) {
         super(Text.of("Literal widgets screen"));
         this.widgets = widgets;
         this.margin = 5;
@@ -36,8 +43,13 @@ public class LiteralWidgetsScreen extends Screen {
 
         // -------------------------------------------------- //
         // Bottom
-        this.addButton(new ButtonWidget(cX - 55, this.height - 30, 50, 20, new TranslatableText("button.literal_widgets.kzeaddon.delete"), this::deletePressed));
-        this.addButton(new ButtonWidget(cX + 5, this.height - 30, 50, 20, new TranslatableText("button.literal_widgets.kzeaddon.arrange"), this::arrangePressed));
+        this.deleteButton = new ButtonWidget(cX - 55, this.height - 30, 50, 20, new TranslatableText("button.literal_widgets.kzeaddon.delete"), this::onDeleteButtonPressed);
+        this.editButton = new ButtonWidget(cX + 5, this.height - 30, 50, 20, new TranslatableText("button.literal_widgets.kzeaddon.edit"), this::onEditButtonPressed);
+
+        this.updateButtonState();
+
+        this.addButton(this.deleteButton);
+        this.addButton(this.editButton);
     }
 
     public int getSelected() {
@@ -56,20 +68,27 @@ public class LiteralWidgetsScreen extends Screen {
         return this.selected != -1;
     }
 
-    protected void deletePressed(ButtonWidget btn) {
+    protected void onDeleteButtonPressed(ButtonWidget btn) {
         if (this.assertSelect()) {
-            KZEAddon.LOGGER.info("Delete button Pressed");
+            Widget widget = this.widgets.get(this.selected);
+
+            if (widget instanceof TextWidget) {
+                KZEAddon.widgetRenderer.removeText((TextWidget) widget);
+            } else {
+                KZEAddon.widgetRenderer.remove(widget);
+            }
+
             this.widgets.remove(this.selected);
             this.selected--;
             if (this.widgets.size() == 0) this.selected = -1;
             else if (this.selected < 0) this.selected = 0;
+            this.updateButtonState();
         }
     }
 
-    protected void arrangePressed(ButtonWidget btn) {
+    protected void onEditButtonPressed(ButtonWidget btn) {
         if (this.assertSelect()) {
-            KZEAddon.LOGGER.info("Arrange button Pressed");
-            KZEAddon.widgetRenderer.openArrangementScreen(this.widgets.get(this.selected));
+            KZEAddon.widgetRenderer.openEditScreen(this.widgets.get(this.selected));
         }
     }
 
@@ -80,17 +99,26 @@ public class LiteralWidgetsScreen extends Screen {
         super.render(matrices, mouseX, mouseY, delta);
         int cX = this.width / 2;
 
+        this.drawHighlight(matrices);
+
         float y;
         for (int i = 0; i < this.widgets.size(); i++) {
             Widget widget = this.widgets.get(i);
             int color = widget.getColor() | 0xFF000000;
             y = this.getOffset() + this.getEntryHeight() * i;
-            Text text = widget.getText();
+            Text text = widget.getName();
             int width = this.textRenderer.getWidth(text);
             this.textRenderer.drawWithShadow(matrices, text, cX - width / 2F, y, color);
         }
 
-        this.drawHighlight(matrices);
+        boolean isActive = this.deleteButton.active;
+        this.deleteButton.active = true;
+        if (this.selected != -1 && this.widgets.get(this.selected).isBuiltIn() && this.deleteButton.isMouseOver(mouseX, mouseY)) {
+            LiteralText body = new LiteralText("組み込みウィジェットは削除不可能です");
+            body.setStyle(body.getStyle().withColor(Formatting.RED));
+            this.renderTooltip(matrices, body, MathHelper.floor(mouseX), MathHelper.floor(mouseY));
+        }
+        this.deleteButton.active = isActive;
     }
 
     private void drawHighlight(MatrixStack matrices) {
@@ -101,16 +129,23 @@ public class LiteralWidgetsScreen extends Screen {
         Matrix4f matrix = matrices.peek().getModel();
         float y = (-this.margin / 2F) + this.getOffset() + this.getEntryHeight() * this.selected;
         int cX = this.width / 2;
-        float width = this.textRenderer.getWidth(this.widgets.get(this.selected).getText()) / 2F + 2;
+        float width = this.textRenderer.getWidth(this.widgets.get(this.selected).getName()) / 2F + 2;
 
-        buffer.begin(GL11.GL_LINE_LOOP, VertexFormats.POSITION_COLOR);
+        RenderSystem.disableTexture();
+        RenderSystem.enableBlend();
+        buffer.begin(GL_LINE_LOOP, VertexFormats.POSITION_COLOR);
         buffer.vertex(matrix, cX - width, y, 0).color(1F, 1F, 1F, 1F).next();
         buffer.vertex(matrix, cX - width, y + this.getEntryHeight(), 0).color(1F, 1F, 1F, 1F).next();
         buffer.vertex(matrix, cX + width, y + this.getEntryHeight(), 0).color(1F, 1F, 1F, 1F).next();
         buffer.vertex(matrix, cX + width, y, 0).color(1F, 1F, 1F, 1F).next();
-
-        RenderSystem.disableTexture();
         tessellator.draw();
+        buffer.begin(GL_QUADS, VertexFormats.POSITION_COLOR);
+        buffer.vertex(matrix, cX - width, y, 0).color(1F, 1F, 1F, 0.5F).next();
+        buffer.vertex(matrix, cX - width, y + this.getEntryHeight(), 0).color(1F, 1F, 1F, 0.5F).next();
+        buffer.vertex(matrix, cX + width, y + this.getEntryHeight(), 0).color(1F, 1F, 1F, 0.5F).next();
+        buffer.vertex(matrix, cX + width, y, 0).color(1F, 1F, 1F, 0.5F).next();
+        tessellator.draw();
+        RenderSystem.disableBlend();
         RenderSystem.enableTexture();
     }
 
@@ -127,16 +162,16 @@ public class LiteralWidgetsScreen extends Screen {
         BufferBuilder buffer = tessellator.getBuffer();
         Matrix4f matrix = matrices.peek().getModel();
 
-        buffer.begin(GL11.GL_QUADS, VertexFormats.POSITION_COLOR);
+        buffer.begin(GL_QUADS, VertexFormats.POSITION_COLOR);
         buffer.vertex(matrix, 0, this.height - 50, 0).color(0f, 0f, 0f, 0f).next();
         buffer.vertex(matrix, 0, this.height, 0).color(0f, 0f, 0f, 1f).next();
         buffer.vertex(matrix, this.width, this.height, 0).color(0f, 0f, 0f, 1f).next();
         buffer.vertex(matrix, this.width, this.height - 50, 0).color(0f, 0f, 0f, 0f).next();
 
         RenderSystem.enableBlend();
-        RenderSystem.shadeModel(GL11.GL_SMOOTH);
+        RenderSystem.shadeModel(GL_SMOOTH);
         tessellator.draw();
-        RenderSystem.shadeModel(GL11.GL_FLAT);
+        RenderSystem.shadeModel(GL_FLAT);
     }
 
     @Override
@@ -154,7 +189,13 @@ public class LiteralWidgetsScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (super.mouseClicked(mouseX, mouseY, button)) return true;
         this.selected = this.getWidgetIndex(mouseY);
+        this.updateButtonState();
         return true;
+    }
+
+    public void updateButtonState() {
+        this.deleteButton.active = this.selected != -1 && !this.widgets.get(this.selected).isBuiltIn();
+        this.editButton.active = this.selected != -1;
     }
 
     protected float getEntryHeight() {
