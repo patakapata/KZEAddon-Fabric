@@ -21,9 +21,6 @@ public class KeyBindings {
     public static KeyBindingWrapper COPY_ITEM_TAG;
     public static KeyBindingWrapper DEBUG_KEY;
     public static KeyBindingWrapper UN_STACK;
-    public static KeyBindingWrapper CAM_X;
-    public static KeyBindingWrapper CAM_Y;
-    public static KeyBindingWrapper CAM_Z;
 
     public static boolean COPY_FLIP_FLIP = false;
 
@@ -54,14 +51,11 @@ public class KeyBindings {
     }
 
     public static void registerKeybindings() {
-        OPEN_LOG = new KeyBindingWrapper("key.kzeaddon.open_log", 0, "key.categories.kzeaddon.wip", unused -> KZEAddon.getModLog().openLogScreen());
-        ADD_GROW_TARGET = new KeyBindingWrapper("key.kzeaddon.glow.obsession.add", GLFW.GLFW_KEY_G, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressAddObsessionTarget);
+        ADD_GROW_TARGET = new KeyBindingWrapper("key.kzeaddon.in_game.obsession.add", GLFW.GLFW_KEY_G, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressAddObsessionTarget);
+        HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.in_game.hide_ally", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressHideTeammates);
+        UN_STACK = new KeyBindingWrapper("key.kzeaddon.in_game.un_stack", GLFW.GLFW_KEY_N, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressUnStack);
+        OPEN_LOG = new KeyBindingWrapper("key.kzeaddon.wip.open_log", 0, "key.categories.kzeaddon.wip", unused -> KZEAddon.getModLog().openLogScreen());
         COPY_ITEM_TAG = new KeyBindingWrapper("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
-        HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.hide_teammates", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressHideTeammates);
-        DEBUG_KEY = new KeyBindingWrapper("key.kzeaddon.debug", GLFW.GLFW_KEY_RIGHT_BRACKET, "key.categories.kzeaddon.wip", KeyPressingEvents::onPressDebug);
-        UN_STACK = new KeyBindingWrapper("key.kzeaddon.un_stack", GLFW.GLFW_KEY_N, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressUnStack);
-        CAM_X = new KeyBindingWrapper("x", GLFW.GLFW_KEY_KP_4, "key.categories.kzeaddon.wip", KeyPressingEvents::onCamX);
-        CAM_Y = new KeyBindingWrapper("y", GLFW.GLFW_KEY_KP_8, "key.categories.kzeaddon.wip", KeyPressingEvents::onCamY);
-        CAM_Z = new KeyBindingWrapper("z", GLFW.GLFW_KEY_KP_5, "key.categories.kzeaddon.wip", KeyPressingEvents::onCamZ);
+        DEBUG_KEY = new KeyBindingWrapper("key.kzeaddon.wip.debug", GLFW.GLFW_KEY_RIGHT_BRACKET, "key.categories.kzeaddon.wip", KeyPressingEvents::onPressDebug);
     }
 }
