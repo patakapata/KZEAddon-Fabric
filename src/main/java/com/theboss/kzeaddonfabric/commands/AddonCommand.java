@@ -12,10 +12,9 @@ import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.KZEAddonLog;
 import com.theboss.kzeaddonfabric.KillLog;
 import com.theboss.kzeaddonfabric.commands.arguments.BuiltInWidgetArgumentType;
-import com.theboss.kzeaddonfabric.commands.arguments.DirectionArgumentType;
 import com.theboss.kzeaddonfabric.enums.Anchor;
-import com.theboss.kzeaddonfabric.events.RenderingEventsListener;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
+import com.theboss.kzeaddonfabric.utils.ModUtils;
 import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import com.theboss.kzeaddonfabric.widgets.Offset;
 import com.theboss.kzeaddonfabric.widgets.TextWidget;
@@ -23,74 +22,32 @@ import com.theboss.kzeaddonfabric.widgets.WidgetRenderer;
 import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v1.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.argument.PosArgument;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.command.argument.TextArgumentType;
-import net.minecraft.command.argument.Vec3ArgumentType;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Identifier;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.theboss.kzeaddonfabric.KZEAddon.killLog;
 
 public class AddonCommand {
 
-    private AddonCommand() {}
+    private static <T> RequiredArgumentBuilder<FabricClientCommandSource, T> a(String name, ArgumentType<T> type) {
+        return ClientCommandManager.argument(name, type);
+    }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> l(String name) {
         return ClientCommandManager.literal(name);
-    }
-
-    private static <T> RequiredArgumentBuilder<FabricClientCommandSource, T> a(String name, ArgumentType<T> type) {
-        return ClientCommandManager.argument(name, type);
     }
 
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         dispatcher.register(
                 l("gtek").then(
                         l("debug").then(
-                                l("holo_wall").then(
-                                        l("position").then(
-                                                a("pos", Vec3ArgumentType.vec3()).executes(ctx -> {
-                                                    Vec3d newPos = VanillaUtils.toAbsoluteCoordinate(ctx, ctx.getArgument("pos", PosArgument.class));
-                                                    Vec3d old = RenderingEventsListener.holoWall.getPosition();
-                                                    RenderingEventsListener.holoWall.setPosition(newPos);
-                                                    ctx.getSource().sendFeedback(Text.of("Position > [" + VanillaUtils.toShortString(old) + "] -> [" + VanillaUtils.toShortString(newPos) + "]"));
-                                                    return 0;
-                                                })
-                                        ).executes(ctx -> {
-                                            ctx.getSource().sendFeedback(Text.of("Position > " + VanillaUtils.toShortString(RenderingEventsListener.holoWall.getPosition())));
-                                            return 0;
-                                        })
-                                ).then(
-                                        l("direction").then(
-                                                a("dir", DirectionArgumentType.direction()).executes(ctx -> {
-                                                    Direction newDir = DirectionArgumentType.getDirection("dir", ctx);
-                                                    Direction old = RenderingEventsListener.holoWall.getDirection();
-                                                    RenderingEventsListener.holoWall.setDirection(newDir);
-                                                    ctx.getSource().sendFeedback(Text.of("Direction > [" + old.toString() + "] -> [" + newDir.toString() + "]"));
-                                                    return 0;
-                                                })
-                                        ).executes(ctx -> {
-                                            ctx.getSource().sendFeedback(Text.of("Direction > " + RenderingEventsListener.holoWall.getDirection().toString()));
-                                            return 0;
-                                        })
-                                ).then(
-                                        l("size").then(
-                                                a("value", FloatArgumentType.floatArg(0)).executes(ctx -> {
-                                                    float value = FloatArgumentType.getFloat(ctx, "value");
-                                                    float oldValue = RenderingEventsListener.holoWall.getSize();
-                                                    RenderingEventsListener.holoWall.setSize(value);
-                                                    ctx.getSource().sendFeedback(Text.of(String.format("Size > %.2f -> %.2f", oldValue, value)));
-                                                    return 0;
-                                                })
-                                        ).executes(ctx -> {
-                                            ctx.getSource().sendFeedback(Text.of(String.format("Size > %.2f", RenderingEventsListener.holoWall.getSize())));
-                                            return 0;
-                                        })
-                                )
-                        ).then(
                                 l("cibv").then(
                                         l("radius").then(
                                                 a("value", IntegerArgumentType.integer(0)).executes(ctx -> {
@@ -111,7 +68,7 @@ public class AddonCommand {
                                         l("vis_radius").then(
                                                 a("value", FloatArgumentType.floatArg(0F)).executes(ctx -> {
                                                     float value = FloatArgumentType.getFloat(ctx, "value");
-                                                    KZEAddon.options.barrierVisualizeShowRadius = value;
+                                                    KZEAddon.options.barrierFadeRadius = value;
                                                     ctx.getSource().sendFeedback(Text.of("CIBV > Visualize radius is " + value));
                                                     return 0;
                                                 })
@@ -122,6 +79,24 @@ public class AddonCommand {
                                             ctx.getSource().sendFeedback(Text.of("CIBV > Chunks reallocate queued"));
                                             return 0;
                                         })
+                                ).then(
+                                        l("load_model").then(
+                                                a("id", IdentifierArgumentType.identifier()).executes(ctx -> {
+                                                    Identifier id = ctx.getArgument("id", Identifier.class);
+                                                    if (ChunkInstancedBarrierVisualizer.INSTANCE.loadModelFromResource(id)) {
+                                                        ctx.getSource().sendFeedback(Text.of("Model `" + id + "` successfully loaded"));
+                                                        return 0;
+                                                    } else {
+                                                        ctx.getSource().sendError(Text.of("Model " + id + " load failed"));
+                                                        return -1;
+                                                    }
+                                                }).suggests((context, builder) -> {
+                                                    MinecraftClient mc = MinecraftClient.getInstance();
+                                                    ResourceManager resManager = mc.getResourceManager();
+                                                    CommandSource.suggestIdentifiers(resManager.findResources("barrier_model", unused -> true), builder);
+                                                    return builder.buildFuture();
+                                                })
+                                        )
                                 )
                         ).then(
                                 l("log").then(
@@ -220,9 +195,7 @@ public class AddonCommand {
                                                 l("builtin").then(
                                                         a("name", BuiltInWidgetArgumentType.builtin()).executes(ctx -> {
                                                             WidgetRenderer.BuiltInWidget name = BuiltInWidgetArgumentType.getBuiltInWidget("name", ctx);
-                                                            RenderSystem.recordRenderCall(() -> {
-                                                                KZEAddon.widgetRenderer.openEditScreen(name);
-                                                            });
+                                                            RenderSystem.recordRenderCall(() -> KZEAddon.widgetRenderer.openEditScreen(name));
                                                             return 0;
                                                         })
                                                 )
@@ -290,8 +263,15 @@ public class AddonCommand {
                                             return 0;
                                         })
                                 )
+                        ).then(
+                                l("scan").executes(ctx -> {
+                                    Arrays.stream(ModUtils.scanCommandTree().split("\n")).map(Text::of).forEach(ctx.getSource()::sendFeedback);
+                                    return 0;
+                                })
                         )
                 )
         );
     }
+
+    private AddonCommand() {}
 }

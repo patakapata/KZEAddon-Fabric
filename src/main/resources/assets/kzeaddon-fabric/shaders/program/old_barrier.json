@@ -1,0 +1,51 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "one",
+    "dstrgb": "one"
+  },
+  "vertex": "kzeaddon-fabric:old_barrier",
+  "fragment": "kzeaddon-fabric:old_barrier",
+  "attributes": [
+    "position",
+    "offset"
+  ],
+  "samplers": [],
+  "uniforms": [
+    {
+      "name": "mvp",
+      "type": "matrix4x4",
+      "count": 16,
+      "values": [
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0
+      ]
+    },
+    {
+      "name": "fadeRadius",
+      "type": "float",
+      "count": 1,
+      "values": [ 0.0 ]
+    },
+    {
+      "name": "useFade",
+      "type": "float",
+      "count": 1,
+      "values": [ 1.0 ]
+    },
+    {
+      "name": "center",
+      "type": "float",
+      "count": 3,
+      "values": [ 0.0, 0.0, 0.0 ]
+    },
+    {
+      "name": "color",
+      "type": "float",
+      "count": 3,
+      "values": [ 0.0, 0.0, 1.0 ]
+    }
+  ]
+}

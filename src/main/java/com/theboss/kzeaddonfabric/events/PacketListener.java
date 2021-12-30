@@ -1,12 +1,12 @@
 package com.theboss.kzeaddonfabric.events;
 
 import com.mojang.datafixers.util.Pair;
-import com.theboss.kzeaddonfabric.utils.Color;
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.Options;
-import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import com.theboss.kzeaddonfabric.ingame.Weapon;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
+import com.theboss.kzeaddonfabric.utils.Color;
+import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -45,7 +45,7 @@ public class PacketListener {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < buffer.capacity(); i++) builder.append((char) buffer.readByte());
 
-        KZEAddon.info("CustomPayload > " + channel.getPath() + ":" + channel.getNamespace() + " | " + builder.toString());
+        KZEAddon.info("CustomPayload > " + channel.getPath() + ":" + channel.getNamespace() + " | " + builder);
     }
 
     @SuppressWarnings("unused")
@@ -79,9 +79,9 @@ public class PacketListener {
         String name = packet.getTeamName();
         Team team = scoreboard.getTeam(name);
 
-        if (team.shouldShowFriendlyInvisibles() != options.shouldShowFriendlyInvisibles) {
-            team.setShowFriendlyInvisibles(options.shouldShowFriendlyInvisibles);
-            KZEAddon.info(new TranslatableText("info.kzeaddon.change_visibility", new TranslatableText("info.kzeaddon." + (options.shouldShowFriendlyInvisibles ? "hide" : "show")), new TranslatableText("info.kzeaddon." + (options.shouldShowFriendlyInvisibles ? "show" : "hide"))));
+        if (team.shouldShowFriendlyInvisibles() != options.isShowFriendlyInvisibles) {
+            team.setShowFriendlyInvisibles(options.isShowFriendlyInvisibles);
+            KZEAddon.info(new TranslatableText("feature.kzeaddon.change_visibility", new TranslatableText("feature.kzeaddon." + (options.isShowFriendlyInvisibles ? "hide" : "show")), new TranslatableText("feature.kzeaddon." + (options.isShowFriendlyInvisibles ? "show" : "hide"))));
         }
     }
 

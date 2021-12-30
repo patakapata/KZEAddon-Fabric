@@ -13,6 +13,7 @@
     "GameRendererMixin",
     "InGameHudMixin",
     "ItemStackMixin",
+    "JsonEffectGlShaderMixin",
     "MinecraftClientMixin",
     "OtherClientPlayerEntityMixin",
     "PlayerEntityRendererMixin",
@@ -24,6 +25,7 @@
     "accessor.GameRendererAccessor",
     "accessor.JsonEffectGlShaderAccessor",
     "accessor.KeyBindingAccessor",
+    "accessor.LightmapTextureManagerAccessor",
     "accessor.LookingPosArgumentAccessor",
     "accessor.Matrix4fAccessor"
   ],

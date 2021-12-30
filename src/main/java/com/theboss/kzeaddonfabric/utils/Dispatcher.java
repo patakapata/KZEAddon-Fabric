@@ -16,8 +16,4 @@ public class Dispatcher<T> {
             this.list.add(t);
         }
     }
-
-    public List<T> getContents() {
-        return Lists.newArrayList(this.list);
-    }
 }

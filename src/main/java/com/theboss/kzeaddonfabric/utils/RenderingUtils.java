@@ -1,8 +1,13 @@
 package com.theboss.kzeaddonfabric.utils;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.KZEAddon;
+import com.theboss.kzeaddonfabric.mixin.accessor.GameRendererAccessor;
+import com.theboss.kzeaddonfabric.mixin.accessor.Matrix4fAccessor;
+import com.theboss.kzeaddonfabric.render.Constants;
+import com.theboss.kzeaddonfabric.render.shader.AbstractShader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
@@ -17,8 +22,11 @@ import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.client.util.GlAllocationUtils;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -27,20 +35,66 @@ import net.minecraft.world.BlockRenderView;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL33;
 
+import java.lang.reflect.Field;
+import java.nio.FloatBuffer;
 import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class RenderingUtils {
     public static final Queue<Integer> texStack = new ArrayDeque<>();
-    static final Random RANDOM;
-    static final BlockRenderManager renderManager;
-    static final BlockModelRenderer modelRenderer;
+    public static final Random RANDOM;
+    public static final BlockRenderManager renderManager;
+    public static final BlockModelRenderer modelRenderer;
 
     static {
         RANDOM = new Random();
         renderManager = MinecraftClient.getInstance().getBlockRenderManager();
         modelRenderer = RenderingUtils.renderManager.getModelRenderer();
+    }
+
+    public static void beginFullBuild(BufferBuilder buffer, int drawMode) {
+        buffer.begin(drawMode, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+    }
+
+    @SuppressWarnings("RedundantCast")
+    public static void bobView(MatrixStack matrices, float f) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.getCameraEntity() instanceof PlayerEntity) {
+            PlayerEntity playerEntity = (PlayerEntity) client.getCameraEntity();
+            float g = playerEntity.horizontalSpeed - playerEntity.prevHorizontalSpeed;
+            float h = -(playerEntity.horizontalSpeed + g * f);
+            float i = MathHelper.lerp(f, playerEntity.prevStrideDistance, playerEntity.strideDistance);
+            matrices.translate((double) (MathHelper.sin(h * 3.1415927F) * i * 0.5F), (double) (-Math.abs(MathHelper.cos(h * 3.1415927F) * i)), 0.0D);
+            matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(MathHelper.sin(h * 3.1415927F) * i * 3.0F));
+            matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(Math.abs(MathHelper.cos(h * 3.1415927F - 0.2F) * i) * 5.0F));
+        }
+
+    }
+
+    public static void bobViewWhenHurt(MatrixStack matrices, float f) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.getCameraEntity() instanceof LivingEntity) {
+            LivingEntity livingEntity = (LivingEntity) client.getCameraEntity();
+            float g = (float) livingEntity.hurtTime - f;
+            float i;
+            if (livingEntity.isDead()) {
+                i = Math.min((float) livingEntity.deathTime + f, 20.0F);
+                matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(40.0F - 8000.0F / (i + 200.0F)));
+            }
+
+            if (g < 0.0F) {
+                return;
+            }
+
+            g /= (float) livingEntity.maxHurtTime;
+            g = MathHelper.sin(g * g * g * g * 3.1415927F);
+            i = livingEntity.knockbackVelocity;
+            matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(-i));
+            matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(-g * 14.0F));
+            matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(i));
+        }
+
     }
 
     /**
@@ -74,34 +128,34 @@ public class RenderingUtils {
         vertexConsumer.vertex(matrix, end.getX(), start.getY(), end.getZ()).color(red, green, blue, alpha).next();
     }
 
-    public static List<Text> getMatrixContent(boolean isProjectionMatrix) {
-        float[] matContent = new float[16];
-        GL11.glGetFloatv(isProjectionMatrix ? GL11.GL_PROJECTION_MATRIX : GL11.GL_MODELVIEW_MATRIX, matContent);
-        List<Text> list = new ArrayList<>();
-        StringBuilder builder = new StringBuilder();
-        list.add(Text.of((isProjectionMatrix ? "PROJECTION" : "MODELVIEW") + "  \\/"));
-        for (int i = 0; i < 16; i++) {
-            if (i % 4 == 0 && i != 0) {
-                list.add(Text.of(builder.toString()));
-                builder.setLength(0);
-            }
-            builder.append(" ").append(matContent[i / 4 + (i % 4 * 4)]).append(" ");
+    /**
+     * Overload a {@link #drawPlayerHead(MatrixStack, GameProfile, int, int)}
+     *
+     * @param matrices MatrixStack
+     * @param player   Skin get destination
+     * @param x        Rendering offset in screen space
+     * @param y        Rendering offset in screen space
+     */
+    @SuppressWarnings("unused")
+    public static void drawPlayerHead(MatrixStack matrices, PlayerEntity player, int x, int y) {
+        RenderingUtils.drawPlayerHead(matrices, player.getGameProfile(), x, y);
+    }
+
+    @SuppressWarnings({ "SpellCheckingInspection", "ConstantConditions" })
+    public static void drawPlayerHead(MatrixStack matrices, GameProfile profile, int x, int y) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        PlayerListEntry entry = client.player.networkHandler.getPlayerListEntry(profile.getId());
+        PlayerEntity playerEntity = client.world.getPlayerByUuid(profile.getId());
+        boolean bl2 = playerEntity != null && playerEntity.isPartVisible(PlayerModelPart.CAPE) && ("Dinnerbone".equals(profile.getName()) || "Grumm".equals(profile.getName()));
+        client.getTextureManager().bindTexture(entry.getSkinTexture());
+        int ad = 8 + (bl2 ? 8 : 0);
+        int ae = 8 * (bl2 ? -1 : 1);
+        DrawableHelper.drawTexture(matrices, x, y, 8, 8, 8.0F, (float) ad, 8, ae, 64, 64);
+        if (playerEntity != null && playerEntity.isPartVisible(PlayerModelPart.HAT)) {
+            int af = 8 + (bl2 ? 8 : 0);
+            int ag = 8 * (bl2 ? -1 : 1);
+            DrawableHelper.drawTexture(matrices, x, y, 8, 8, 40.0F, (float) af, 8, ag, 64, 64);
         }
-        list.add(Text.of(builder.toString()));
-
-        return list;
-    }
-
-    public static void setupPerspectiveProjectionMatrix(float delta) {
-        RenderSystem.matrixMode(GL_PROJECTION);
-        RenderSystem.pushMatrix();
-        RenderSystem.loadIdentity();
-        RenderSystem.multMatrix(VanillaUtils.getProjectionMatrix(delta));
-        RenderSystem.matrixMode(GL_MODELVIEW);
-    }
-
-    public static int getVertexArrayBinding() {
-        return GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING);
     }
 
     /**
@@ -186,27 +240,40 @@ public class RenderingUtils {
         tessellator.draw();
     }
 
-    public static void setupOrthogonalProjectionMatrix() {
-        Window window = MinecraftClient.getInstance().getWindow();
-        RenderSystem.matrixMode(GL_PROJECTION);
-        RenderSystem.pushMatrix();
-        RenderSystem.loadIdentity();
-        RenderSystem.ortho(0.0D, window.getScaledWidth(), window.getScaledHeight(), 0.0D, 1000.0D, 3000.0D);
-        RenderSystem.matrixMode(GL_MODELVIEW);
+    @SuppressWarnings("unused")
+    public static double[] fromMatrix(Matrix4f matrix) {
+        double[] result = new double[16];
+        int i = 0;
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++) {
+                try {
+                    Field field = Matrix4f.class.getDeclaredField("a" + y + "" + x);
+                    field.setAccessible(true);
+                    result[i++] = field.getFloat(matrix);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return result;
     }
 
-    public static void popProjectionMatrix() {
-        RenderSystem.matrixMode(GL_PROJECTION);
-        RenderSystem.popMatrix();
-        RenderSystem.matrixMode(GL_MODELVIEW);
+    @SuppressWarnings("ConstantConditions")
+    public static Vec3f getCameraRightWorldSpace(Matrix4f viewMatrix) {
+        return new Vec3f(
+                ((Matrix4fAccessor) (Object) viewMatrix).a00(),
+                ((Matrix4fAccessor) (Object) viewMatrix).a10(),
+                ((Matrix4fAccessor) (Object) viewMatrix).a20()
+        );
     }
 
-    public static void registerTexture(String namespace, String path) {
-        registerTexture(new Identifier(namespace, path));
-    }
-
-    public static void registerTexture(Identifier id) {
-        MinecraftClient.getInstance().getTextureManager().registerTexture(id, new ResourceTexture(id));
+    @SuppressWarnings("ConstantConditions")
+    public static Vec3f getCameraUpWorldSpace(Matrix4f viewMatrix) {
+        return new Vec3f(
+                ((Matrix4fAccessor) (Object) viewMatrix).a01(),
+                ((Matrix4fAccessor) (Object) viewMatrix).a11(),
+                ((Matrix4fAccessor) (Object) viewMatrix).a21()
+        );
     }
 
     public static Optional<Integer> getGlId(Identifier identifier) {
@@ -214,8 +281,131 @@ public class RenderingUtils {
         return Optional.ofNullable(texture == null ? null : texture.getGlId());
     }
 
-    public static void beginFullBuild(BufferBuilder buffer, int drawMode) {
-        buffer.begin(drawMode, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+    public static List<Text> getMatrixContent(boolean isProjectionMatrix) {
+        float[] matContent = new float[16];
+        GL11.glGetFloatv(isProjectionMatrix ? GL11.GL_PROJECTION_MATRIX : GL11.GL_MODELVIEW_MATRIX, matContent);
+        List<Text> list = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        list.add(Text.of((isProjectionMatrix ? "PROJECTION" : "MODELVIEW") + "  \\/"));
+        for (int i = 0; i < 16; i++) {
+            if (i % 4 == 0 && i != 0) {
+                list.add(Text.of(builder.toString()));
+                builder.setLength(0);
+            }
+            builder.append(" ").append(matContent[i / 4 + (i % 4 * 4)]).append(" ");
+        }
+        list.add(Text.of(builder.toString()));
+
+        return list;
+    }
+
+    /**
+     * Get a matrix contents
+     *
+     * @param matrices target matrix
+     * @return String array split by rows
+     */
+    @SuppressWarnings("unused")
+    public static String[] getMatrixContents(MatrixStack matrices) {
+        FloatBuffer buffer = GlAllocationUtils.allocateFloatBuffer(4 * 4 * 4);
+        Matrix4f matrix = matrices.peek().getModel();
+        matrix.writeRowFirst(buffer);
+        String[] result = new String[4];
+        StringBuilder builder = new StringBuilder();
+
+        int i = 0;
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++) {
+                builder.append(String.format("%3.2f", buffer.get(i++))).append(" ");
+            }
+            result[y] = builder.toString();
+            builder.setLength(0);
+        }
+
+        return result;
+    }
+
+    public static Matrix4f getProjectionMatrix(float delta) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        return mc.gameRenderer.getBasicProjectionMatrix(mc.gameRenderer.getCamera(), delta, true);
+    }
+
+    public static Matrix4f getVPMatrix(float delta) {
+        Matrix4f projection = getProjectionMatrix(delta);
+        MatrixStack view = getViewMatrix(delta);
+        projection.multiply(view.peek().getModel());
+
+        return projection;
+    }
+
+    public static int getVertexArrayBinding() {
+        return GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING);
+    }
+
+    public static MatrixStack getViewMatrix(float delta) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        Camera camera = mc.gameRenderer.getCamera();
+        MatrixStack matrix = new MatrixStack();
+
+        bobViewWhenHurt(matrix, delta);
+        if (mc.options.bobView) {
+            bobView(matrix, delta);
+        }
+
+        if (mc.player != null) {
+            float f = MathHelper.lerp(delta, mc.player.lastNauseaStrength, mc.player.nextNauseaStrength) * mc.options.distortionEffectScale * mc.options.distortionEffectScale;
+            if (f > 0.0F) {
+                int ticks = ((GameRendererAccessor) mc.gameRenderer).getTicks();
+                int i = mc.player.hasStatusEffect(StatusEffects.NAUSEA) ? 7 : 20;
+                float g = 5.0F / (f * f + 5.0F) - f * 0.04F;
+                g *= g;
+                Vec3f vec3f = new Vec3f(0.0F, MathHelper.SQUARE_ROOT_OF_TWO / 2.0F, MathHelper.SQUARE_ROOT_OF_TWO / 2.0F);
+                matrix.multiply(vec3f.getDegreesQuaternion(((float) ticks + delta) * (float) i));
+                matrix.scale(1.0F / g, 1.0F, 1.0F);
+                float h = -((float) ticks + delta) * (float) i;
+                matrix.multiply(vec3f.getDegreesQuaternion(h));
+            }
+        }
+
+        matrix.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(camera.getPitch()));
+        matrix.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180.0F));
+
+        return matrix;
+    }
+
+    public static void glError(String location) {
+        int error = GL33.glGetError();
+        if (error != 0) {
+            String msg = "";
+            if (KZEAddon.GL_ERRORS.containsKey(error)) msg = KZEAddon.GL_ERRORS.get(error);
+            KZEAddon.info(Text.Serializer.fromJson("{\"translate\":\"%s%s%s %s %s (%s)\",\"with\":[" +
+                                                           "{\"text\":\"[\",\"color\":\"gold\"}," +
+                                                           "{\"text\":\"ERROR\",\"color\":\"red\"}," +
+                                                           "{\"text\":\"]\",\"color\":\"gold\"}," +
+                                                           "{\"text\":\"" + location + "\",\"color\":\"white\"}," +
+                                                           "{\"text\":\"" + error + "\",\"color\":\"white\"}," +
+                                                           "{\"text\":\"" + msg + "\",\"color\":\"white\"}" +
+                                                           "]}"));
+        }
+    }
+
+    public static void glFlatShadeModel() {
+        GlStateManager.shadeModel(Constants.GL_FLAT);
+    }
+
+    public static void glSmoothShadeModel() {
+        GlStateManager.shadeModel(Constants.GL_SMOOTH);
+    }
+
+    public static void perspectiveToOrtho(MatrixStack mvp, int width, int height, Vector4f vector) {
+        vector.transform(mvp.peek().getModel());
+        vector.set(((vector.getX() / vector.getW()) + 1) / 2 * width, (-(vector.getY() / vector.getW()) + 1) / 2 * height, vector.getZ() / vector.getW(), vector.getW());
+    }
+
+    public static void popProjectionMatrix() {
+        RenderSystem.matrixMode(GL_PROJECTION);
+        RenderSystem.popMatrix();
+        RenderSystem.matrixMode(GL_MODELVIEW);
     }
 
     public static void popTexture() {
@@ -225,6 +415,14 @@ public class RenderingUtils {
 
     public static void pushTexture() {
         texStack.add(glGetInteger(GL_TEXTURE_BINDING_2D));
+    }
+
+    public static void registerTexture(String namespace, String path) {
+        registerTexture(new Identifier(namespace, path));
+    }
+
+    public static void registerTexture(Identifier id) {
+        MinecraftClient.getInstance().getTextureManager().registerTexture(id, new ResourceTexture(id));
     }
 
     public static void renderBlock(MatrixStack matrices, BlockRenderView world, BlockState state, BlockPos pos, VertexConsumer vertexConsumer, boolean cull) {
@@ -247,55 +445,7 @@ public class RenderingUtils {
         BlockEntityRenderDispatcher.INSTANCE.render(blockEntity, delta, matrices, mc.getBufferBuilders().getEntityVertexConsumers());
     }
 
-    private RenderingUtils() {}
-
-    /**
-     * Overload a {@link #drawPlayerHead(MatrixStack, GameProfile, int, int)}
-     *
-     * @param matrices MatrixStack
-     * @param player   Skin get destination
-     * @param x        Rendering offset in screen space
-     * @param y        Rendering offset in screen space
-     */
-    @SuppressWarnings("unused")
-    public static void drawPlayerHead(MatrixStack matrices, PlayerEntity player, int x, int y) {
-        RenderingUtils.drawPlayerHead(matrices, player.getGameProfile(), x, y);
-    }
-
-    @SuppressWarnings({"SpellCheckingInspection", "ConstantConditions"})
-    public static void drawPlayerHead(MatrixStack matrices, GameProfile profile, int x, int y) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        PlayerListEntry entry = client.player.networkHandler.getPlayerListEntry(profile.getId());
-        PlayerEntity playerEntity = client.world.getPlayerByUuid(profile.getId());
-        boolean bl2 = playerEntity != null && playerEntity.isPartVisible(PlayerModelPart.CAPE) && ("Dinnerbone".equals(profile.getName()) || "Grumm".equals(profile.getName()));
-        client.getTextureManager().bindTexture(entry.getSkinTexture());
-        int ad = 8 + (bl2 ? 8 : 0);
-        int ae = 8 * (bl2 ? -1 : 1);
-        DrawableHelper.drawTexture(matrices, x, y, 8, 8, 8.0F, (float) ad, 8, ae, 64, 64);
-        if (playerEntity != null && playerEntity.isPartVisible(PlayerModelPart.HAT)) {
-            int af = 8 + (bl2 ? 8 : 0);
-            int ag = 8 * (bl2 ? -1 : 1);
-            DrawableHelper.drawTexture(matrices, x, y, 8, 8, 40.0F, (float) af, 8, ag, 64, 64);
-        }
-    }
-
-    public static void glError(String location) {
-        int error = GL33.glGetError();
-        if (error != 0) {
-            String msg = "";
-            if (KZEAddon.GL_ERRORS.containsKey(error)) msg = KZEAddon.GL_ERRORS.get(error);
-            KZEAddon.info(Text.Serializer.fromJson("{\"translate\":\"%s%s%s %s %s (%s)\",\"with\":[" +
-                    "{\"text\":\"[\",\"color\":\"gold\"}," +
-                    "{\"text\":\"ERROR\",\"color\":\"red\"}," +
-                    "{\"text\":\"]\",\"color\":\"gold\"}," +
-                    "{\"text\":\"" + location + "\",\"color\":\"white\"}," +
-                    "{\"text\":\"" + error + "\",\"color\":\"white\"}," +
-                    "{\"text\":\"" + msg + "\",\"color\":\"white\"}" +
-                    "]}"));
-        }
-    }
-
-    @SuppressWarnings({"unused", "ConstantConditions"})
+    @SuppressWarnings({ "unused", "ConstantConditions" })
     public static void renderPlayerHead(MatrixStack matrices, float tickDelta) {
         float texSize = 64;
         MinecraftClient client = MinecraftClient.getInstance();
@@ -334,8 +484,37 @@ public class RenderingUtils {
         }
     }
 
-    public static void perspectiveToOrtho(MatrixStack mvp, int width, int height, Vector4f vector) {
-        vector.transform(mvp.peek().getModel());
-        vector.set(((vector.getX() / vector.getW()) + 1) / 2 * width, (-(vector.getY() / vector.getW()) + 1) / 2 * height, vector.getZ() / vector.getW(), vector.getW());
+    public static void setupOrthogonalProjectionMatrix() {
+        Window window = MinecraftClient.getInstance().getWindow();
+        RenderSystem.matrixMode(GL_PROJECTION);
+        RenderSystem.pushMatrix();
+        RenderSystem.loadIdentity();
+        RenderSystem.ortho(0.0D, window.getScaledWidth(), window.getScaledHeight(), 0.0D, 1000.0D, 3000.0D);
+        RenderSystem.matrixMode(GL_MODELVIEW);
     }
+
+    public static void setupPerspectiveProjectionMatrix(float delta) {
+        RenderSystem.matrixMode(GL_PROJECTION);
+        RenderSystem.pushMatrix();
+        RenderSystem.loadIdentity();
+        RenderSystem.multMatrix(getProjectionMatrix(delta));
+        RenderSystem.matrixMode(GL_MODELVIEW);
+    }
+
+    @SuppressWarnings("unused")
+    public static void toMatrix(Matrix4f matrix, double[] contents) {
+        for (int x = 0; x < 4; x++) {
+            for (int y = 0; y < 4; y++) {
+                try {
+                    Field field = Matrix4f.class.getDeclaredField("a" + x + "" + y);
+                    field.setAccessible(true);
+                    field.set(matrix, (float) contents[y * 4 + x]);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private RenderingUtils() {}
 }

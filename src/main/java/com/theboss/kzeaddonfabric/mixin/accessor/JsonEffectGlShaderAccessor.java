@@ -8,15 +8,21 @@ import java.util.List;
 
 @Mixin(JsonEffectGlShader.class)
 public interface JsonEffectGlShaderAccessor {
+    @Accessor("activeProgramRef")
+    static int getActiveProgramRef() {
+        throw new AssertionError();
+    }
+
     @Accessor("activeShader")
     static JsonEffectGlShader getActiveShader() {
         throw new AssertionError();
     }
 
-    @Accessor("activeProgramRef")
-    static int getActiveProgramRef() {
-        throw new AssertionError();
-    }
+    @Accessor("attribLocs")
+    List<Integer> getAttribLocs();
+
+    @Accessor("attribNames")
+    List<String> getAttribNames();
 
     @Accessor("name")
     String getName();

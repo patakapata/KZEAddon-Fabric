@@ -39,28 +39,41 @@ public class Options {
 
     @Exclude
     private final File optionFile;
-    public boolean shouldShowKillLog;
-    public boolean shouldHighlightMyKill;
-    public boolean shouldShowModLog;
-    public boolean shouldIgnoreResourcePack;
-    public boolean shouldChangeGunfireVolume;
-    public boolean shouldBarrierVisualize;
-    public boolean barrierVisualizeUseCrosshairCenter;
-    public boolean isHideAllies;
-    public boolean shouldShowFriendlyInvisibles;
-    public boolean shouldUseFade;
 
-    public float gunfireVolumeMultiplier;
-    public Color obsessionGlowColor;
-    public Color humanGlowColor;
-    public Color zombieGlowColor;
+    // 機能の 有効/無効
+    // キルログ
+    public boolean isShowKillLog;
+    public boolean isHighlightMyKill;
+    // 銃声の音量
+    public boolean isIgnoreResourcePack;
+    public boolean isChangeGunfireVolume;
+    // バリア可視化
+    public boolean isCrosshairVisualizeOrigin;
+    public boolean isShowFriendlyInvisibles;
+    public boolean isVisualizeBarriers;
+    public boolean isBarrierFade;
+    // その他
+    public boolean isShowModLog;
+    public boolean isHideAllies;
+    public boolean isShowDebugConfig;
+
+    // 各機能で使用される値
+    // キルログ
+    public float killLogScrollMultiplier;
+    // バリア可視化
     public int barrierVisualizeRadius;
-    public float barrierVisualizeShowRadius;
+    public float barrierFadeRadius;
     public float barrierVisualizeRaycastDistance;
     public float barrierLineWidth;
     public Color barrierColor;
+    // 銃声の音量
+    public float gunfireVolumeMultiplier;
+    // 発光色
+    public Color obsessionGlowColor;
+    public Color humanGlowColor;
+    public Color zombieGlowColor;
+    // その他
     public Vec3d cameraOffset;
-    public float killLogScrollMultiplier;
 
     @SuppressWarnings("unchecked")
     public static <T> T getDefaultValue(String name) throws NoSuchFieldException, IllegalAccessException {
@@ -85,24 +98,27 @@ public class Options {
         ChunkInstancedBarrierVisualizer.recordRenderCall(() -> BarrierShader.INSTANCE.setColor(this.barrierColor));
     }
 
+    /**
+     * 規定値の設定
+     */
     public void restoreDefaultValues() {
-        this.shouldShowKillLog = false;
-        this.shouldShowModLog = false;
-        this.shouldHighlightMyKill = true;
-        this.shouldIgnoreResourcePack = true;
-        this.shouldChangeGunfireVolume = true;
-        this.shouldBarrierVisualize = false;
-        this.barrierVisualizeUseCrosshairCenter = false;
+        this.isShowKillLog = false;
+        this.isShowModLog = false;
+        this.isHighlightMyKill = true;
+        this.isIgnoreResourcePack = true;
+        this.isChangeGunfireVolume = true;
+        this.isVisualizeBarriers = false;
+        this.isCrosshairVisualizeOrigin = false;
         this.isHideAllies = false;
-        this.shouldShowFriendlyInvisibles = false;
-        this.shouldUseFade = false;
+        this.isShowFriendlyInvisibles = false;
+        this.isBarrierFade = false;
 
         this.gunfireVolumeMultiplier = 0.5F;
         this.obsessionGlowColor = new Color(0xFF0000);
         this.humanGlowColor = new Color(0x00AAAA);
         this.zombieGlowColor = new Color(0x00AA00);
         this.barrierVisualizeRadius = 1;
-        this.barrierVisualizeShowRadius = 16F;
+        this.barrierFadeRadius = 16F;
         this.barrierVisualizeRaycastDistance = 40.0F;
         this.barrierLineWidth = 2F;
         this.barrierColor = new Color(0xAA0000);
@@ -110,6 +126,9 @@ public class Options {
         this.killLogScrollMultiplier = 1.0F;
     }
 
+    /**
+     * 他の {@link Options} インスタンスから設定をコピーする
+     */
     private void copy(Options other) {
         try {
             for (Field field : this.getClass().getDeclaredFields()) {
@@ -122,6 +141,11 @@ public class Options {
         }
     }
 
+    /**
+     * ファイルから設定を読み込む
+     *
+     * @see #optionFile
+     */
     public void load() {
         if (ModUtils.prepareIO(this.optionFile)) {
             Options loaded;
@@ -141,6 +165,11 @@ public class Options {
         }
     }
 
+    /**
+     * ファイルへ設定を保存する
+     *
+     * @see #optionFile
+     */
     public void save() {
         if (ModUtils.prepareIO(this.optionFile)) {
             try (FileWriter writer = new FileWriter(this.optionFile, false)) {

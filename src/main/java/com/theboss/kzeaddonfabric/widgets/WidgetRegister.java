@@ -5,5 +5,5 @@ import com.theboss.kzeaddonfabric.utils.Dispatcher;
 public interface WidgetRegister {
     void registerWidget(Dispatcher<Widget> dispatcher);
 
-    void registerWidgetType(Dispatcher<Class<?>> dispatcher);
+    void registerWidgetType(Dispatcher<Class<? extends Widget>> dispatcher);
 }

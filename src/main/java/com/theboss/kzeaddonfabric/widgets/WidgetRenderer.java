@@ -36,7 +36,7 @@ public class WidgetRenderer {
         gsonBuilder.disableHtmlEscaping();
         gsonBuilder.registerTypeHierarchyAdapter(Text.class, new Text.Serializer());
         gsonBuilder.registerTypeHierarchyAdapter(Style.class, new Style.Serializer());
-        // gsonBuilder.registerTypeAdapter(Widget.class, new Widget.Serializer()); FIXME
+        gsonBuilder.registerTypeAdapter(Widget.class, new Widget.Serializer());
         gsonBuilder.registerTypeAdapterFactory(new LowercaseEnumTypeAdapterFactory());
         return gsonBuilder.create();
     });
@@ -65,29 +65,16 @@ public class WidgetRenderer {
         this.load();
     }
 
-    private void restoreDefault() {
-        KZEInformation kzeInfo = KZEAddon.kzeInfo;
-        this.primaryWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.PRIMARY), "Main weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -80, -30), Anchor.MIDDLE_DOWN);
-        this.secondaryWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.SECONDARY), "Sub weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -60, -30), Anchor.MIDDLE_DOWN);
-        this.meleeWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.MELEE), "Melee Weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -40, -30), Anchor.MIDDLE_DOWN);
-        this.reloadTimeWidget = new ReloadTimeWidget(1F, new Offset(Anchor.MIDDLE_MIDDLE, 5, 5), Anchor.LEFT_UP, 0xFFFFFF, 0xFF);
-        this.totalAmmoWidget = new TotalAmmoWidget(1F, new Offset(Anchor.MIDDLE_DOWN, -100, -10), Anchor.RIGHT_MIDDLE, 0xFFFFFF, 0xFF);
-        this.textWidgets.clear();
+    public void add(Widget widget) {
+        this.customWidgets.add(widget);
     }
 
-    public void openWidgetListScreen() {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        List<Widget> widgets = new ArrayList<>();
-        widgets.addAll(this.textWidgets);
-        widgets.addAll(this.customWidgets);
-        widgets.add(this.primaryWidget);
-        widgets.add(this.secondaryWidget);
-        widgets.add(this.meleeWidget);
-        widgets.add(this.reloadTimeWidget);
-        widgets.add(this.totalAmmoWidget);
-        WidgetListScreen screen = new WidgetListScreen(widgets);
-        screen.setParent(mc.currentScreen);
-        screen.open(mc);
+    public void addText(TextWidget widget) {
+        this.textWidgets.add(widget);
+    }
+
+    public boolean contains(Widget widget) {
+        return this.customWidgets.contains(widget);
     }
 
     private void copy(WidgetRenderer other) throws NullPointerException {
@@ -98,6 +85,32 @@ public class WidgetRenderer {
         this.totalAmmoWidget.copy(other.totalAmmoWidget);
         this.textWidgets.clear();
         this.textWidgets.addAll(other.textWidgets);
+    }
+
+    public void forEachText(Consumer<? super Widget> consumer) {
+        this.textWidgets.forEach(consumer);
+        this.customWidgets.forEach(consumer);
+    }
+
+    public Widget getCustomWidget(int index) {
+        return this.customWidgets.get(index);
+    }
+
+    public TextWidget getTextWidget(int index) {
+        return this.textWidgets.get(index);
+    }
+
+    private void internalRender(MatrixStack matrices, float delta, List<? extends Widget> widgets, Window window) {
+        for (Widget widget : widgets) {
+            this.internalRender(matrices, delta, widget, window);
+        }
+    }
+
+    private void internalRender(MatrixStack matrices, float delta, Widget widget, Window window) {
+        matrices.push();
+        widget.transform(matrices, window);
+        widget.render(matrices, delta);
+        matrices.pop();
     }
 
     public void load() {
@@ -112,87 +125,6 @@ public class WidgetRenderer {
         } else {
             KZEAddon.LOGGER.fatal("Can't create or load widgets file");
         }
-    }
-
-    public void save() {
-        if (ModUtils.prepareIO(this.configFile)) {
-            try (FileWriter writer = new FileWriter(this.configFile, false)) {
-                GSON.toJson(this, writer);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } else {
-            KZEAddon.LOGGER.fatal("Can't create or load widgets file");
-        }
-    }
-
-    public void addText(TextWidget widget) {
-        this.textWidgets.add(widget);
-    }
-
-    public boolean removeText(TextWidget widget) {
-        return this.textWidgets.remove(widget);
-    }
-
-    public void add(Widget widget) {
-        this.customWidgets.add(widget);
-    }
-
-    public boolean remove(Widget widget) {
-        return this.customWidgets.remove(widget);
-    }
-
-    public Widget remove(int index) {
-        return this.customWidgets.remove(index);
-    }
-
-    public boolean contains(Widget widget) {
-        return this.customWidgets.contains(widget);
-    }
-
-    public int textWidgetCount() {
-        return this.textWidgets.size();
-    }
-
-    public TextWidget getTextWidget(int index) {
-        return this.textWidgets.get(index);
-    }
-
-    public Widget getCustomWidget(int index) {
-        return this.customWidgets.get(index);
-    }
-
-    public void forEachText(Consumer<? super Widget> consumer) {
-        this.textWidgets.forEach(consumer);
-    }
-
-    public void render(MatrixStack matrices, float delta) {
-        Window window = MinecraftClient.getInstance().getWindow();
-
-        this.internalRender(matrices, delta, this.textWidgets, window);
-        this.internalRender(matrices, delta, this.customWidgets, window);
-        // -------------------------------------------------- //
-        // 武器
-        this.internalRender(matrices, delta, this.primaryWidget, window);
-        this.internalRender(matrices, delta, this.secondaryWidget, window);
-        this.internalRender(matrices, delta, this.meleeWidget, window);
-        // -------------------------------------------------- //
-        // 他
-        this.internalRender(matrices, delta, this.reloadTimeWidget, window);
-        this.internalRender(matrices, delta, this.totalAmmoWidget, window);
-    }
-
-    private void internalRender(MatrixStack matrices, float delta, List<? extends Widget> widgets, Window window) {
-        for (Widget widget : widgets) {
-            this.internalRender(matrices, delta, widget, window);
-        }
-    }
-
-    private void internalRender(MatrixStack matrices, float delta, Widget widget, Window window) {
-        matrices.push();
-        widget.transform(matrices, window);
-        widget.render(matrices, delta);
-        matrices.pop();
     }
 
     public void openEditScreen(Widget widget) {
@@ -227,11 +159,80 @@ public class WidgetRenderer {
         screen.open(mc);
     }
 
+    public void openWidgetListScreen() {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        List<Widget> widgets = new ArrayList<>();
+        widgets.addAll(this.textWidgets);
+        widgets.addAll(this.customWidgets);
+        widgets.add(this.primaryWidget);
+        widgets.add(this.secondaryWidget);
+        widgets.add(this.meleeWidget);
+        widgets.add(this.reloadTimeWidget);
+        widgets.add(this.totalAmmoWidget);
+        WidgetListScreen screen = new WidgetListScreen(widgets);
+        screen.setParent(mc.currentScreen);
+        screen.open(mc);
+    }
+
     public void openWidgetsScreen() {
         MinecraftClient mc = MinecraftClient.getInstance();
         WidgetsScreen screen = new WidgetsScreen();
         screen.setParent(mc.currentScreen);
         mc.openScreen(screen);
+    }
+
+    public boolean remove(Widget widget) {
+        return this.customWidgets.remove(widget);
+    }
+
+    public Widget remove(int index) {
+        return this.customWidgets.remove(index);
+    }
+
+    public boolean removeText(TextWidget widget) {
+        return this.textWidgets.remove(widget);
+    }
+
+    public void render(MatrixStack matrices, float delta) {
+        Window window = MinecraftClient.getInstance().getWindow();
+
+        this.internalRender(matrices, delta, this.textWidgets, window);
+        this.internalRender(matrices, delta, this.customWidgets, window);
+        // -------------------------------------------------- //
+        // 武器
+        this.internalRender(matrices, delta, this.primaryWidget, window);
+        this.internalRender(matrices, delta, this.secondaryWidget, window);
+        this.internalRender(matrices, delta, this.meleeWidget, window);
+        // -------------------------------------------------- //
+        // 他
+        this.internalRender(matrices, delta, this.reloadTimeWidget, window);
+        this.internalRender(matrices, delta, this.totalAmmoWidget, window);
+    }
+
+    private void restoreDefault() {
+        KZEInformation kzeInfo = KZEAddon.kzeInfo;
+        this.primaryWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.PRIMARY), "Main weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -80, -30), Anchor.MIDDLE_DOWN);
+        this.secondaryWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.SECONDARY), "Sub weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -60, -30), Anchor.MIDDLE_DOWN);
+        this.meleeWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.MELEE), "Melee Weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -40, -30), Anchor.MIDDLE_DOWN);
+        this.reloadTimeWidget = new ReloadTimeWidget(1F, new Offset(Anchor.MIDDLE_MIDDLE, 5, 5), Anchor.LEFT_UP, 0xFFFFFF, 0xFF);
+        this.totalAmmoWidget = new TotalAmmoWidget(1F, new Offset(Anchor.MIDDLE_DOWN, -100, -10), Anchor.RIGHT_MIDDLE, 0xFFFFFF, 0xFF);
+        this.textWidgets.clear();
+    }
+
+    public void save() {
+        if (ModUtils.prepareIO(this.configFile)) {
+            try (FileWriter writer = new FileWriter(this.configFile, false)) {
+                GSON.toJson(this, writer);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        } else {
+            KZEAddon.LOGGER.fatal("Can't create or load widgets file");
+        }
+    }
+
+    public int textWidgetCount() {
+        return this.textWidgets.size();
     }
 
     public enum BuiltInWidget {

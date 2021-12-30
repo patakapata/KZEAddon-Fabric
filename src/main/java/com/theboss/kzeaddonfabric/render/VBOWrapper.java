@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL15.*;
 
+@Deprecated
 public class VBOWrapper {
     private static final Logger LOGGER = LogManager.getLogger("VBOWrapper2");
 

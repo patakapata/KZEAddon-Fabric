@@ -7,11 +7,10 @@ import com.theboss.kzeaddonfabric.mixin.accessor.CameraAccessor;
 import com.theboss.kzeaddonfabric.mixin.accessor.KeyBindingAccessor;
 import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
 import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
-import com.theboss.kzeaddonfabric.render.shader.HoloWallShader;
+import com.theboss.kzeaddonfabric.render.shader.OldBarrierShader;
 import com.theboss.kzeaddonfabric.screen.KillLogScreen;
 import com.theboss.kzeaddonfabric.utils.ModUtils;
 import com.theboss.kzeaddonfabric.utils.VanillaUtils;
-import com.theboss.kzeaddonfabric.wip.HoloWall;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.item.TooltipContext;
@@ -32,7 +31,6 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -52,10 +50,52 @@ public class RenderingEventsListener extends DrawableHelper {
     public static float holdProgress;
     public static boolean holdProcessed;
     public static ItemStack lastItem = ItemStack.EMPTY;
-    // -------------------------------------------------- //
-    // Work in progress
-    public static boolean useFBO = false;
-    public static HoloWall holoWall = new HoloWall(Direction.NORTH, Vec3d.ZERO, 3);
+
+    private static void closeShaders() {
+        BarrierShader.INSTANCE.close();
+        OldBarrierShader.INSTANCE.close();
+    }
+
+    private static void initShaders() {
+        BarrierShader.INSTANCE.initialize();
+        OldBarrierShader.INSTANCE.initialize();
+    }
+
+    public static void onCameraUpdate(Camera camera, BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta) {
+        if (thirdPerson) {
+            Vec3d offset = KZEAddon.options.cameraOffset;
+            CameraAccessor accessor = (CameraAccessor) camera;
+            accessor.invokeMoveBy(offset.x, offset.y, offset.z);
+        }
+    }
+
+    /**
+     * クライアント終了時の処理
+     */
+    public static void onClose() {
+        closeShaders();
+        ChunkInstancedBarrierVisualizer.INSTANCE.close();
+    }
+
+    public static Optional<BipedEntityModel.ArmPose> onGetArmPose(AbstractClientPlayerEntity player, Hand hand) {
+        ItemStack item = player.getStackInHand(hand);
+
+        if (Weapon.quickReloadCheck(item)) {
+            return Optional.of(BipedEntityModel.ArmPose.CROSSBOW_CHARGE);
+        } else if (item.getItem().equals(Items.DIAMOND_HOE)) {
+            return Optional.of(BipedEntityModel.ArmPose.CROSSBOW_HOLD);
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * シェーダーやバッファーの初期化
+     */
+    public static void onInit() {
+        initShaders();
+        ChunkInstancedBarrierVisualizer.INSTANCE.initialize();
+    }
 
     /**
      * ワールド描画後の処理
@@ -63,9 +103,7 @@ public class RenderingEventsListener extends DrawableHelper {
      * @param matrices {@link net.minecraft.client.util.math.MatrixStack}
      * @param delta    A render delay
      */
-    public static void onPostRenderWorld(MatrixStack matrices, float delta) {
-        // holoWall.render(matrices, delta);
-    }
+    public static void onPostRenderWorld(MatrixStack matrices, float delta) {}
 
     /**
      * カットアウトレイヤー(ガラスなど透明部分があるが、半透明はない物)の描画前
@@ -82,12 +120,33 @@ public class RenderingEventsListener extends DrawableHelper {
     public static void onPreRenderCutout(MatrixStack matrices, float delta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightTexManager, Matrix4f unused) {
         Profiler profiler = VanillaUtils.getProfiler();
 
-        profiler.push("State and Offset");
-        ChunkInstancedBarrierVisualizer.render(useFBO, delta);
+        profiler.push("Render barriers");
+        ChunkInstancedBarrierVisualizer.render(delta);
         profiler.pop();
     }
 
     public static void onPreRenderSolid(MatrixStack matrices, float delta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+    }
+
+    /**
+     * Hud render event listener
+     *
+     * @param matrices {@link MatrixStack}
+     * @param delta    A rendering delay
+     */
+    public static void onRenderHud(MatrixStack matrices, float delta) {
+        Profiler profiler = VanillaUtils.getProfiler();
+        MinecraftClient mc = MinecraftClient.getInstance();
+        Window window = mc.getWindow();
+
+        profiler.push("Widgets");
+        KZEAddon.widgetRenderer.render(matrices, delta);
+        profiler.swap("KillLog");
+        if (!(mc.currentScreen instanceof KillLogScreen))
+            KZEAddon.killLog.render(matrices, window.getScaledWidth(), 0);
+        if (KZEAddon.options.isShowModLog)
+            KZEAddon.getModLog().render(matrices);
+        profiler.pop();
     }
 
     /**
@@ -185,79 +244,7 @@ public class RenderingEventsListener extends DrawableHelper {
         }
     }
 
-    public static Optional<BipedEntityModel.ArmPose> onGetArmPose(AbstractClientPlayerEntity player, Hand hand) {
-        ItemStack item = player.getStackInHand(hand);
-
-        if (Weapon.quickReloadCheck(item)) {
-            return Optional.of(BipedEntityModel.ArmPose.CROSSBOW_CHARGE);
-        } else if (item.getItem().equals(Items.DIAMOND_HOE)) {
-            return Optional.of(BipedEntityModel.ArmPose.CROSSBOW_HOLD);
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * シェーダーやバッファーの初期化
-     */
-    public static void onInit() {
-        // holoWall.init();
-
-        BarrierShader.INSTANCE.initialize();
-        HoloWallShader.INSTANCE.initialize();
-        ChunkInstancedBarrierVisualizer.INSTANCE.initialize();
-    }
-
-    /**
-     * クライアント終了時の処理
-     */
-    public static void onClose() {
-        // holoWall.close();
-
-        BarrierShader.INSTANCE.close();
-        HoloWallShader.INSTANCE.close();
-        ChunkInstancedBarrierVisualizer.INSTANCE.close();
-    }
-
-    public static float lerpDegreesAngle(float delta, float from, float to) {
-        float diff = to - from;
-        if (diff > 180) diff = diff - 360;
-        else if (diff < -180) diff = 360 + diff;
-
-        return from + diff * delta;
-    }
-
-    /**
-     * Hud render event listener
-     *
-     * @param matrices {@link MatrixStack}
-     * @param delta    A rendering delay
-     */
-    @SuppressWarnings("unused")
-    public static void onRenderHud(MatrixStack matrices, float delta) {
-        Profiler profiler = VanillaUtils.getProfiler();
-        MinecraftClient mc = MinecraftClient.getInstance();
-        Window window = mc.getWindow();
-
-        profiler.push("Widgets");
-        KZEAddon.widgetRenderer.render(matrices, delta);
-        profiler.swap("KillLog");
-        if (!(mc.currentScreen instanceof KillLogScreen))
-            KZEAddon.killLog.render(matrices, window.getScaledWidth(), 0);
-        KZEAddon.getModLog().render(matrices);
-        profiler.pop();
-    }
-
-    public static void onCameraUpdate(Camera camera, BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta) {
-        if (thirdPerson) {
-            Vec3d offset = KZEAddon.options.cameraOffset;
-            CameraAccessor accessor = (CameraAccessor) camera;
-            accessor.invokeMoveBy(offset.x, offset.y, offset.z);
-        }
-    }
-
     public static void onWindowResized(Window window) {
         ChunkInstancedBarrierVisualizer.INSTANCE.framebuffer.setSize(window);
-        // holoWall.onWindowResized(window);
     }
 }

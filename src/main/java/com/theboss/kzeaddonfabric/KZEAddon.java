@@ -39,9 +39,6 @@ import java.util.*;
 
 @Environment(EnvType.CLIENT)
 public class KZEAddon implements ClientModInitializer, WidgetRegister {
-    private static List<UUID> obsessions;
-    private static KZEAddonLog modLog;
-
     public static final Logger LOGGER = LogManager.getLogger("KZEAddon-Fabric");
     public static final String MOD_ID = "kzeaddon-fabric";
     public static final Map<Integer, String> GL_ERRORS;
@@ -52,7 +49,8 @@ public class KZEAddon implements ClientModInitializer, WidgetRegister {
     public static KillLog killLog;
     public static File configFolder;
     public static DefaultedList<ItemStack> favoriteItems = DefaultedList.of();
-
+    private static List<UUID> obsessions;
+    private static KZEAddonLog modLog;
 
     static {
         Map<Integer, String> ERROR_MAP = new HashMap<>();
@@ -70,25 +68,106 @@ public class KZEAddon implements ClientModInitializer, WidgetRegister {
         GL_ERRORS = Collections.unmodifiableMap(ERROR_MAP);
 
         FabricItemGroupBuilder.create(
-                new Identifier(MOD_ID, "favorites"))
-                .icon(() -> new ItemStack(Items.BELL))
-                .appendItems(list -> favoriteItems.stream().filter(Objects::nonNull).forEach(list::add))
-                .build();
-    }
-
-    @Override
-    public void registerWidget(Dispatcher<Widget> dispatcher) {}
-
-    @Override
-    public void registerWidgetType(Dispatcher<Class<?>> dispatcher) {
-        dispatcher.register(TextWidget.class);
-        dispatcher.register(WeaponWidget.class);
-        dispatcher.register(ReloadTimeWidget.class);
-        dispatcher.register(TotalAmmoWidget.class);
+                                      new Identifier(MOD_ID, "favorites"))
+                              .icon(() -> new ItemStack(Items.BELL))
+                              .appendItems(list -> favoriteItems.stream().filter(Objects::nonNull).forEach(list::add))
+                              .build();
     }
 
     public static void addFavoriteItem(ItemStack item) {
         favoriteItems.add(item);
+    }
+
+    public static void error(String msg) {
+        modLog.error(msg);
+    }
+
+    public static void error(Text msg) {
+        modLog.error(msg);
+    }
+
+    /**
+     * KZEAddon専用のログを取得
+     *
+     * @return 専用ログ
+     */
+    public static KZEAddonLog getModLog() {
+        return modLog;
+    }
+
+    /**
+     * 優先発光の対象プレイヤー一覧を取得
+     *
+     * @return 優先発光対象プレイヤー一覧
+     */
+    public static List<UUID> getObsessions() {
+        return obsessions;
+    }
+
+    private static void handleWidgetRegistration() {
+        List<Widget> widgets = new ArrayList<>();
+        Dispatcher<Widget> dispatcher = new Dispatcher<>(widgets);
+        for (EntrypointContainer<WidgetRegister> entryPoint : FabricLoader.getInstance().getEntrypointContainers("kzeaddon", WidgetRegister.class)) {
+            entryPoint.getEntrypoint().registerWidget(dispatcher);
+        }
+        if (!widgets.isEmpty()) {
+            widgets.forEach(widgetRenderer::add);
+        } else {
+            LOGGER.info("Dispatcher is empty");
+        }
+    }
+
+    private static void handleWidgetTypeRegistration() {
+        List<Class<? extends Widget>> types = new ArrayList<>();
+        Dispatcher<Class<? extends Widget>> dispatcher = new Dispatcher<>(types);
+        for (EntrypointContainer<WidgetRegister> entryPoint : FabricLoader.getInstance().getEntrypointContainers("kzeaddon", WidgetRegister.class)) {
+            entryPoint.getEntrypoint().registerWidgetType(dispatcher);
+        }
+        if (!types.isEmpty()) {
+            types.forEach(Widget.Serializer::registerType);
+        }
+    }
+
+    public static void info(String msg) {
+        modLog.info(msg);
+    }
+
+    public static void info(Text msg) {
+        modLog.info(msg);
+    }
+
+    public static boolean isFavoriteItem(ItemStack item) {
+        Iterator<ItemStack> itr = favoriteItems.iterator();
+        ItemStack var;
+
+        while (itr.hasNext()) {
+            var = itr.next();
+
+            if (ItemStack.areEqual(var, item)) return true;
+        }
+
+        return false;
+    }
+
+    public static void postClientInitialize(MinecraftClient mc) {
+        RenderingUtils.registerTexture(MOD_ID, "textures/gui/missing_skin.png");
+        RenderingUtils.registerTexture(MOD_ID, "textures/gui/frame.png");
+
+        AbstractTextWidget.textRenderer = mc.textRenderer;
+
+        handleWidgetTypeRegistration();
+        options = new Options(configFolder);
+        kzeInfo = new KZEInformation(mc);
+        widgetRenderer = new WidgetRenderer(configFolder);
+
+        ChunkInstancedBarrierVisualizer.INSTANCE.setRadius(options.barrierVisualizeRadius);
+        obsessions = new ArrayList<>();
+        modLog = new KZEAddonLog(mc, 1000, 0, 0, 10);
+        killLog = new KillLog(mc, 3, 3, 10);
+        stats = new Stats(configFolder);
+        handleWidgetRegistration();
+
+        RenderingEventsListener.onInit();
     }
 
     public static void removeFavoriteItem(ItemStack item) {
@@ -107,59 +186,12 @@ public class KZEAddon implements ClientModInitializer, WidgetRegister {
         }
     }
 
-    public static boolean isFavoriteItem(ItemStack item) {
-        Iterator<ItemStack> itr = favoriteItems.iterator();
-        ItemStack var;
-
-        while (itr.hasNext()) {
-            var = itr.next();
-
-            if (ItemStack.areEqual(var, item)) return true;
-        }
-
-        return false;
-    }
-
-    public static void info(String msg) {
-        modLog.info(msg);
-    }
-
-    public static void info(Text msg) {
-        modLog.info(msg);
-    }
-
     public static void warn(String msg) {
         modLog.warn(msg);
     }
 
     public static void warn(Text msg) {
         modLog.warn(msg);
-    }
-
-    public static void error(String msg) {
-        modLog.error(msg);
-    }
-
-    public static void error(Text msg) {
-        modLog.error(msg);
-    }
-
-    /**
-     * 優先発光の対象プレイヤー一覧を取得
-     *
-     * @return 優先発光対象プレイヤー一覧
-     */
-    public static List<UUID> getObsessions() {
-        return obsessions;
-    }
-
-    /**
-     * KZEAddon専用のログを取得
-     *
-     * @return 専用ログ
-     */
-    public static KZEAddonLog getModLog() {
-        return modLog;
     }
 
     /**
@@ -184,56 +216,22 @@ public class KZEAddon implements ClientModInitializer, WidgetRegister {
         KillLogEvents.ADD_ENTRY.register((log, entry) -> {
             LiteralText body = new LiteralText("Add entry: [");
             body.append(entry.getAttacker().getName())
-                    .append(" ")
-                    .append(entry.getMark())
-                    .append(" ")
-                    .append(entry.getVictim().getName())
-                    .append("]");
+                .append(" ")
+                .append(entry.getMark())
+                .append(" ")
+                .append(entry.getVictim().getName())
+                .append("]");
             info(body);
         });
     }
 
-    public static void postClientInitialize(MinecraftClient mc) {
-        RenderingUtils.registerTexture(MOD_ID, "textures/gui/missing_skin.png");
-        RenderingUtils.registerTexture(MOD_ID, "textures/gui/frame.png");
+    /**
+     * クライアント側のコマンドの登録
+     */
+    public void registerClientCommands() {
+        CommandDispatcher<FabricClientCommandSource> dispatcher = ClientCommandManager.DISPATCHER;
 
-        AbstractTextWidget.textRenderer = mc.textRenderer;
-
-        handleWidgetTypeRegistration();
-        options = new Options(configFolder);
-        kzeInfo = new KZEInformation(mc);
-        widgetRenderer = new WidgetRenderer(configFolder);
-
-        ChunkInstancedBarrierVisualizer.INSTANCE.setRadius(options.barrierVisualizeRadius);
-        obsessions = new ArrayList<>();
-        modLog = new KZEAddonLog(mc, 1000, 0, 0, 10);
-        killLog = new KillLog(mc, 3, 3, 10);
-        stats = new Stats(configFolder);
-        handleWidgetRegistration();
-
-        RenderingEventsListener.onInit();
-    }
-
-    private static void handleWidgetTypeRegistration() {
-        List<Class<?>> types = new ArrayList<>();
-        Dispatcher<Class<?>> dispatcher = new Dispatcher<>(types);
-        for (EntrypointContainer<WidgetRegister> entryPoint : FabricLoader.getInstance().getEntrypointContainers("kzeaddon", WidgetRegister.class)) {
-            entryPoint.getEntrypoint().registerWidgetType(dispatcher);
-        }
-        if (!types.isEmpty()) {
-            types.forEach(Widget.Serializer::registerType);
-        }
-    }
-
-    private static void handleWidgetRegistration() {
-        List<Widget> widgets = new ArrayList<>();
-        Dispatcher<Widget> dispatcher = new Dispatcher<>(widgets);
-        for (EntrypointContainer<WidgetRegister> entryPoint : FabricLoader.getInstance().getEntrypointContainers("kzeaddon", WidgetRegister.class)) {
-            entryPoint.getEntrypoint().registerWidget(dispatcher);
-        }
-        if (!widgets.isEmpty()) {
-            widgets.forEach(widgetRenderer::add);
-        }
+        AddonCommand.register(dispatcher);
     }
 
     /**
@@ -244,12 +242,15 @@ public class KZEAddon implements ClientModInitializer, WidgetRegister {
         Registry.register(Registry.SOUND_EVENT, CustomSounds.VOTE_NOTIFIC_ID, CustomSounds.VOTE_NOTIFIC_EVENT);
     }
 
-    /**
-     * クライアント側のコマンドの登録
-     */
-    public void registerClientCommands() {
-        CommandDispatcher<FabricClientCommandSource> dispatcher = ClientCommandManager.DISPATCHER;
+    @Override
+    public void registerWidget(Dispatcher<Widget> dispatcher) {
+    }
 
-        AddonCommand.register(dispatcher);
+    @Override
+    public void registerWidgetType(Dispatcher<Class<? extends Widget>> dispatcher) {
+        dispatcher.register(TextWidget.class);
+        dispatcher.register(WeaponWidget.class);
+        dispatcher.register(ReloadTimeWidget.class);
+        dispatcher.register(TotalAmmoWidget.class);
     }
 }

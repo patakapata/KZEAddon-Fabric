@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractShader implements SynchronousResourceReloader {
-    protected JsonEffectGlShader shaderInstance;
     private final List<Integer> textures = new ArrayList<>();
+    protected JsonEffectGlShader shaderInstance;
 
     public void bind() {
         List<Integer> samplerLocs = this.getSamplerLocs();
@@ -35,21 +35,22 @@ public abstract class AbstractShader implements SynchronousResourceReloader {
         }
     }
 
-    public void unbind() {
-        if (this.shaderInstance != null) {
-            this.shaderInstance.disable();
-        }
-
-        for (int id = 0; id < this.textures.size(); id++) {
-            RenderSystem.activeTexture('蓀' + id);
-            GL20.glBindTexture(GL11.GL_TEXTURE_2D, this.textures.get(id));
-        }
-        this.textures.clear();
-        RenderSystem.activeTexture(GL20.GL_TEXTURE0);
-    }
-
     public void close() {
         this.shaderInstance.close();
+    }
+
+    public int getAttribLocByName(String name) {
+        int index = ((JsonEffectGlShaderAccessor) this.shaderInstance).getAttribNames().indexOf(name);
+        return index == -1 ? index : ((JsonEffectGlShaderAccessor) this.shaderInstance).getAttribLocs().get(index);
+    }
+
+    public int getProgram() {
+        return this.shaderInstance.getProgramRef();
+    }
+
+    public List<Integer> getSamplerLocs() {
+        if (this.shaderInstance != null) return ((JsonEffectGlShaderAccessor) this.shaderInstance).getSamplerShaderLocs();
+        return null;
     }
 
     protected abstract String getShaderName();
@@ -69,11 +70,6 @@ public abstract class AbstractShader implements SynchronousResourceReloader {
         RenderSystem.recordRenderCall(() -> this.reloadShaders(manager));
     }
 
-    public List<Integer> getSamplerLocs() {
-        if (this.shaderInstance != null) return ((JsonEffectGlShaderAccessor) this.shaderInstance).getSamplerShaderLocs();
-        return null;
-    }
-
     public void reloadShaders(ResourceManager manager) {
         if (this.shaderInstance != null) {
             this.shaderInstance.close();
@@ -86,5 +82,18 @@ public abstract class AbstractShader implements SynchronousResourceReloader {
         } catch (IOException ex) {
             KZEAddon.LOGGER.error(ex);
         }
+    }
+
+    public void unbind() {
+        if (this.shaderInstance != null) {
+            this.shaderInstance.disable();
+        }
+
+        for (int id = 0; id < this.textures.size(); id++) {
+            RenderSystem.activeTexture('蓀' + id);
+            GL20.glBindTexture(GL11.GL_TEXTURE_2D, this.textures.get(id));
+        }
+        this.textures.clear();
+        RenderSystem.activeTexture(GL20.GL_TEXTURE0);
     }
 }

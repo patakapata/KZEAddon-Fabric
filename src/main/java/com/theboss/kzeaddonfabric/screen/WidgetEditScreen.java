@@ -71,8 +71,8 @@ public class WidgetEditScreen extends Screen {
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             if (this.isMouseOverWidget(mouseX, mouseY)) {
                 this.isDragging = true;
-                this.dragOffsetX = (this.widWidth * this.offset.windowAnchor.getX() + this.offset.x) - (float) mouseX;
-                this.dragOffsetY = (this.widHeight * this.offset.windowAnchor.getY() + this.offset.y) - (float) mouseY;
+                this.dragOffsetX = (this.widWidth * this.offset.anchor.getX() + this.offset.x) - (float) mouseX;
+                this.dragOffsetY = (this.widHeight * this.offset.anchor.getY() + this.offset.y) - (float) mouseY;
             }
             return true;
         } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
@@ -81,19 +81,19 @@ public class WidgetEditScreen extends Screen {
             this.scale = 1.0F;
             return true;
         } else if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
-            this.migrateAnchor(this.offset.windowAnchor.next());
+            this.migrateAnchor(this.offset.anchor.next());
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     public void migrateAnchor(Anchor newAnchor) {
-        KZEAddon.LOGGER.info("WidgetEditScreen > Migrate anchor [ " + this.offset.windowAnchor + " -> " + newAnchor + " ]");
+        KZEAddon.LOGGER.info("WidgetEditScreen > Migrate anchor [ " + this.offset.anchor + " -> " + newAnchor + " ]");
 
-        float x = newAnchor.getX() - this.offset.windowAnchor.getX();
-        float y = newAnchor.getY() - this.offset.windowAnchor.getY();
+        float x = newAnchor.getX() - this.offset.anchor.getX();
+        float y = newAnchor.getY() - this.offset.anchor.getY();
 
-        this.offset.windowAnchor = newAnchor;
+        this.offset.anchor = newAnchor;
         this.offset.x = (-this.width * x) + this.offset.x;
         this.offset.y = (-this.height * y) + this.offset.y;
     }
@@ -101,8 +101,8 @@ public class WidgetEditScreen extends Screen {
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
         if (this.isDragging) {
-            this.offset.x = ((float) mouseX - this.widWidth * this.offset.windowAnchor.getX()) + (this.dragOffsetX);
-            this.offset.y = ((float) mouseY - this.widHeight * this.offset.windowAnchor.getY()) + (this.dragOffsetY);
+            this.offset.x = ((float) mouseX - this.widWidth * this.offset.anchor.getX()) + (this.dragOffsetX);
+            this.offset.y = ((float) mouseY - this.widHeight * this.offset.anchor.getY()) + (this.dragOffsetY);
         }
     }
 
@@ -118,8 +118,8 @@ public class WidgetEditScreen extends Screen {
 
     public boolean isMouseOverWidget(double mouseX, double mouseY) {
         Window window = MinecraftClient.getInstance().getWindow();
-        float x = window.getScaledWidth() * this.offset.windowAnchor.getX() + this.offset.x - this.widWidth * this.anchor.getX();
-        float y = window.getScaledHeight() * this.offset.windowAnchor.getY() + this.offset.y - this.widHeight * this.anchor.getY();
+        float x = window.getScaledWidth() * this.offset.anchor.getX() + this.offset.x - this.widWidth * this.anchor.getX();
+        float y = window.getScaledHeight() * this.offset.anchor.getY() + this.offset.y - this.widHeight * this.anchor.getY();
 
         return x <= mouseX && mouseX <= x + this.widWidth && y <= mouseY && mouseY <= y + this.widHeight;
     }
@@ -143,8 +143,8 @@ public class WidgetEditScreen extends Screen {
 
         float windowWidth = window.getScaledWidth();
         float windowHeight = window.getScaledHeight();
-        float x = windowWidth * this.offset.windowAnchor.getX() + this.offset.x;
-        float y = windowHeight * this.offset.windowAnchor.getY() + this.offset.y;
+        float x = windowWidth * this.offset.anchor.getX() + this.offset.x;
+        float y = windowHeight * this.offset.anchor.getY() + this.offset.y;
 
         RenderSystem.disableTexture();
         Matrix4f matrix = matrices.peek().getModel();

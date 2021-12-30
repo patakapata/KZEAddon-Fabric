@@ -17,6 +17,9 @@ import static org.lwjgl.opengl.GL33.*;
 
 public class OriginalFramebuffer {
     // -------------------------------------------------- //
+    // Other
+    private final String name;
+    // -------------------------------------------------- //
     // Screen dimensions
     private int width;
     private int height;
@@ -25,9 +28,6 @@ public class OriginalFramebuffer {
     private int fbo;
     private int texture;
     private int depth;
-    // -------------------------------------------------- //
-    // Other
-    private final String name;
 
 
     public OriginalFramebuffer() {
@@ -38,20 +38,41 @@ public class OriginalFramebuffer {
         this.name = name;
     }
 
-    public int getWidth() {
-        return this.width;
+    public void begin() {
+        glBindFramebuffer(GL_FRAMEBUFFER, this.fbo);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    public int getHeight() {
-        return this.height;
-    }
+    public void blit(Framebuffer framebuffer) {
+        RenderingUtils.setupOrthogonalProjectionMatrix();
 
-    public int getColorTexture() {
-        return this.texture;
-    }
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        Window window = MinecraftClient.getInstance().getWindow();
+        int width = window.getScaledWidth();
+        int height = window.getScaledHeight();
 
-    public int getDepthTexture() {
-        return this.depth;
+        buffer.begin(GL_QUADS, VertexFormats.POSITION_TEXTURE);
+        buffer.vertex(0, 0, -2000).texture(0, 1).next();
+        buffer.vertex(0, height, -2000).texture(0, 0).next();
+        buffer.vertex(width, height, -2000).texture(1, 0).next();
+        buffer.vertex(width, 0, -2000).texture(1, 1).next();
+
+        GlStateManager.color4f(1F, 1F, 1F, 1F);
+        GlStateManager.bindTexture(this.texture);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+        RenderSystem.disableAlphaTest();
+        tessellator.draw();
+        RenderSystem.enableAlphaTest();
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
+        GlStateManager.bindTexture(0);
+
+        RenderingUtils.popProjectionMatrix();
+
+        this.saveDepth(framebuffer);
     }
 
     public void checkFBOCompleteness() {
@@ -92,40 +113,43 @@ public class OriginalFramebuffer {
         }
     }
 
-    public void loadColor(Framebuffer framebuffer) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this.fbo);
-        glBlitFramebuffer(
-                0, 0, framebuffer.viewportWidth, framebuffer.viewportHeight,
-                0, 0, this.width, this.height,
-                GL_COLOR_BUFFER_BIT, GL_NEAREST
-        );
+    public void close() {
+        if (glIsFramebuffer(this.fbo))
+            GlStateManager.deleteFramebuffers(this.fbo);
+        if (glIsTexture(this.texture))
+            GlStateManager.deleteTexture(this.texture);
+        if (glIsTexture(this.depth))
+            GlStateManager.deleteTexture(this.depth);
+
+        this.fbo = 0;
+        this.texture = 0;
+        this.depth = 0;
     }
 
-    public void loadDepth(Framebuffer framebuffer) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this.fbo);
-        glBlitFramebuffer(
-                0, 0, framebuffer.viewportWidth, framebuffer.viewportHeight,
-                0, 0, this.width, this.height,
-                GL_DEPTH_BUFFER_BIT, GL_NEAREST
-        );
+    public void end() {
+        MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
     }
 
-    public void saveDepth(Framebuffer framebuffer) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, this.fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer.fbo);
-        glBlitFramebuffer(
-                0, 0, this.width, this.height,
-                0, 0, framebuffer.viewportWidth, framebuffer.viewportHeight,
-                GL_DEPTH_BUFFER_BIT, GL_NEAREST
-        );
+    public int getColorTexture() {
+        return this.texture;
     }
 
-    private void initTexture() {
-        this.texture = GlStateManager.genTextures();
-        GlStateManager.bindTexture(this.texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this.width, this.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+    public int getDepthTexture() {
+        return this.depth;
+    }
+
+    public int getHeight() {
+        return this.height;
+    }
+
+    public int getWidth() {
+        return this.width;
+    }
+
+    private void initDepthTexture() {
+        this.depth = GlStateManager.genTextures();
+        GlStateManager.bindTexture(this.depth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this.width, this.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -136,10 +160,10 @@ public class OriginalFramebuffer {
         GlStateManager.bindTexture(0);
     }
 
-    private void initDepthTexture() {
-        this.depth = GlStateManager.genTextures();
-        GlStateManager.bindTexture(this.depth);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this.width, this.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+    private void initTexture() {
+        this.texture = GlStateManager.genTextures();
+        GlStateManager.bindTexture(this.texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this.width, this.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -173,70 +197,44 @@ public class OriginalFramebuffer {
         this.checkFBOCompleteness();
     }
 
-    public void close() {
-        if (glIsFramebuffer(this.fbo))
-            GlStateManager.deleteFramebuffers(this.fbo);
-        if (glIsTexture(this.texture))
-            GlStateManager.deleteTexture(this.texture);
-        if (glIsTexture(this.depth))
-            GlStateManager.deleteTexture(this.depth);
+    public void loadColor(Framebuffer framebuffer) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this.fbo);
+        glBlitFramebuffer(
+                0, 0, framebuffer.viewportWidth, framebuffer.viewportHeight,
+                0, 0, this.width, this.height,
+                GL_COLOR_BUFFER_BIT, GL_LINEAR
+        );
+    }
 
-        this.fbo = 0;
-        this.texture = 0;
-        this.depth = 0;
+    public void loadDepth(Framebuffer framebuffer) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this.fbo);
+        glBlitFramebuffer(
+                0, 0, framebuffer.viewportWidth, framebuffer.viewportHeight,
+                0, 0, this.width, this.height,
+                GL_DEPTH_BUFFER_BIT, GL_NEAREST
+        );
+    }
+
+    public void saveDepth(Framebuffer framebuffer) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, this.fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer.fbo);
+        glBlitFramebuffer(
+                0, 0, this.width, this.height,
+                0, 0, framebuffer.viewportWidth, framebuffer.viewportHeight,
+                GL_DEPTH_BUFFER_BIT, GL_NEAREST
+        );
     }
 
     public void setSize(Window window) {
         this.width = window.getFramebufferWidth();
         this.height = window.getFramebufferHeight();
 
-        KZEAddon.LOGGER.info("Barrier Frame Buffer > Resized to " + this.width + "x" + this.height);
-
         GlStateManager.bindTexture(this.texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this.width, this.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         GlStateManager.bindTexture(this.depth);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this.width, this.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         GlStateManager.bindTexture(0);
-    }
-
-    public void begin() {
-        glBindFramebuffer(GL_FRAMEBUFFER, this.fbo);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-
-    public void end() {
-        MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
-    }
-
-    public void blit(Framebuffer framebuffer) {
-        RenderingUtils.setupOrthogonalProjectionMatrix();
-
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
-        Window window = MinecraftClient.getInstance().getWindow();
-        int width = window.getScaledWidth();
-        int height = window.getScaledHeight();
-
-        buffer.begin(GL_QUADS, VertexFormats.POSITION_TEXTURE);
-        buffer.vertex(0, 0, -2000).texture(0, 1).next();
-        buffer.vertex(0, height, -2000).texture(0, 0).next();
-        buffer.vertex(width, height, -2000).texture(1, 0).next();
-        buffer.vertex(width, 0, -2000).texture(1, 1).next();
-
-        GlStateManager.color4f(1F, 1F, 1F, 1F);
-        GlStateManager.bindTexture(this.texture);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableCull();
-        RenderSystem.disableAlphaTest();
-        tessellator.draw();
-        RenderSystem.enableAlphaTest();
-        RenderSystem.enableCull();
-        RenderSystem.disableBlend();
-        GlStateManager.bindTexture(0);
-
-        RenderingUtils.popProjectionMatrix();
-
-        this.saveDepth(framebuffer);
     }
 }

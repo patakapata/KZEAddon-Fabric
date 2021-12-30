@@ -77,12 +77,10 @@ public abstract class AbstractTextWidget implements Widget {
         return textRenderer.fontHeight;
     }
 
-    @Override
     public int getColor() {
         return 0xFFFFFF;
     }
 
-    @Override
     public int getAlpha() {
         return 0xFF;
     }

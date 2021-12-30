@@ -9,6 +9,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.profiler.Profiler;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -22,13 +23,7 @@ public class Weapon {
     private int totalAmmo;
     private boolean isReloading;
 
-    public static boolean quickReloadCheck(ItemStack item) {
-        List<Text> siblings = item.getName().getSiblings();
-        if (siblings.isEmpty()) return false;
-        TextColor color = item.getName().getSiblings().get(0).getStyle().getColor();
-        return item.getItem().equals(Items.DIAMOND_HOE) && VanillaUtils.getCustomModelData(item) > 1000 && (color != null && color.equals(RELOADING_COLOR));
-    }
-
+    @Nullable
     private static Text[] getLore(ItemStack item) {
         NbtCompound display = item.getSubTag("display");
         if (display == null) return null;
@@ -40,6 +35,13 @@ public class Weapon {
         }
 
         return lore;
+    }
+
+    public static boolean quickReloadCheck(ItemStack item) {
+        List<Text> siblings = item.getName().getSiblings();
+        if (siblings.isEmpty()) return false;
+        TextColor color = item.getName().getSiblings().get(0).getStyle().getColor();
+        return item.getItem().equals(Items.DIAMOND_HOE) && (color != null && color.equals(RELOADING_COLOR));
     }
 
     public static byte styleToFlags(Style style) {

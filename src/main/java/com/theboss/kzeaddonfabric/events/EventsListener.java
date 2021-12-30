@@ -98,7 +98,7 @@ public class EventsListener {
         profiler.swap("Barrier Visualizer tick");
 
         HitResult hitResult = player.raycast(KZEAddon.options.barrierVisualizeRaycastDistance, 0, false);
-        if (KZEAddon.options.barrierVisualizeUseCrosshairCenter && hitResult.getType() == HitResult.Type.BLOCK) {
+        if (KZEAddon.options.isCrosshairVisualizeOrigin && hitResult.getType() == HitResult.Type.BLOCK) {
             BlockPos pos = ((BlockHitResult) hitResult).getBlockPos();
             ChunkInstancedBarrierVisualizer.INSTANCE.setCenter(VanillaUtils.toChunk(pos));
             ChunkInstancedBarrierVisualizer.INSTANCE.setVisualizeCenter(hitResult.getPos());

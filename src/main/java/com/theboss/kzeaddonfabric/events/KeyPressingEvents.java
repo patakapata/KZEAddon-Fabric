@@ -1,14 +1,11 @@
 package com.theboss.kzeaddonfabric.events;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.render.shader.HoloWallShader;
 import com.theboss.kzeaddonfabric.utils.ModUtils;
 import com.theboss.kzeaddonfabric.utils.VanillaUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.entity.Entity;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.Team;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.hit.EntityHitResult;
@@ -28,7 +25,6 @@ public class KeyPressingEvents {
 
         if (result.getType() == HitResult.Type.ENTITY) {
             Entity entity = ((EntityHitResult) result).getEntity();
-            HoloWallShader.INSTANCE.setCenter(entity.getPos());
             UUID uuid = entity.getUuid();
             if (!obsessions.contains(uuid)) {
                 obsessions.add(uuid);
@@ -49,25 +45,13 @@ public class KeyPressingEvents {
         KZEAddon.widgetRenderer.openWidgetsScreen();
     }
 
-    public static void onCamX(KeyBinding keyBinding) {
-        KZEAddon.options.cameraOffset = KZEAddon.options.cameraOffset.add(VanillaUtils.isSneaking() ? 1 : -1, 0, 0);
-    }
-
-    public static void onCamY(KeyBinding keyBinding) {
-        KZEAddon.options.cameraOffset = KZEAddon.options.cameraOffset.add(0, VanillaUtils.isSneaking() ? 1 : -1, 0);
-    }
-
-    public static void onCamZ(KeyBinding keyBinding) {
-        KZEAddon.options.cameraOffset = KZEAddon.options.cameraOffset.add(0, 0, VanillaUtils.isSneaking() ? 1 : -1);
-    }
-
     public static void onPressHideTeammates(KeyBinding keyBinding) {
         KZEAddon.options.isHideAllies = !KZEAddon.options.isHideAllies;
-        KZEAddon.info(new TranslatableText("info.kzeaddon." + (KZEAddon.options.isHideAllies ? "hide" : "show") + "_teammates"));
+        KZEAddon.info(new TranslatableText("feature.kzeaddon." + (KZEAddon.options.isHideAllies ? "hide" : "show") + "_ally"));
     }
 
     public static void onPressUnStack(KeyBinding keyBinding) {
         ModUtils.sendCurrentPositionPacket();
-        Optional.ofNullable(MinecraftClient.getInstance().player).ifPresent(player -> player.sendMessage(new TranslatableText("feature.key.kzeaddon.un_stack"), false));
+        Optional.ofNullable(MinecraftClient.getInstance().player).ifPresent(player -> player.sendMessage(new TranslatableText("feature.kzeaddon.un_stack"), false));
     }
 }

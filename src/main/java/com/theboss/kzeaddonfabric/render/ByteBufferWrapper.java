@@ -108,15 +108,6 @@ public class ByteBufferWrapper {
     }
 
     /**
-     * バッファーの現在のポジションを返す
-     *
-     * @return 現在のポジション
-     */
-    public int position() {
-        return ((Buffer) this.buffer).position();
-    }
-
-    /**
      * バッファーの現在のリミットを取得する
      *
      * @return 現在のリミット
@@ -126,125 +117,106 @@ public class ByteBufferWrapper {
     }
 
     /**
-     * 引数をバッファーに追加する
+     * バッファーの現在のポジションを返す
      *
-     * @param v 追加する値
+     * @return 現在のポジション
      */
-    public void put(byte v) {
-        this.buffer.put(v);
+    public int position() {
+        return ((Buffer) this.buffer).position();
     }
 
-    /**
-     * 引数をバッファーに追加する
-     *
-     * @param v1 追加する値
-     * @param v2 追加する値
-     * @param v3 追加する値
-     */
-    public void put(byte v1, byte v2, byte v3) {
-        this.buffer.put(v1);
-        this.buffer.put(v2);
-        this.buffer.put(v3);
+    public ByteBufferWrapper put(byte b1) {
+        this.grow(1);
+        this.buffer.put(b1);
+        return this;
     }
 
-    /**
-     * 引数をバッファーに追加する
-     *
-     * @param v1 追加する値
-     * @param v2 追加する値
-     * @param v3 追加する値
-     * @param v4 追加する値
-     */
-    public void put(byte v1, byte v2, byte v3, byte v4) {
-        this.buffer.put(v1);
-        this.buffer.put(v2);
-        this.buffer.put(v3);
-        this.buffer.put(v4);
+    public ByteBufferWrapper put(byte b1, byte b2) {
+        this.grow(2);
+        this.buffer.put(b1);
+        this.buffer.put(b2);
+        return this;
     }
 
-    /**
-     * 引数をバッファーに追加する
-     *
-     * @param v 追加する値
-     */
-    public void put(float v) {
-        this.buffer.putFloat(v);
+    public ByteBufferWrapper put(int i1) {
+        this.grow(4);
+        this.buffer.putInt(i1);
+        return this;
     }
 
-    /**
-     * 引数をバッファーに追加する
-     *
-     * @param v1 追加する値
-     * @param v2 追加する値
-     */
-    public void put(float v1, float v2) {
-        this.buffer.putFloat(v1);
-        this.buffer.putFloat(v2);
+    public ByteBufferWrapper put(int i1, int i2) {
+        this.grow(8);
+        this.buffer.putInt(i1);
+        this.buffer.putInt(i2);
+        return this;
     }
 
-    /**
-     * 引数をバッファーに追加する
-     *
-     * @param v1 追加する値
-     * @param v2 追加する値
-     * @param v3 追加する値
-     */
-    public void put(float v1, float v2, float v3) {
-        this.buffer.putFloat(v1);
-        this.buffer.putFloat(v2);
-        this.buffer.putFloat(v3);
+    public ByteBufferWrapper put(int i1, int i2, int i3) {
+        this.grow(12);
+        this.buffer.putInt(i1);
+        this.buffer.putInt(i2);
+        this.buffer.putInt(i3);
+        return this;
     }
 
-    /**
-     * 引数をバッファーに追加する
-     *
-     * @param v1 追加する値
-     * @param v2 追加する値
-     * @param v3 追加する値
-     * @param v4 追加する値
-     */
-    public void put(float v1, float v2, float v3, float v4) {
-        this.buffer.putFloat(v1);
-        this.buffer.putFloat(v2);
-        this.buffer.putFloat(v3);
-        this.buffer.putFloat(v4);
+    public ByteBufferWrapper put(float f1) {
+        this.grow(4);
+        this.buffer.putFloat(f1);
+        return this;
     }
 
-    /**
-     * 引数を{@link Float}にキャストして、
-     * バッファーに追加する
-     *
-     * @param v 追加する値
-     */
-    public void put(double v) {
-        this.buffer.putFloat((float) v);
+    public ByteBufferWrapper put(float f1, float f2) {
+        this.grow(8);
+        this.buffer.putFloat(f1);
+        this.buffer.putFloat(f2);
+        return this;
     }
 
-
-    /**
-     * 引数を{@link Float}にキャストして、
-     * バッファーに追加する
-     *
-     * @param v1 追加する値
-     * @param v2 追加する値
-     */
-    public void put(double v1, double v2) {
-        this.buffer.putFloat((float) v1);
-        this.buffer.putFloat((float) v2);
+    public ByteBufferWrapper put(float f1, float f2, float f3) {
+        this.grow(12);
+        this.buffer.putFloat(f1);
+        this.buffer.putFloat(f2);
+        this.buffer.putFloat(f3);
+        return this;
     }
 
-    /**
-     * 引数を{@link Float}にキャストして、
-     * バッファーに追加する
-     *
-     * @param v1 追加する値
-     * @param v2 追加する値
-     * @param v3 追加する値
-     */
-    public void put(double v1, double v2, double v3) {
-        this.buffer.putFloat((float) v1);
-        this.buffer.putFloat((float) v2);
-        this.buffer.putFloat((float) v3);
+    public ByteBufferWrapper put(float f1, float f2, float f3, float f4) {
+        this.grow(16);
+        this.buffer.putFloat(f1);
+        this.buffer.putFloat(f2);
+        this.buffer.putFloat(f3);
+        this.buffer.putFloat(f4);
+        return this;
+    }
+
+    public ByteBufferWrapper put(double d1) {
+        this.grow(4);
+        this.buffer.putFloat((float) d1);
+        return this;
+    }
+
+    public ByteBufferWrapper put(double d1, double d2) {
+        this.grow(8);
+        this.buffer.putFloat((float) d1);
+        this.buffer.putFloat((float) d2);
+        return this;
+    }
+
+    public ByteBufferWrapper put(double d1, double d2, double d3) {
+        this.grow(12);
+        this.buffer.putFloat((float) d1);
+        this.buffer.putFloat((float) d2);
+        this.buffer.putFloat((float) d3);
+        return this;
+    }
+
+    public ByteBufferWrapper put(double d1, double d2, double d3, double d4) {
+        this.grow(16);
+        this.buffer.putFloat((float) d1);
+        this.buffer.putFloat((float) d2);
+        this.buffer.putFloat((float) d3);
+        this.buffer.putFloat((float) d4);
+        return this;
     }
 
     /**
@@ -257,17 +229,6 @@ public class ByteBufferWrapper {
     }
 
     /**
-     * VBOのサイズを更新し、内容物をすべて破棄する(?)
-     *
-     * @param vbo 対象の VBO ID
-     */
-    public void updateSizeOnVBO(int vbo) {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, this.buffer.capacity(), GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    /**
      * VBOのサイズ更新を行わず、
      * バッファーのデータのみを転送する
      *
@@ -276,6 +237,17 @@ public class ByteBufferWrapper {
     public void updateDataOnVBO(int vbo) {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0, this.buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    /**
+     * VBOのサイズを更新し、内容物をすべて破棄する(?)
+     *
+     * @param vbo 対象の VBO ID
+     */
+    public void updateSizeOnVBO(int vbo) {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, this.buffer.capacity(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 

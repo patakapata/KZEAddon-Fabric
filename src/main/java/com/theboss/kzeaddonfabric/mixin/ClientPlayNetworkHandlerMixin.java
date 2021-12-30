@@ -43,8 +43,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
         BossBarS2CPacket.Type type = packet.getType();
         if (type == BossBarS2CPacket.Type.ADD || type == BossBarS2CPacket.Type.UPDATE_NAME) {
             LiteralText body = new LiteralText("BossBar > [");
-            body.append(packet.getName())
-                    .append("]");
+            body.append(packet.getName()).append("]");
             KZEAddon.info(body);
         }
     }

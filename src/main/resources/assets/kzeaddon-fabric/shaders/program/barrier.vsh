@@ -2,7 +2,7 @@
 
 uniform mat4 MVP;
 uniform vec3 center;
-uniform float radius;
+uniform float fadeRadius;
 uniform float useFade;
 
 layout(location = 0) in vec3 inVertex;
@@ -15,9 +15,11 @@ void main(void) {
     float alpha;
 
     if (useFade == 1) {
-        alpha = 1.0 - clamp(distance / radius, 0.0, 1.0);
+        alpha = 1.0 - clamp(distance / fadeRadius, 0.0, 1.0);
+    } else if(fadeRadius == -1) {
+        alpha = 1.0;
     } else {
-        alpha = distance <= radius ? 1.0F : 0.0F;
+        alpha = distance <= fadeRadius ? 1.0 : 0.0;
     }
 
     gl_Position = MVP * vec4(inVertex + inOffset, 1.0);

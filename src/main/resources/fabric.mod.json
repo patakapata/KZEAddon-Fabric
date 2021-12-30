@@ -5,11 +5,7 @@
   "name": "KZEAddon Fabric",
   "description": "KaedeZombieEscapeのプレイを支援するModです",
   "authors": [
-    "theBooooSS"
-  ],
-  "contributors": [
-    "coachang",
-    "Nero_chama"
+    "_theBooooSS"
   ],
   "contact": {
     "Twitter": "https://twitter.com/_xthebossx_"
@@ -23,6 +19,9 @@
     ],
     "modmenu": [
       "com.theboss.kzeaddonfabric.integrate.ModMenuIntegration"
+    ],
+    "kzeaddon": [
+      "com.theboss.kzeaddonfabric.KZEAddon"
     ]
   },
   "mixins": [
@@ -35,5 +34,12 @@
   },
   "suggests": {
     "modmenu": "1.16.*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.kzeaddon.github": "https://github.com/patakapata/KZEAddon-Fabric-1.16.5"
+      }
+    }
   }
 }
