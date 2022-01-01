@@ -9,7 +9,7 @@ import static org.lwjgl.opengl.GL33.*;
 
 /**
  * Bufferの{@link Buffer#flip() flip()}や{@link Buffer#clear() clear()}などを、
- * いちいちキャストするのめんどくさいのと、<p>
+ * いちいちキャストするのめんどくさいのと、<br>
  * 可変サイズのバッファが欲しいという所から作られた
  * {@link ByteBuffer} のラッパークラスです
  */

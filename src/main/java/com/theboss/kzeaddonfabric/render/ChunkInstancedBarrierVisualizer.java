@@ -10,15 +10,18 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.resource.ReloadableResourceManager;
 import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.SynchronousResourceReloader;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -32,7 +35,7 @@ import java.util.function.Function;
 import static com.theboss.kzeaddonfabric.KZEAddon.info;
 import static org.lwjgl.opengl.GL33.*;
 
-public class ChunkInstancedBarrierVisualizer {
+public class ChunkInstancedBarrierVisualizer implements SynchronousResourceReloader {
     public static final ChunkInstancedBarrierVisualizer INSTANCE = new ChunkInstancedBarrierVisualizer(1);
     public final OriginalFramebuffer framebuffer;
     private final OldBarrierShader SHADER = OldBarrierShader.INSTANCE;
@@ -56,12 +59,14 @@ public class ChunkInstancedBarrierVisualizer {
     private boolean lastShouldRebuild;
     private int primitiveType;
     private boolean isUseFbo;
+    private Identifier modelFile;
 
     public static Iterator<Chunk> chunkIterator() {
         return INSTANCE.chunks.iterator();
     }
 
     private static int getPrimitiveTypeIdByName(String name) throws IllegalArgumentException {
+        name = name.endsWith("\r") ? name.substring(0, name.length() - 1) : name;
         switch (name) {
             case "POINTS":
                 return GL11.GL_POINTS;
@@ -101,6 +106,7 @@ public class ChunkInstancedBarrierVisualizer {
 
     public ChunkInstancedBarrierVisualizer(BlockPos center, Vec3d VisualizeCenter, int radius) {
         this.center = center;
+        this.modelFile = null;
         this.lastCenter = this.center.mutableCopy();
         if (radius < 0) radius = 0;
         this.radius = radius;
@@ -108,6 +114,7 @@ public class ChunkInstancedBarrierVisualizer {
         this.needUpdateChunks = new ArrayDeque<>();
         this.visualizeCenter = VisualizeCenter;
         this.framebuffer = new OriginalFramebuffer("CIBV");
+        this.isUseFbo = true;
     }
 
     public void close() {
@@ -135,11 +142,7 @@ public class ChunkInstancedBarrierVisualizer {
 
         if (!KZEAddon.options.isVisualizeBarriers) return;
 
-        // BarrierShader shader = BarrierShader.INSTANCE;
-        // shader.setCenter(this.visualizeCenter);
-        // shader.setFadeRadius(KZEAddon.options.barrierFadeRadius);
-        // shader.setUseFade(KZEAddon.options.isBarrierFade);
-        // shader.setColor(KZEAddon.options.barrierColor);
+        this.updateCenter();
         this.SHADER.setCenter(this.visualizeCenter);
         this.SHADER.setFadeRadius(KZEAddon.options.barrierFadeRadius);
         this.SHADER.setUseFade(KZEAddon.options.isBarrierFade);
@@ -152,18 +155,17 @@ public class ChunkInstancedBarrierVisualizer {
         vp.multiply(RenderingUtils.getVPMatrix(delta));
         mvp.translate(-cam.x, -cam.y, -cam.z);
 
-        // shader.setMVP(vp);
         this.SHADER.setMVP(vp);
 
         RenderSystem.lineWidth(KZEAddon.options.barrierLineWidth);
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
+        RenderSystem.enableAlphaTest();
+        RenderSystem.alphaFunc(GL_GREATER, 0);
 
-        // shader.bind();
         this.SHADER.bind();
         this.chunks.forEach(Chunk::render);
         this.SHADER.unbind();
-        // shader.unbind();
 
         RenderSystem.disableDepthTest();
         RenderSystem.disableBlend();
@@ -195,6 +197,7 @@ public class ChunkInstancedBarrierVisualizer {
             matrices.push();
             matrices.translate(offset.getX() * 16 + 8 - camPos.getX(), offset.getY() * 16 + 8 - camPos.getY(), offset.getZ() * 16 + 8 - camPos.getZ());
             matrices.multiply(camera.getRotation());
+            matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(180));
             matrices.scale(0.1F, 0.1F, 0.1F);
             textRenderer.drawWithShadow(matrices, text, -(width / 2F), -(height / 2F), 0xFFFFFFFF);
             matrices.pop();
@@ -287,6 +290,10 @@ public class ChunkInstancedBarrierVisualizer {
         });
     }
 
+    public int getVertices() {
+        return this.bufferModel.limit() / 12;
+    }
+
     public void initialize() {
         this.vboModel = GlStateManager.genBuffers();
         this.bufferModel = new ByteBufferWrapper(1024 * 1024 * 2, () -> recordRenderCall(() -> this.bufferModel.updateSizeOnVBO(this.vboModel)));
@@ -294,6 +301,10 @@ public class ChunkInstancedBarrierVisualizer {
         this.useDefaultModel();
         this.setRadius(this.radius);
         this.framebuffer.initialize(MinecraftClient.getInstance().getWindow());
+        ResourceManager resManager = MinecraftClient.getInstance().getResourceManager();
+        if (resManager instanceof ReloadableResourceManager) {
+            ((ReloadableResourceManager) resManager).registerReloader(this);
+        }
         RenderingUtils.glError("Initialize CIBV");
     }
 
@@ -332,18 +343,24 @@ public class ChunkInstancedBarrierVisualizer {
                     String[] lines = builder.toString().split("\n");
                     int primType = getPrimitiveTypeIdByName(lines[0]);
                     String line;
+                    double x, y, z;
                     this.bufferModel.clear();
                     for (int i = 1; i < lines.length; i++) {
                         line = lines[i];
+                        KZEAddon.LOGGER.info("Load line: " + line);
                         if (line.startsWith("//")) continue;
                         String[] divided = line.split(",");
-                        this.bufferModel.put(Double.parseDouble(divided[0]),
-                                             Double.parseDouble(divided[1]),
-                                             Double.parseDouble(divided[2]));
+                        x = Double.parseDouble(divided[0]);
+                        y = Double.parseDouble(divided[1]);
+                        z = Double.parseDouble(divided[2]);
+                        this.bufferModel.grow(12);
+                        this.bufferModel.put(x, y, z);
+                        KZEAddon.LOGGER.info("Add vertex: " + x + ", " + y + ", " + z);
                     }
                     this.bufferModel.flip();
                     this.primitiveType = primType;
                     this.bufferModel.uploadToVBO(this.vboModel);
+                    this.modelVertices = this.bufferModel.limit() / 12;
                     return true;
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -397,8 +414,19 @@ public class ChunkInstancedBarrierVisualizer {
         }
     }
 
+    @Override
+    public void reload(ResourceManager manager) {
+        if (this.modelFile != null) {
+            this.loadModelFromResource(this.modelFile);
+        }
+    }
+
     public void setCenter(int x, int y, int z) {
         this.setCenter(new BlockPos(x, y, z));
+    }
+
+    public void setModel(@Nullable Identifier id) {
+        this.modelFile = id;
     }
 
     public void setModel(float[] vertices) {
@@ -412,9 +440,9 @@ public class ChunkInstancedBarrierVisualizer {
             RenderingUtils.glError("setModel head");
             info("Model VBO : " + this.vboModel);
             this.bufferModel.updateDataOnVBO(this.vboModel);
+            this.modelVertices = vertices.length / 3;
             RenderingUtils.glError("setModel tail");
         });
-        this.modelVertices = vertices.length / 3;
     }
 
     /**
@@ -488,67 +516,21 @@ public class ChunkInstancedBarrierVisualizer {
         }
     }
 
-    public void uploadAllChunks() {
-        this.chunks.forEach(Chunk::upload);
+    private void updateCenter() {
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        if (player == null) return;
+        HitResult hitResult = player.raycast(KZEAddon.options.barrierVisualizeRaycastDistance, 0, false);
+        if (KZEAddon.options.isCrosshairVisualizeOrigin && hitResult.getType() == HitResult.Type.BLOCK) {
+            this.center = VanillaUtils.toChunk(((BlockHitResult) hitResult).getBlockPos());
+            this.visualizeCenter = hitResult.getPos();
+        } else {
+            this.center = new BlockPos(player.chunkX, player.chunkY, player.chunkZ);
+            this.visualizeCenter = new Vec3d(player.lastRenderX, player.lastRenderY, player.lastRenderZ);
+        }
     }
 
-    public void useCrystalModel() {
-        this.primitiveType = GL11.GL_TRIANGLES;
-        float minOuter = -0.4F;
-        float minInner = -0.3F;
-        float maxInner = -minInner;
-        float maxOuter = -minOuter;
-
-        this.setModel(new float[]{
-                // Down1
-                minOuter, minOuter, minOuter,
-                maxOuter, minOuter, maxOuter,
-                minOuter, minOuter, maxOuter,
-                // Down2
-                minOuter, minOuter, minOuter,
-                maxOuter, minOuter, minOuter,
-                maxOuter, minOuter, maxOuter,
-                // Up1
-                minOuter, maxOuter, minOuter,
-                minOuter, maxOuter, maxOuter,
-                maxOuter, maxOuter, maxOuter,
-                // Up2
-                minOuter, maxOuter, minOuter,
-                maxOuter, maxOuter, maxOuter,
-                maxOuter, maxOuter, minOuter,
-                // North1
-                minOuter, minOuter, maxOuter,
-                maxOuter, minOuter, maxOuter,
-                minOuter, maxOuter, maxOuter,
-                // North2
-                minOuter, maxOuter, maxOuter,
-                maxOuter, minOuter, maxOuter,
-                maxOuter, maxOuter, maxOuter,
-                // East1
-                minOuter, minOuter, minOuter,
-                minOuter, minOuter, maxOuter,
-                minOuter, maxOuter, maxOuter,
-                // East2
-                minOuter, minOuter, minOuter,
-                minOuter, maxOuter, maxOuter,
-                minOuter, maxOuter, minOuter,
-                // West1
-                maxOuter, minOuter, minOuter,
-                maxOuter, maxOuter, minOuter,
-                maxOuter, maxOuter, maxOuter,
-                // West2
-                maxOuter, minOuter, minOuter,
-                maxOuter, maxOuter, maxOuter,
-                maxOuter, minOuter, maxOuter,
-                // South1
-                minOuter, minOuter, minOuter,
-                minOuter, maxOuter, minOuter,
-                maxOuter, maxOuter, minOuter,
-                // South2
-                minOuter, minOuter, minOuter,
-                maxOuter, maxOuter, minOuter,
-                maxOuter, minOuter, minOuter,
-        });
+    public void uploadAllChunks() {
+        this.chunks.forEach(Chunk::upload);
     }
 
     public void useDefaultModel() {

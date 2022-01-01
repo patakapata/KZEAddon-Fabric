@@ -46,16 +46,16 @@ public class KeyBindings {
         return list.toArray(new KeyBinding[0]);
     }
 
-    public static void tickKeys() {
-        handledKeyList.forEach(KeyBindingWrapper::tick);
-    }
-
     public static void registerKeybindings() {
         ADD_GROW_TARGET = new KeyBindingWrapper("key.kzeaddon.in_game.obsession.add", GLFW.GLFW_KEY_G, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressAddObsessionTarget);
         HIDE_PLAYERS = new KeyBindingWrapper("key.kzeaddon.in_game.hide_ally", GLFW.GLFW_KEY_R, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressHideTeammates);
         UN_STACK = new KeyBindingWrapper("key.kzeaddon.in_game.un_stack", GLFW.GLFW_KEY_N, "key.categories.kzeaddon.in_game", KeyPressingEvents::onPressUnStack);
-        OPEN_LOG = new KeyBindingWrapper("key.kzeaddon.wip.open_log", 0, "key.categories.kzeaddon.wip", unused -> KZEAddon.getModLog().openLogScreen());
+        OPEN_LOG = new KeyBindingWrapper("key.kzeaddon.wip.open_log", GLFW.GLFW_KEY_UNKNOWN, "key.categories.kzeaddon.wip", unused -> KZEAddon.getModLog().openLogScreen());
         COPY_ITEM_TAG = new KeyBindingWrapper("key.kzeaddon.wip.copy_item_tag", GLFW.GLFW_KEY_H, "key.categories.kzeaddon.wip");
         DEBUG_KEY = new KeyBindingWrapper("key.kzeaddon.wip.debug", GLFW.GLFW_KEY_RIGHT_BRACKET, "key.categories.kzeaddon.wip", KeyPressingEvents::onPressDebug);
+    }
+
+    public static void tickKeys() {
+        handledKeyList.forEach(KeyBindingWrapper::tick);
     }
 }

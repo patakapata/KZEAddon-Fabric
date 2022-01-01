@@ -96,17 +96,6 @@ public class EventsListener {
         profiler.swap("Keys tick");
         KeyBindings.tickKeys();
         profiler.swap("Barrier Visualizer tick");
-
-        HitResult hitResult = player.raycast(KZEAddon.options.barrierVisualizeRaycastDistance, 0, false);
-        if (KZEAddon.options.isCrosshairVisualizeOrigin && hitResult.getType() == HitResult.Type.BLOCK) {
-            BlockPos pos = ((BlockHitResult) hitResult).getBlockPos();
-            ChunkInstancedBarrierVisualizer.INSTANCE.setCenter(VanillaUtils.toChunk(pos));
-            ChunkInstancedBarrierVisualizer.INSTANCE.setVisualizeCenter(hitResult.getPos());
-        } else {
-            ChunkInstancedBarrierVisualizer.INSTANCE.setCenter(player.chunkX, player.chunkY, player.chunkZ);
-            ChunkInstancedBarrierVisualizer.INSTANCE.setVisualizeCenter(player.getPos());
-        }
-
         ChunkInstancedBarrierVisualizer.INSTANCE.tick();
         profiler.swap("Poll all tick tasks");
         Runnable task;

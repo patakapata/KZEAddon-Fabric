@@ -66,5 +66,13 @@
   "itemGroup.kzeaddon-fabric.favorites": "お気に入りのアイテム",
   
   "subtitles.kzeaddon.honk": "HONK",
-  "subtitles.kzeaddon.vote.start": "投票開始"
+  "subtitles.kzeaddon.vote.start": "投票開始",
+  
+  "menu.kzeaddon.widgets.main_weapon": "メイン武器",
+  "menu.kzeaddon.widgets.sub_weapon": "サブ武器",
+  "menu.kzeaddon.widgets.melee_weapon": "近接武器",
+  "menu.kzeaddon.widgets.reload_time": "リロード時間",
+  "menu.kzeaddon.widgets.total_ammo": "弾薬所持数",
+  "menu.kzeaddon.widgets.text_widgets": "テキスト",
+  "menu.kzeaddon.work_in_progress": "開発中"
 }

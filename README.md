@@ -1,6 +1,5 @@
 # <img src="src/main/resources/assets/kzeaddon-fabric/icon.png" width=32> KZEAddon - Fabric [![GitHub issues](https://img.shields.io/github/issues/patakapata/KZEAddon-Fabric-1.16.5?color=brightgreen)](https://github.com/patakapata/KZEAddon-Fabric-1.16.5/issues) [![GitHub license](https://img.shields.io/github/license/patakapata/KZEAddon-Fabric-1.16.5?color=brightgreen)](https://github.com/patakapata/KZEAddon-Fabric-1.16.5/blob/master/LICENSE)
 
-***
 KaedeZombieEscapeのプレイを支援するModです
 
 [Forge版](https://github.com/tedo0627/KZEAddon)

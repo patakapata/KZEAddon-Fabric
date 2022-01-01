@@ -11,7 +11,7 @@ attribute vec3 offset;
 varying float alpha;
 
 void main(void) {
-    float distance = distance(center, offset);
+    float distance = distance(center, offset + position);
 
     if (useFade == 1.0) {
         alpha = 1.0 - clamp(distance / fadeRadius, 0.0, 1.0);

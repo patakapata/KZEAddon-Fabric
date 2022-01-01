@@ -80,23 +80,32 @@ public class AddonCommand {
                                             return 0;
                                         })
                                 ).then(
-                                        l("load_model").then(
-                                                a("id", IdentifierArgumentType.identifier()).executes(ctx -> {
-                                                    Identifier id = ctx.getArgument("id", Identifier.class);
-                                                    if (ChunkInstancedBarrierVisualizer.INSTANCE.loadModelFromResource(id)) {
-                                                        ctx.getSource().sendFeedback(Text.of("Model `" + id + "` successfully loaded"));
-                                                        return 0;
-                                                    } else {
-                                                        ctx.getSource().sendError(Text.of("Model " + id + " load failed"));
-                                                        return -1;
-                                                    }
-                                                }).suggests((context, builder) -> {
-                                                    MinecraftClient mc = MinecraftClient.getInstance();
-                                                    ResourceManager resManager = mc.getResourceManager();
-                                                    CommandSource.suggestIdentifiers(resManager.findResources("barrier_model", unused -> true), builder);
-                                                    return builder.buildFuture();
+                                        l("model").then(
+                                                l("load").then(
+                                                        a("id", IdentifierArgumentType.identifier()).executes(ctx -> {
+                                                            Identifier id = ctx.getArgument("id", Identifier.class);
+                                                            if (ChunkInstancedBarrierVisualizer.INSTANCE.loadModelFromResource(id)) {
+                                                                ctx.getSource().sendFeedback(Text.of("Model `" + id + "` successfully loaded"));
+                                                                ChunkInstancedBarrierVisualizer.INSTANCE.setModel(id);
+                                                                return 0;
+                                                            } else {
+                                                                ctx.getSource().sendError(Text.of("Model " + id + " load failed"));
+                                                                return -1;
+                                                            }
+                                                        }).suggests((context, builder) -> {
+                                                            MinecraftClient mc = MinecraftClient.getInstance();
+                                                            ResourceManager resManager = mc.getResourceManager();
+                                                            CommandSource.suggestIdentifiers(resManager.findResources("barrier_model", unused -> true), builder);
+                                                            return builder.buildFuture();
+                                                        })
+                                                )
+                                        ).then(
+                                                l("vertices").executes(ctx -> {
+                                                    ctx.getSource().sendFeedback(Text.of("Vertices: " + ChunkInstancedBarrierVisualizer.INSTANCE.getVertices()));
+                                                    return 0;
                                                 })
                                         )
+
                                 )
                         ).then(
                                 l("log").then(

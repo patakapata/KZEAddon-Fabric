@@ -52,6 +52,7 @@ public class Options {
     public boolean isShowFriendlyInvisibles;
     public boolean isVisualizeBarriers;
     public boolean isBarrierFade;
+    public boolean isShowChunkState;
     // その他
     public boolean isShowModLog;
     public boolean isHideAllies;
@@ -99,34 +100,6 @@ public class Options {
     }
 
     /**
-     * 規定値の設定
-     */
-    public void restoreDefaultValues() {
-        this.isShowKillLog = false;
-        this.isShowModLog = false;
-        this.isHighlightMyKill = true;
-        this.isIgnoreResourcePack = true;
-        this.isChangeGunfireVolume = true;
-        this.isVisualizeBarriers = false;
-        this.isCrosshairVisualizeOrigin = false;
-        this.isHideAllies = false;
-        this.isShowFriendlyInvisibles = false;
-        this.isBarrierFade = false;
-
-        this.gunfireVolumeMultiplier = 0.5F;
-        this.obsessionGlowColor = new Color(0xFF0000);
-        this.humanGlowColor = new Color(0x00AAAA);
-        this.zombieGlowColor = new Color(0x00AA00);
-        this.barrierVisualizeRadius = 1;
-        this.barrierFadeRadius = 16F;
-        this.barrierVisualizeRaycastDistance = 40.0F;
-        this.barrierLineWidth = 2F;
-        this.barrierColor = new Color(0xAA0000);
-        this.cameraOffset = new Vec3d(0, 0, 0);
-        this.killLogScrollMultiplier = 1.0F;
-    }
-
-    /**
      * 他の {@link Options} インスタンスから設定をコピーする
      */
     private void copy(Options other) {
@@ -166,6 +139,35 @@ public class Options {
     }
 
     /**
+     * 規定値の設定
+     */
+    public void restoreDefaultValues() {
+        this.isShowKillLog = false;
+        this.isShowModLog = false;
+        this.isHighlightMyKill = true;
+        this.isIgnoreResourcePack = true;
+        this.isChangeGunfireVolume = true;
+        this.isVisualizeBarriers = false;
+        this.isCrosshairVisualizeOrigin = false;
+        this.isHideAllies = false;
+        this.isShowFriendlyInvisibles = false;
+        this.isBarrierFade = false;
+        this.isShowChunkState = false;
+
+        this.gunfireVolumeMultiplier = 0.5F;
+        this.obsessionGlowColor = new Color(0xFF0000);
+        this.humanGlowColor = new Color(0x00AAAA);
+        this.zombieGlowColor = new Color(0x00AA00);
+        this.barrierVisualizeRadius = 1;
+        this.barrierFadeRadius = 16F;
+        this.barrierVisualizeRaycastDistance = 40.0F;
+        this.barrierLineWidth = 2F;
+        this.barrierColor = new Color(0xAA0000);
+        this.cameraOffset = new Vec3d(0, 0, 0);
+        this.killLogScrollMultiplier = 1.0F;
+    }
+
+    /**
      * ファイルへ設定を保存する
      *
      * @see #optionFile
@@ -184,13 +186,16 @@ public class Options {
 
 
     private static class OptionsTypeAdapter implements JsonDeserializer<Options> {
-        private boolean shouldExclude(Field field) {
-            return field.getAnnotation(Exclude.class) != null;
-        }
+        @SuppressWarnings("SameParameterValue")
+        private List<String> declaredFields(Class<?> clazz, Predicate<Field> predicate) {
+            List<String> list = new ArrayList<>();
+            for (Field field : clazz.getDeclaredFields()) {
+                if (predicate.test(field)) {
+                    list.add(field.getName());
+                }
+            }
 
-        private void set(Options to, String name, Object value) throws NoSuchFieldException, IllegalAccessException {
-            Field field = Options.class.getDeclaredField(name);
-            field.set(to, value);
+            return list;
         }
 
         @Override
@@ -226,17 +231,6 @@ public class Options {
             return options;
         }
 
-        public String toString(List<String> list) {
-            StringBuilder builder = new StringBuilder();
-            Iterator<String> itr = list.listIterator();
-            while (itr.hasNext()) {
-                builder.append(itr.next());
-                if (itr.hasNext()) builder.append(", ");
-            }
-
-            return builder.toString();
-        }
-
         private List<String> difference(List<String> list1, List<String> list2) {
             return list1.stream().filter(it -> !list2.contains(it)).collect(Collectors.toList());
         }
@@ -250,16 +244,24 @@ public class Options {
             return list;
         }
 
-        @SuppressWarnings("SameParameterValue")
-        private List<String> declaredFields(Class<?> clazz, Predicate<Field> predicate) {
-            List<String> list = new ArrayList<>();
-            for (Field field : clazz.getDeclaredFields()) {
-                if (predicate.test(field)) {
-                    list.add(field.getName());
-                }
+        private void set(Options to, String name, Object value) throws NoSuchFieldException, IllegalAccessException {
+            Field field = Options.class.getDeclaredField(name);
+            field.set(to, value);
+        }
+
+        private boolean shouldExclude(Field field) {
+            return field.getAnnotation(Exclude.class) != null;
+        }
+
+        public String toString(List<String> list) {
+            StringBuilder builder = new StringBuilder();
+            Iterator<String> itr = list.listIterator();
+            while (itr.hasNext()) {
+                builder.append(itr.next());
+                if (itr.hasNext()) builder.append(", ");
             }
 
-            return list;
+            return builder.toString();
         }
     }
 }

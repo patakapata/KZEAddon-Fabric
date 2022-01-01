@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
-    protected static final TranslatableText WIP_TEXT = new TranslatableText("menu.kzeaddon.option.work_in_progress");
+    protected static final TranslatableText WIP_TEXT = new TranslatableText("menu.kzeaddon.work_in_progress");
     protected final List<TextFieldWidget> textFields;
     protected final ParentWrapper parent;
 
@@ -36,7 +36,7 @@ public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
 
     @Override
     public void onClose() {
-        this.parent.open(this.client);
+        this.parent.open(MinecraftClient.getInstance());
     }
 
     public void open(MinecraftClient client) {
@@ -51,6 +51,13 @@ public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
         this.renderTooltip(matrices, RenderingUtils.getMatrixContent(isProjectionMatrix), x, y);
     }
 
+    protected void renderWIPText(MatrixStack matrices) {
+        matrices.push();
+        matrices.translate(this.width, this.height, 0);
+        this.textRenderer.drawWithShadow(matrices, WIP_TEXT, -this.textRenderer.getWidth(WIP_TEXT), -this.textRenderer.fontHeight, 0xAAAAAA);
+        matrices.pop();
+    }
+
     public void setFocusedTFW(TextFieldWidget widget) {
         if (!this.textFields.contains(widget)) return;
         this.textFields.forEach(it -> it.setTextFieldFocused(it.equals(widget)));
@@ -63,12 +70,5 @@ public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
     @Override
     public void tick() {
         this.textFields.forEach(TextFieldWidget::tick);
-    }
-
-    protected void renderWIPText(MatrixStack matrices) {
-        matrices.push();
-        matrices.translate(this.width, this.height, 0);
-        this.textRenderer.drawWithShadow(matrices, WIP_TEXT, -this.textRenderer.getWidth(WIP_TEXT), -this.textRenderer.fontHeight, 0xAAAAAA);
-        matrices.pop();
     }
 }

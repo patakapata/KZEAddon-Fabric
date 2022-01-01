@@ -10,7 +10,6 @@
     "DebugHudMixin",
     "EntityMixin",
     "GameOptionsMixin",
-    "GameRendererMixin",
     "InGameHudMixin",
     "ItemStackMixin",
     "JsonEffectGlShaderMixin",
