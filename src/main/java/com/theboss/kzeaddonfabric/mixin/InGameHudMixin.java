@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.mixin;
 
-import com.theboss.kzeaddonfabric.events.RenderingEventsListener;
+import com.theboss.kzeaddonfabric.events.listeners.RenderingEventsListener;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;

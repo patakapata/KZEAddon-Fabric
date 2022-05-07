@@ -1,15 +1,12 @@
 package com.theboss.kzeaddonfabric.ingame;
 
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.enums.WeaponSlot;
-import com.theboss.kzeaddonfabric.events.ReloadEvents;
-import com.theboss.kzeaddonfabric.ingame.Weapon;
+import com.theboss.kzeaddonfabric.events.impl.ReloadEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.text.Text;
 import net.minecraft.util.profiler.Profiler;
-
-import static com.theboss.kzeaddonfabric.KZEAddon.warn;
 
 public class KZEInformation {
     private final MinecraftClient mc;
@@ -44,7 +41,7 @@ public class KZEInformation {
         this.reloadProgress = 0.0;
 
         // Ignite event
-        ReloadEvents.BEGIN.invoker().apply(this);
+        ReloadEvents.START.invoker().handle(this);
     }
 
     public void cancelReload() {
@@ -54,7 +51,7 @@ public class KZEInformation {
         this.reloadProgress = 0.0;
 
         // Ignite event
-        ReloadEvents.REFUSE.invoker().apply(this);
+        ReloadEvents.REFUSE.invoker().handle(this);
     }
 
     public Weapon getMainHandWeapon() {
@@ -127,7 +124,7 @@ public class KZEInformation {
             this.reloadProgress = 0;
 
             // Ignite event
-            ReloadEvents.COMPLETE.invoker().apply(this);
+            ReloadEvents.COMPLETE.invoker().handle(this);
         } else {
             this.reloadProgress = (double) this.reloadProgressTick / this.reloadTimeTick;
         }
@@ -137,7 +134,7 @@ public class KZEInformation {
     protected void setReloadFromMainhandWeapon() {
         WeaponSlot slot = WeaponSlot.valueOf(this.mc.player != null ? this.mc.player.inventory.selectedSlot : 0);
         if (slot == null) {
-            warn(Text.of("§lInvalid weapon or slot!§r"));
+            KZEAddon.warn("§lInvalid weapon or slot!§r");
             return;
         }
 

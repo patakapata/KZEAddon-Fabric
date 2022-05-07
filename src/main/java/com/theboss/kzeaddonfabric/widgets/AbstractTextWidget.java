@@ -2,6 +2,7 @@ package com.theboss.kzeaddonfabric.widgets;
 
 import com.theboss.kzeaddonfabric.enums.Anchor;
 import com.theboss.kzeaddonfabric.utils.Exclude;
+import com.theboss.kzeaddonfabric.widgets.api.Widget;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -14,6 +15,10 @@ public abstract class AbstractTextWidget implements Widget {
     private Offset offset;
     private Anchor anchor;
 
+    public AbstractTextWidget() {
+        this(1.0F, new Offset(Anchor.LEFT_UP, 0.0F, 0.0F), Anchor.LEFT_UP);
+    }
+
     public AbstractTextWidget(float scale, Offset offset, Anchor anchor) {
         this.scale = scale;
         this.offset = offset;
@@ -23,21 +28,21 @@ public abstract class AbstractTextWidget implements Widget {
     @Override
     public void render(MatrixStack matrices, float delta) {
         textRenderer.drawWithShadow(matrices,
-                this.getText(),
-                0,
-                0,
-                this.getColor() | this.getAlpha() << 24
+                                    this.getText(),
+                                    0,
+                                    0,
+                                    this.getColor() | this.getAlpha() << 24
         );
-    }
-
-    @Override
-    public void setOffset(Offset offset) {
-        this.offset = offset;
     }
 
     @Override
     public Offset getOffset() {
         return this.offset;
+    }
+
+    @Override
+    public void setOffset(Offset offset) {
+        this.offset = offset;
     }
 
     public abstract Text getText();
@@ -48,23 +53,23 @@ public abstract class AbstractTextWidget implements Widget {
     }
 
     @Override
-    public void setScale(float scale) {
-        this.scale = scale;
-    }
-
-    @Override
     public float getScale() {
         return this.scale;
     }
 
     @Override
-    public void setAnchor(Anchor anchor) {
-        this.anchor = anchor;
+    public void setScale(float scale) {
+        this.scale = scale;
     }
 
     @Override
     public Anchor getAnchor() {
         return this.anchor;
+    }
+
+    @Override
+    public void setAnchor(Anchor anchor) {
+        this.anchor = anchor;
     }
 
     @Override

@@ -16,7 +16,17 @@ repositories {
         name = "TerraformersMC"
         url = "https://maven.terraformersmc.com/releases/"
     }
-    maven { url = "https://maven.shedaniel.me/" }
+    maven {
+        name = "Shedaniel"
+        url = "https://maven.shedaniel.me/"
+    }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 dependencies {
@@ -25,9 +35,8 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "com.terraformersmc:modmenu:${project.modmenu}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}") {
-        exclude group: "net.fabricmc.fabric-api"
+        exclude group: 'net.fabricmc.fabric-api'
     }
     include "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}"
 }

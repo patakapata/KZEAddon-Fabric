@@ -8,7 +8,7 @@
     "_theBooooSS"
   ],
   "contact": {
-    "Twitter": "https://twitter.com/_xthebossx_"
+    "sources": "https://github.com/patakapata/KZEAddon-Fabric-1.16.5"
   },
   "license": "MIT",
   "icon": "assets/kzeaddon-fabric/icon.png",
@@ -29,17 +29,9 @@
   ],
   "depends": {
     "fabricloader": ">=0.11.6",
-    "fabric": ">=0.40.6",
     "minecraft": "1.16.*"
   },
   "suggests": {
     "modmenu": "1.16.*"
-  },
-  "custom": {
-    "modmenu": {
-      "links": {
-        "modmenu.kzeaddon.github": "https://github.com/patakapata/KZEAddon-Fabric-1.16.5"
-      }
-    }
   }
 }

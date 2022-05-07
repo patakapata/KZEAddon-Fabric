@@ -14,9 +14,9 @@ import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class KZEAddonLog implements HUD {
     private final List<Entry> history;
@@ -36,7 +36,7 @@ public class KZEAddonLog implements HUD {
     public KZEAddonLog(MinecraftClient mc, int maxHistorySize, int x, int y, int normalShowLines, boolean showTime, boolean isHiding) {
         this.mc = mc;
         this.textRenderer = this.mc.textRenderer;
-        this.history = new ArrayList<>();
+        this.history = new CopyOnWriteArrayList<>();
         this.maxHistorySize = maxHistorySize;
         this.x = x;
         this.y = y;

@@ -1,6 +1,7 @@
 #version 110
 
 uniform vec3 color;
+uniform float useFade;
 
 varying float alpha;
 

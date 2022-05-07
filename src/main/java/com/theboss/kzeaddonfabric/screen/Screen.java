@@ -2,7 +2,7 @@ package com.theboss.kzeaddonfabric.screen;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.screen.button.TextFieldWidget;
-import com.theboss.kzeaddonfabric.utils.RenderingUtils;
+import com.theboss.kzeaddonfabric.utils.RenderUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -48,7 +48,7 @@ public abstract class Screen extends net.minecraft.client.gui.screen.Screen {
     }
 
     public void renderMatrixContents(MatrixStack matrices, int x, int y, boolean isProjectionMatrix) {
-        this.renderTooltip(matrices, RenderingUtils.getMatrixContent(isProjectionMatrix), x, y);
+        this.renderTooltip(matrices, RenderUtils.getMatrixContent(isProjectionMatrix), x, y);
     }
 
     protected void renderWIPText(MatrixStack matrices) {

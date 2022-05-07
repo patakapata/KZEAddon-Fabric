@@ -1,8 +1,8 @@
 package com.theboss.kzeaddonfabric;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.theboss.kzeaddonfabric.events.KillLogEvents;
-import com.theboss.kzeaddonfabric.utils.RenderingUtils;
+import com.theboss.kzeaddonfabric.events.impl.KillLogEvents;
+import com.theboss.kzeaddonfabric.utils.RenderUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -43,20 +43,19 @@ public class KillLog {
         this.add(new Entry(new Player("Attacker"), new Player("Victim"), "@", false, this.mc));
     }
 
-    public List<Entry> getLogs() {
-        return new ArrayList<>(this.logs);
+    public void add(Entry entry) {
+        this.logs.add(entry);
+
+        // Ignite event
+        KillLogEvents.ADD.invoker().handle(this, entry);
     }
 
-    public int getLogSize() {
-        return this.logs.size();
+    public void clear() {
+        this.logs.clear();
     }
 
-    public int getVerticalMargin() {
-        return this.verticalMargin;
-    }
-
-    public void setVerticalMargin(int verticalMargin) {
-        this.verticalMargin = verticalMargin;
+    public int getEntryHeight() {
+        return this.mc.textRenderer.fontHeight + this.verticalMargin;
     }
 
     public int getHorizontalMargin() {
@@ -67,6 +66,14 @@ public class KillLog {
         this.horizontalMargin = horizontalMargin;
     }
 
+    public int getLogSize() {
+        return this.logs.size();
+    }
+
+    public List<Entry> getLogs() {
+        return new ArrayList<>(this.logs);
+    }
+
     public int getShowLines() {
         return this.showLines;
     }
@@ -75,19 +82,12 @@ public class KillLog {
         this.showLines = showLines;
     }
 
-    public int getEntryHeight() {
-        return this.mc.textRenderer.fontHeight + this.verticalMargin;
+    public int getVerticalMargin() {
+        return this.verticalMargin;
     }
 
-    public void clear() {
-        this.logs.clear();
-    }
-
-    public void add(Entry entry) {
-        this.logs.add(entry);
-
-        // Ignite event
-        KillLogEvents.ADD_ENTRY.invoker().apply(this, entry);
+    public void setVerticalMargin(int verticalMargin) {
+        this.verticalMargin = verticalMargin;
     }
 
     public void remove(int index) {
@@ -96,11 +96,6 @@ public class KillLog {
 
     public void remove(Entry obj) {
         this.logs.remove(obj);
-    }
-
-    public void tick() {
-        if (this.mc.currentScreen != null && this.mc.currentScreen.isPauseScreen()) return;
-        this.logs.forEach(Entry::tick);
     }
 
     public void render(MatrixStack matrices, float x, float y, int maxShowLines, int alpha) {
@@ -139,14 +134,19 @@ public class KillLog {
         this.render(matrices, x, y, this.showLines);
     }
 
+    public void tick() {
+        if (this.mc.currentScreen != null && this.mc.currentScreen.isPauseScreen()) return;
+        this.logs.forEach(Entry::tick);
+    }
+
     public static class Entry {
         private final Player attacker;
         private final Player victim;
         private final String mark;
         private final boolean isInfection;
         private final boolean shouldHighlight;
-        private int lifeTime;
         private final TextRenderer textRenderer;
+        private int lifeTime;
 
         public Entry(Player attacker, Player victim, String mark, boolean isInfection, MinecraftClient mc) {
             this.attacker = attacker;
@@ -158,26 +158,36 @@ public class KillLog {
             this.textRenderer = mc.textRenderer;
         }
 
-        public Player getAttacker() {
-            return this.attacker;
+        public float getAlpha() {
+            if (this.lifeTime > 20) return 1F;
+            else {
+                return Math.max(this.lifeTime / 20F, 0);
+            }
         }
 
-        public Player getVictim() {
-            return this.victim;
+        public Player getAttacker() {
+            return this.attacker;
         }
 
         public String getMark() {
             return this.mark;
         }
 
+        public Player getVictim() {
+            return this.victim;
+        }
+
+        public int getWidth() {
+            return this.textRenderer.getWidth(" " + this.attacker.getName() + " " + this.mark + "  " + this.victim.getName()) + this.textRenderer.fontHeight * 2 + SEPARATOR * 2;
+        }
+
+        public boolean isInfection() {
+            return this.isInfection;
+        }
+
         public boolean isShouldHighlight() {
             return this.shouldHighlight;
         }
-
-        public void tick() {
-            if (this.lifeTime >= 1) this.lifeTime--;
-        }
-
 
         public void render(MatrixStack matrices, float x, float y, int alpha) {
             if (alpha > 3) {
@@ -205,13 +215,6 @@ public class KillLog {
             this.render(matrices, x, y, MathHelper.floor(this.getAlpha() * 255) & 0xFF);
         }
 
-        public float getAlpha() {
-            if (this.lifeTime > 20) return 1F;
-            else {
-                return Math.max(this.lifeTime / 20F, 0);
-            }
-        }
-
         public void renderHighlight(MatrixStack matrices, float x, float y, float alpha) {
             Tessellator tessellator = Tessellator.getInstance();
             BufferBuilder buffer = tessellator.getBuffer();
@@ -220,7 +223,7 @@ public class KillLog {
             RenderSystem.enableBlend();
             Matrix4f matrix = matrices.peek().getModel();
             float right = x + this.getWidth();
-            float down = y + this.textRenderer.fontHeight + KZEAddon.killLog.getVerticalMargin();
+            float down = y + this.textRenderer.fontHeight + KZEAddon.getKillLog().getVerticalMargin();
 
             buffer.begin(GL11.GL_LINE_LOOP, VertexFormats.POSITION_COLOR);
             buffer.vertex(matrix, x, y, 0).color(1F, 0F, 0F, alpha).next();
@@ -233,12 +236,13 @@ public class KillLog {
             RenderSystem.enableTexture();
         }
 
-        public boolean isInfection() {
-            return this.isInfection;
+        public void tick() {
+            if (this.lifeTime >= 1) this.lifeTime--;
         }
 
-        public int getWidth() {
-            return this.textRenderer.getWidth(" " + this.attacker.getName() + " " + this.mark + "  " + this.victim.getName()) + this.textRenderer.fontHeight * 2 + SEPARATOR * 2;
+        @Override
+        public String toString() {
+            return "[" + this.attacker.getName() + ", " + this.mark + ", " + this.victim.getName() + "]";
         }
     }
 
@@ -250,7 +254,7 @@ public class KillLog {
             this.name = name;
 
             MinecraftClient mc = MinecraftClient.getInstance();
-            int fallbackTex = RenderingUtils.getGlId(MISSING_SKIN).orElse(0);
+            int fallbackTex = RenderUtils.getGlId(MISSING_SKIN).orElse(0);
             if (mc.player == null) {
                 this.skinId = fallbackTex;
             } else {
@@ -258,7 +262,7 @@ public class KillLog {
                 PlayerListEntry entry = network.getPlayerListEntry(name);
 
                 if (entry != null) {
-                    this.skinId = RenderingUtils.getGlId(entry.getSkinTexture()).orElse(fallbackTex);
+                    this.skinId = RenderUtils.getGlId(entry.getSkinTexture()).orElse(fallbackTex);
                 } else {
                     this.skinId = fallbackTex;
                 }
@@ -270,6 +274,10 @@ public class KillLog {
             this.skinId = skinId;
         }
 
+        public void bindSkin() {
+            RenderSystem.bindTexture(this.skinId);
+        }
+
         public String getName() {
             return this.name;
         }
@@ -278,18 +286,14 @@ public class KillLog {
             return this.skinId;
         }
 
-        public void bindSkin() {
-            RenderSystem.bindTexture(this.skinId);
+        public int getWidth(TextRenderer textRenderer) {
+            return textRenderer.fontHeight + SEPARATOR + textRenderer.getWidth(this.getName());
         }
 
         public void render(MatrixStack matrices, float x, float y, int alpha, TextRenderer textRenderer, int textColor) {
             //noinspection SuspiciousNameCombination
             this.renderHead(matrices, x, y - 0.5F, textRenderer.fontHeight, textRenderer.fontHeight, alpha / 255F);
             textRenderer.drawWithShadow(matrices, this.getName(), x + textRenderer.fontHeight + SEPARATOR, y, textColor | alpha << 24);
-        }
-
-        public int getWidth(TextRenderer textRenderer) {
-            return textRenderer.fontHeight + SEPARATOR + textRenderer.getWidth(this.getName());
         }
 
         public void renderHead(MatrixStack matrices, float x, float y, int width, int height, float alpha) {

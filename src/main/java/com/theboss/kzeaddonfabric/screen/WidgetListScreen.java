@@ -2,8 +2,8 @@ package com.theboss.kzeaddonfabric.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.widgets.TextWidget;
-import com.theboss.kzeaddonfabric.widgets.Widget;
+import com.theboss.kzeaddonfabric.widgets.impl.TextWidget;
+import com.theboss.kzeaddonfabric.widgets.api.Widget;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -43,8 +43,8 @@ public class WidgetListScreen extends Screen {
 
         // -------------------------------------------------- //
         // Bottom
-        this.deleteButton = new ButtonWidget(cX - 55, this.height - 30, 50, 20, new TranslatableText("button.literal_widgets.kzeaddon.delete"), this::onDeleteButtonPressed);
-        this.editButton = new ButtonWidget(cX + 5, this.height - 30, 50, 20, new TranslatableText("button.literal_widgets.kzeaddon.edit"), this::onEditButtonPressed);
+        this.deleteButton = new ButtonWidget(cX - 55, this.height - 30, 50, 20, new TranslatableText("menu.kzeaddon.delete"), this::onDeleteButtonPressed);
+        this.editButton = new ButtonWidget(cX + 5, this.height - 30, 50, 20, new TranslatableText("menu.kzeaddon.edit"), this::onEditButtonPressed);
 
         this.updateButtonState();
 
@@ -73,9 +73,9 @@ public class WidgetListScreen extends Screen {
             Widget widget = this.widgets.get(this.selected);
 
             if (widget instanceof TextWidget) {
-                KZEAddon.widgetRenderer.removeText((TextWidget) widget);
+                KZEAddon.getWidgetRenderer().removeText((TextWidget) widget);
             } else {
-                KZEAddon.widgetRenderer.remove(widget);
+                KZEAddon.getWidgetRenderer().remove(widget);
             }
 
             this.widgets.remove(this.selected);
@@ -88,7 +88,7 @@ public class WidgetListScreen extends Screen {
 
     protected void onEditButtonPressed(ButtonWidget btn) {
         if (this.assertSelect()) {
-            KZEAddon.widgetRenderer.openEditScreen(this.widgets.get(this.selected));
+            KZEAddon.getWidgetRenderer().openEditScreen(this.widgets.get(this.selected));
         }
     }
 

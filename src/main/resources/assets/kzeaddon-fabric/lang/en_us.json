@@ -74,5 +74,20 @@
   "menu.kzeaddon.widgets.reload_time": "リロード時間",
   "menu.kzeaddon.widgets.total_ammo": "弾薬所持数",
   "menu.kzeaddon.widgets.text_widgets": "テキスト",
-  "menu.kzeaddon.work_in_progress": "開発中"
+  "menu.kzeaddon.work_in_progress": "開発中",
+  "menu.kzeaddon.barrier.visualize_radius": "可視化範囲(チャンク単位)",
+  "menu.kzeaddon.barrier.use_fade": "フェード効果",
+  "menu.kzeaddon.barrier.fade_radius": "フェード範囲",
+  "menu.kzeaddon.barrier.color": "色",
+  "menu.kzeaddon.barrier.model_file": "モデルファイル",
+  "menu.kzeaddon.barrier.crosshair_reach_distance": "クロスヘアリーチ距離",
+  "menu.kzeaddon.edit": "編集",
+  "menu.kzeaddon.delete": "削除",
+  
+  "debug.kzeaddon.kill_log.add": "キルログ[ %s ]を追加しました",
+  "debug.kzeaddon.reload.start": "リロード開始",
+  "debug.kzeaddon.reload.complete": "リロード完了",
+  "debug.kzeaddon.reload.refuse": "リロード中断",
+  
+  "button.kzeaddon.barrier.reallocate": "再割り当て"
 }

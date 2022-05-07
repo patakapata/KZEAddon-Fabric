@@ -8,16 +8,28 @@ import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class FavoriteItemManager {
+    private static final DefaultedList<ItemStack> favoriteItems = DefaultedList.of();
     private static ItemStack lastItem = ItemStack.EMPTY;
     private static boolean holdProcessed;
     private static float holdProgress;
     private static long lastTime;
+
+    public static void addItem(ItemStack item) {
+        favoriteItems.add(item);
+    }
+
+    public static List<ItemStack> getItems() {
+        return new ArrayList<>(favoriteItems);
+    }
 
     public static void handleEvent(ItemStack stack, TooltipContext ctx, List<Text> list) {
         MinecraftClient mc = MinecraftClient.getInstance();
@@ -30,7 +42,7 @@ public class FavoriteItemManager {
         int divide = 40;
 
         long now = System.currentTimeMillis();
-        float delta = (now - lastTime) / 1_000F;
+        float delta = (now - lastTime) / 50F;
         lastTime = now;
         if (ModUtils.getKeyState(((KeyBindingAccessor) mc.options.keyForward).getBoundKey().getCode()) == GLFW.GLFW_PRESS) {
 
@@ -48,14 +60,14 @@ public class FavoriteItemManager {
         if (holdProgress == 1) {
             if (!holdProcessed) {
                 holdProcessed = true;
-                boolean containItem = KZEAddon.isFavoriteItem(stack);
+                boolean containItem = isFavorite(stack);
 
                 if (!containItem) {
-                    KZEAddon.addFavoriteItem(stack.copy());
+                    addItem(stack.copy());
                     KZEAddon.info("Favorite Items > " + VanillaUtils.textAsString(stack.getName()) + " is added!");
 
                 } else {
-                    KZEAddon.removeFavoriteItem(stack);
+                    removeItem(stack);
                     KZEAddon.info("Favorite Items > " + VanillaUtils.textAsString(stack.getName()) + " is removed!");
                 }
             }
@@ -75,8 +87,37 @@ public class FavoriteItemManager {
         text.append(") ");
         text.append(builder.toString());
 
-        list.add(Text.of(KZEAddon.isFavoriteItem(stack) ? "§a✔ §6Favorite§r" : "§c✗ §8Favorite§r"));
+        list.add(Text.of(isFavorite(stack) ? "§a✔ §6Favorite§r" : "§c✗ §8Favorite§r"));
         list.add(list.size() - (ctx.isAdvanced() ? 1 : 0), text);
+    }
+
+    public static boolean isFavorite(ItemStack item) {
+        Iterator<ItemStack> itr = favoriteItems.iterator();
+        ItemStack var;
+
+        while (itr.hasNext()) {
+            var = itr.next();
+
+            if (ItemStack.areEqual(var, item)) return true;
+        }
+
+        return false;
+    }
+
+    public static void removeItem(ItemStack item) {
+        Iterator<ItemStack> itr = favoriteItems.iterator();
+        ItemStack var;
+        int i = 0;
+
+        while (itr.hasNext()) {
+            var = itr.next();
+            if (ItemStack.areEqual(var, item)) {
+                favoriteItems.remove(i);
+                return;
+            }
+
+            i++;
+        }
     }
 
     private FavoriteItemManager() {}

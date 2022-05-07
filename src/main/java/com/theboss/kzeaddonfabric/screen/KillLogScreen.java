@@ -15,7 +15,7 @@ public class KillLogScreen extends Screen {
     public KillLogScreen() {
         super(Text.of("KillLog Screen"));
 
-        this.log = KZEAddon.killLog;
+        this.log = KZEAddon.getKillLog();
         this.scrollAmount = 0;
         this.lastScrollAmount = this.scrollAmount;
     }
@@ -28,7 +28,7 @@ public class KillLogScreen extends Screen {
         this.lastScrollAmount = scroll;
 
         MinecraftClient mc = MinecraftClient.getInstance();
-        KillLog killLog = KZEAddon.killLog;
+        KillLog killLog = KZEAddon.getKillLog();
         killLog.render(matrices, mc.getWindow().getScaledWidth(), scroll, killLog.getLogSize(), 255);
 
         this.textRenderer.drawWithShadow(matrices, Text.of("Scroll: " + this.scrollAmount), 0, this.height / 2F, 0xFFFFFFFF);
@@ -36,7 +36,7 @@ public class KillLogScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        this.scrollAmount += amount * KZEAddon.options.killLogScrollMultiplier;
+        this.scrollAmount += amount * KZEAddon.getOptions().killLogScrollMultiplier;
         if (this.scrollAmount < -(this.log.getLogSize() - 1) * this.log.getEntryHeight()) {
             this.scrollAmount = -(this.log.getLogSize() - 1) * this.log.getEntryHeight();
         } else if (this.scrollAmount > this.textRenderer.fontHeight) {

@@ -1,7 +1,7 @@
 package com.theboss.kzeaddonfabric.mixin;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.events.EventsListener;
+import com.theboss.kzeaddonfabric.events.listeners.EventsListener;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.command.CommandOutput;
 import net.minecraft.util.Nameable;

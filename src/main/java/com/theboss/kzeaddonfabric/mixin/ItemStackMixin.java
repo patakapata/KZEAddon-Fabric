@@ -1,6 +1,6 @@
 package com.theboss.kzeaddonfabric.mixin;
 
-import com.theboss.kzeaddonfabric.events.RenderingEventsListener;
+import com.theboss.kzeaddonfabric.events.listeners.RenderingEventsListener;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;

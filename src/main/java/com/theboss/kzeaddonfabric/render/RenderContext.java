@@ -4,6 +4,8 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3d;
 
 public class RenderContext {
     private final float delta;
@@ -44,5 +46,16 @@ public class RenderContext {
 
     public boolean isRenderBlockOutline() {
         return this.renderBlockOutline;
+    }
+
+    public void applyCamera(MatrixStack matrices) {
+        Vec3d pos = this.camera.getPos();
+        matrices.translate(-pos.x, -pos.y, -pos.z);
+    }
+
+    public Matrix4f pushCamera(MatrixStack matrices) {
+        matrices.push();
+        this.applyCamera(matrices);
+        return matrices.peek().getModel();
     }
 }

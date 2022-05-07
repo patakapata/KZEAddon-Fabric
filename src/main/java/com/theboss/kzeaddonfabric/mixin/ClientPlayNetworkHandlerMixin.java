@@ -1,7 +1,7 @@
 package com.theboss.kzeaddonfabric.mixin;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
-import com.theboss.kzeaddonfabric.events.PacketListener;
+import com.theboss.kzeaddonfabric.events.listeners.PacketListener;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.text.LiteralText;

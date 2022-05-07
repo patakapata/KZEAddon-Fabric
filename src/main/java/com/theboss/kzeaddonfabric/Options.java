@@ -1,12 +1,11 @@
 package com.theboss.kzeaddonfabric;
 
 import com.google.gson.*;
-import com.theboss.kzeaddonfabric.render.ChunkInstancedBarrierVisualizer;
-import com.theboss.kzeaddonfabric.render.shader.BarrierShader;
 import com.theboss.kzeaddonfabric.utils.Color;
 import com.theboss.kzeaddonfabric.utils.Exclude;
 import com.theboss.kzeaddonfabric.utils.ExcludeWithAnnotateStrategy;
 import com.theboss.kzeaddonfabric.utils.ModUtils;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Vec3d;
 
@@ -52,6 +51,7 @@ public class Options {
     public boolean isShowFriendlyInvisibles;
     public boolean isVisualizeBarriers;
     public boolean isBarrierFade;
+    public boolean isShowBarrierWireframe;
     public boolean isShowChunkState;
     // その他
     public boolean isShowModLog;
@@ -67,6 +67,7 @@ public class Options {
     public float barrierVisualizeRaycastDistance;
     public float barrierLineWidth;
     public Color barrierColor;
+    public Identifier barrierModel;
     // 銃声の音量
     public float gunfireVolumeMultiplier;
     // 発光色
@@ -95,8 +96,6 @@ public class Options {
     public Options(File configDir) {
         this.optionFile = new File(configDir, "config.json").getAbsoluteFile();
         this.load();
-
-        ChunkInstancedBarrierVisualizer.recordRenderCall(() -> BarrierShader.INSTANCE.setColor(this.barrierColor));
     }
 
     /**
@@ -163,6 +162,7 @@ public class Options {
         this.barrierVisualizeRaycastDistance = 40.0F;
         this.barrierLineWidth = 2F;
         this.barrierColor = new Color(0xAA0000);
+        this.barrierModel = null;
         this.cameraOffset = new Vec3d(0, 0, 0);
         this.killLogScrollMultiplier = 1.0F;
     }

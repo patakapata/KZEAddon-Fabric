@@ -1,7 +1,7 @@
 package com.theboss.kzeaddonfabric;
 
 import com.google.common.collect.Lists;
-import com.theboss.kzeaddonfabric.events.KeyPressingEvents;
+import com.theboss.kzeaddonfabric.events.listeners.KeyPressingEvents;
 import com.theboss.kzeaddonfabric.mixin.accessor.KeyBindingAccessor;
 import net.minecraft.client.option.KeyBinding;
 import org.lwjgl.glfw.GLFW;

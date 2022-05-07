@@ -2,9 +2,12 @@ package com.theboss.kzeaddonfabric.screen;
 
 import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.KZEAddonLog;
+import com.theboss.kzeaddonfabric.render.BarrierVisualizer;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 
 import java.util.List;
 
@@ -30,9 +33,18 @@ public class KZEAddonLogScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        this.scroll += amount > 0 ? 1 : -1;
+        this.scroll += amount;
         this.checkScrollBounds();
         return true;
+    }
+
+    @Override
+    protected void init() {
+        this.addButton(new ButtonWidget(this.width - 100, this.height - 30, 80, 20, new TranslatableText("button.kzeaddon.barrier.reallocate"), unused -> {
+            BarrierVisualizer visualizer = KZEAddon.getBarrierVisualizer();
+            visualizer.recordRenderCall(visualizer::forceReallocate);
+            KZEAddon.info("Barrier visualizer reallocate queued!");
+        }));
     }
 
     @Override

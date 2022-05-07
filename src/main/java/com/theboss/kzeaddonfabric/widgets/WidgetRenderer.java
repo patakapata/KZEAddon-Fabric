@@ -12,6 +12,11 @@ import com.theboss.kzeaddonfabric.screen.WidgetsScreen;
 import com.theboss.kzeaddonfabric.utils.Exclude;
 import com.theboss.kzeaddonfabric.utils.ExcludeWithAnnotateStrategy;
 import com.theboss.kzeaddonfabric.utils.ModUtils;
+import com.theboss.kzeaddonfabric.widgets.api.Widget;
+import com.theboss.kzeaddonfabric.widgets.impl.ReloadTimeWidget;
+import com.theboss.kzeaddonfabric.widgets.impl.TextWidget;
+import com.theboss.kzeaddonfabric.widgets.impl.TotalAmmoWidget;
+import com.theboss.kzeaddonfabric.widgets.impl.WeaponWidget;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
@@ -19,6 +24,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.LowercaseEnumTypeAdapterFactory;
 import net.minecraft.util.Util;
+import net.minecraft.util.math.Vec3f;
 
 import java.io.File;
 import java.io.FileReader;
@@ -210,7 +216,7 @@ public class WidgetRenderer {
     }
 
     private void restoreDefault() {
-        KZEInformation kzeInfo = KZEAddon.kzeInfo;
+        KZEInformation kzeInfo = KZEAddon.getKZEInfo();
         this.primaryWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.PRIMARY), "Main weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -80, -30), Anchor.MIDDLE_DOWN);
         this.secondaryWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.SECONDARY), "Sub weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -60, -30), Anchor.MIDDLE_DOWN);
         this.meleeWidget = new WeaponWidget(kzeInfo.getWeapon(WeaponSlot.MELEE), "Melee Weapon", 0xFF0000, 0xAA0000, 0x00FF00, 0xFF, 1F, new Offset(Anchor.MIDDLE_DOWN, -40, -30), Anchor.MIDDLE_DOWN);

@@ -1,9 +1,9 @@
 package com.theboss.kzeaddonfabric.ingame;
 
 import com.google.gson.*;
+import com.theboss.kzeaddonfabric.KZEAddon;
 import com.theboss.kzeaddonfabric.utils.Exclude;
 import com.theboss.kzeaddonfabric.utils.ExcludeWithAnnotateStrategy;
-import com.theboss.kzeaddonfabric.KZEAddon;
 import net.minecraft.util.Util;
 
 import java.io.File;
@@ -50,9 +50,8 @@ public class Stats {
     public void load() {
         try (FileReader reader = new FileReader(this.saveTarget)) {
             if (!this.saveTarget.exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                this.saveTarget.getParentFile().mkdirs();
-                if (!this.saveTarget.createNewFile()) throw new IOException();
+                if ((!this.saveTarget.getParentFile().exists() && !this.saveTarget.getParentFile().mkdirs()) || !this.saveTarget.createNewFile())
+                    throw new IOException();
             } else {
                 Stats loaded = GSON.fromJson(reader, this.getClass());
                 this.copy(loaded);
@@ -66,9 +65,8 @@ public class Stats {
     public void save() {
         try (FileWriter writer = new FileWriter(this.saveTarget, false)) {
             if (!this.saveTarget.exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                this.saveTarget.getParentFile().mkdirs();
-                if (!this.saveTarget.createNewFile()) throw new IOException();
+                if ((!this.saveTarget.getParentFile().exists() && !this.saveTarget.getParentFile().mkdirs()) || !this.saveTarget.createNewFile())
+                    throw new IOException();
             }
 
             writer.write(GSON.toJson(this));

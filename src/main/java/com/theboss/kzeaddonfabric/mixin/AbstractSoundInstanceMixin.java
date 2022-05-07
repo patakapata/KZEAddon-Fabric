@@ -18,8 +18,8 @@ public abstract class AbstractSoundInstanceMixin implements SoundInstance {
 
     @Inject(method = "getVolume", at = @At("RETURN"), cancellable = true)
     private void onGetVolume(CallbackInfoReturnable<Float> cir) {
-        if (this.sound.getIdentifier().getPath().startsWith("gunshot/") && KZEAddon.options.isChangeGunfireVolume) {
-            cir.setReturnValue(cir.getReturnValueF() * KZEAddon.options.gunfireVolumeMultiplier);
+        if (this.sound.getIdentifier().getPath().startsWith("gunshot/") && KZEAddon.getOptions().isChangeGunfireVolume) {
+            cir.setReturnValue(cir.getReturnValueF() * KZEAddon.getOptions().gunfireVolumeMultiplier);
         }
     }
 }

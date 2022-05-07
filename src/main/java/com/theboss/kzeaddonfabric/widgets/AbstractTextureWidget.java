@@ -2,6 +2,7 @@ package com.theboss.kzeaddonfabric.widgets;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.theboss.kzeaddonfabric.enums.Anchor;
+import com.theboss.kzeaddonfabric.widgets.api.Widget;
 
 public abstract class AbstractTextureWidget implements Widget {
     protected int texture;
