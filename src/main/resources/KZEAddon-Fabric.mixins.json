@@ -2,8 +2,10 @@
   "required": true,
   "minVersion": "0.8",
   "package": "me.patakapata.kzeaddon.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "client": [
+    "EntityMixin",
+    "LivingEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

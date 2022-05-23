@@ -1,0 +1,35 @@
+{
+  "modmenu.descriptionTranslation.kzeaddon": "KZEサーバーでのゲーム体験を向上させます!",
+  
+  "category.kzeaddon.key": "KZEアドオン - ファブリック",
+  "key.kzeaddon.toggle_hide_ally": "味方非表示を切り替える",
+  
+  "category.kzeaddon.option.general": "一般",
+  
+  "option.kzeaddon.overrideZombieTeamColor": "ゾンビチームの色を上書き",
+  "desc.kzeaddon.option.overrideZombieTeamColor": "有効化時ゾンビチームの色を上書きする",
+  
+  "option.kzeaddon.zombieTeamColor": "ゾンビチームの色",
+  "desc.kzeaddon.option.zombieTeamColor": "ゾンビチームの色を上書きする際 設定される値",
+  
+  "option.kzeaddon.overrideGunfireVolume": "銃声の音量を上書き",
+  "desc.kzeaddon.option.overrideGunfireVolume": "有効化時銃声の音量を上書きする",
+  
+  "option.kzeaddon.gunfireVolume": "銃声の音量",
+  "desc.kzeaddon.option.gunfireVolume": "銃声の音量を上書きするさいに使用される値",
+  
+  "option.kzeaddon.playNotificationSoundWhenStartVote": "投票通知音",
+  "desc.kzeaddon.option.playNotificationSoundWhenStartVote": "有効化時ステージ投票が開始した際に通知音を鳴らす",
+  
+  "option.kzeaddon.hideAlly": "味方非表示",
+  "desc.kzeaddon.option.hideAlly": "有効化時味方を非表示にする",
+  
+  "option.kzeaddon.overrideShowFriendlyInvisibles": "seeFriendlyInvisiblesを上書き",
+  "desc.kzeaddon.option.overrideShowFriendlyInvisibles": "有効化時チームの 'seeFriendlyInvisibles' が '透明化の中の味方を表示を有効化' の値で上書きされます",
+  
+  "option.kzeaddon.showFriendlyInvisibles": "透明化の中の味方を表示を有効化",
+  "desc.kzeaddon.option.showFriendlyInvisibles": "'seeFriendlyInvisiblesを上書き' 有効化時この値で上書きされます",
+  
+  "option.kzeaddon.hideFriendlyInvisibleFeatures": "透明化中の味方の装備を非表示",
+  "desc.kzeaddon.option.hideFriendlyInvisibleFeatures": "有効化時透明化中の味方の装備品が非表示になる"
+}

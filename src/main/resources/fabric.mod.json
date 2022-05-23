@@ -13,6 +13,12 @@
   "entrypoints": {
     "client": [
       "me.patakapata.kzeaddon.KzeAddonClientMod"
+    ],
+    "modmenu": [
+      "me.patakapata.kzeaddon.ModMenuIntegration"
+    ],
+    "kzeaddon": [
+      "me.patakapata.kzeaddon.ExampleOverlay"
     ]
   },
   "mixins": [
